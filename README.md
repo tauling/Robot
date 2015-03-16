@@ -3,6 +3,7 @@
 
 #Git config
 git config --global user.name "John Doe"
+
 git config --global user.email johndoe@example.com
 
 #other stuff
@@ -21,5 +22,5 @@ git remote add origin https://github.com/Speci26/Robot.git
 git push -u origin master
 
 
-###
+#add all changes to
 git add . 
