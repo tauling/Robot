@@ -22,4 +22,4 @@
 
 
 #add all changes to
-git add . 
+- git add . 
