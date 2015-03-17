@@ -112,9 +112,9 @@ public class MainActivity extends Activity {
 			textLog.append("[" + text.length() + "] " + text + "\n");
 		}
 	}
-	
+
 	public void logText(int value) {
-			textLog.append(value + "\n");
+		textLog.append(value + "\n");
 	}
 
 	@Override
@@ -224,42 +224,98 @@ public class MainActivity extends Activity {
 	 */
 	public void turnRobot(byte angle, char dir) {
 		int corrAngle = 1;
-		int degrees = corrAngle*angle;
-		int waitTimeMs = (500*degrees)/90;
-		comReadWrite(new byte[] { (byte) dir, (byte)degrees, 'r', '\n' },waitTimeMs);
+		int degrees = corrAngle * angle;
+		int waitTimeMs = (500 * degrees) / 90;
+		comReadWrite(new byte[] { (byte) dir, (byte) degrees, 'r', '\n' },
+				waitTimeMs);
 	}
-	
-	//test
-	public void turn90onPlace() {
-		int left = 100; 
-		int right = -100;
-		comReadWrite(new byte[] { 'i', (byte)left, (byte)right, '\r', '\n' });
+
+	// test
+	public void turn90onPlace(char dir) {
+		int left = 0, right = 0;
+		switch (dir) {
+		case 'l':
+			left = 100;
+			right = -100;
+			break;
+		case 'r':
+			left = -100;
+			right = 100;
+			break;
+		default:
+			logText("wrong turn direction parameter");
+			break;
+		}
+		comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r', '\n' });
 	}
-	
+
 	/**
 	 * tells the robot to move along a square
 	 * 
-	 * @param dir ("l" = left; "r" = right)
-	 * @param dist in cm 
+	 * @param dir
+	 *            ("l" = left; "r" = right)
+	 * @param dist
+	 *            in cm
 	 */
 	public void MoveSquare(int dist, char dir) {
-   		for(int i=0; i<4; i++) {
-			turnRobot((byte)90,dir);
-			moveRobot((byte)dist);
+		for (int i = 0; i < 4; i++) {
+			turnRobot((byte) 90, dir);
+			moveRobot((byte) dist);
 		}
 	}
 
 	public void buttonSensor_onClick(View v) {
-		//logText(comReadWrite(new byte[] { 'q','\r', '\n' }));
-		logText(Integer.parseInt(comReadWrite(new byte[] { 'q','\r', '\n' })));
+		// logText(comReadWrite(new byte[] { 'q','\r', '\n' }));
+		logText(Integer.parseInt(comReadWrite(new byte[] { 'q', '\r', '\n' })));
 	}
-	
+
 	/**
-	 * Obstacle avoidance 
+	 * returns distance in cm
+	 */
+	public int getDistance() {
+		return Integer.parseInt(comReadWrite(new byte[] { 'q', '\r', '\n' }));
+	}
+
+	/**
+	 * Obstacle avoidance
 	 * 
 	 * first drive and read sensor (check for obstacles) method
 	 */
-	public void driveAndRead(){
-		
+	public void driveAndRead() {
+		while (true) {
+			moveRobot((byte) 5);
+			if (getDistance() < 5) {	//checks if robot hit near obstacle (value of 5 is randomly chosen)
+				moveAroundObstacle();
+			}
+		}
+	}
+	
+	/**
+	 * allows robot to drive around simple square object
+	 */
+	public void moveAroundObstacle() {
+		int movedDist = 0;				//moved distance units
+		turn90onPlace('r');
+		boolean turnLeft = false;
+		while(!turnLeft){
+			moveRobot((byte)5);
+			movedDist++;
+			turn90onPlace('l');
+			if(getDistance() > 66){ 	//checks if robot can now drive around obstacle corner (value of 66 isn't correct)
+				turnLeft = true;
+			} 
+		}
+		turnLeft = false;
+		while(!turnLeft){
+			moveRobot((byte)5);			//moved distance along this edge doesn't matter
+			turn90onPlace('l');
+			if(getDistance() > 66){ 	//checks if robot can now drive around obstacle corner (value of 66 isn't correct)
+				turnLeft = true;
+			} 
+		}
+		for(int i=movedDist;i>0;i--){
+			moveRobot((byte)5);
+		}
+		turn90onPlace('r');
 	}
 }
