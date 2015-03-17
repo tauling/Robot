@@ -16,6 +16,7 @@ public class MainActivity extends Activity {
 	private String TAG = "iRobot";
 	private TextView textLog;
 	private FTDriver com;
+	private Integer ObsDetecBorder = 5;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -213,6 +214,13 @@ public class MainActivity extends Activity {
 		logText(comReadWrite(new byte[] { 'k', (byte) fdist, '\r', '\n' },
 				dist * 100));
 	}
+	
+	public void moveRobot(int dist) {
+		int correctDist = 1;
+		int fdist = dist * correctDist;
+		logText(comReadWrite(new byte[] { 'k', (byte) fdist, '\r', '\n' },
+				dist * 100));
+	}
 
 	/**
 	 * tells the robot to turn
@@ -230,7 +238,7 @@ public class MainActivity extends Activity {
 				waitTimeMs);
 	}
 
-	// test
+	// test velocity values for left and right wheel
 	public void turn90onPlace(char dir) {
 		int left = 0, right = 0;
 		switch (dir) {
@@ -279,12 +287,12 @@ public class MainActivity extends Activity {
 	/**
 	 * Obstacle avoidance
 	 * 
-	 * first drive and read sensor (check for obstacles) method
+	 * drive on straight line and read sensor (check for obstacles)
 	 */
 	public void driveAndRead() {
 		while (true) {
-			moveRobot((byte) 5);
-			if (getDistance() < 5) {	//checks if robot hit near obstacle (value of 5 is randomly chosen)
+			moveRobot(5);
+			if (getDistance() <= ObsDetecBorder) {	//checks if robot hit near obstacle (value of 5 is randomly chosen)
 				moveAroundObstacle();
 			}
 		}
@@ -294,28 +302,31 @@ public class MainActivity extends Activity {
 	 * allows robot to drive around simple square object
 	 */
 	public void moveAroundObstacle() {
-		int movedDist = 0;				//moved distance units
+		int firEdge = 0,secEdge=0;				
 		turn90onPlace('r');
+		firEdge = driveAroundNextCorner();
+		secEdge = driveAroundNextCorner();
+		for(int i=firEdge;i>0;i--){
+			moveRobot(5);
+		}
+		turn90onPlace('r');
+	}
+		
+	/**
+	 * move forward and turn left at next corner 
+	 */
+	public int driveAroundNextCorner(){
+		int movedDist = 0;							//moved distance units
 		boolean turnLeft = false;
 		while(!turnLeft){
-			moveRobot((byte)5);
+			moveRobot(5);
 			movedDist++;
 			turn90onPlace('l');
-			if(getDistance() > 66){ 	//checks if robot can now drive around obstacle corner (value of 66 isn't correct)
+			if(getDistance() > ObsDetecBorder){ 	//checks if robot can now drive around obstacle corner (value of 66 isn't correct)
 				turnLeft = true;
 			} 
+			turn90onPlace('r');
 		}
-		turnLeft = false;
-		while(!turnLeft){
-			moveRobot((byte)5);			//moved distance along this edge doesn't matter
-			turn90onPlace('l');
-			if(getDistance() > 66){ 	//checks if robot can now drive around obstacle corner (value of 66 isn't correct)
-				turnLeft = true;
-			} 
-		}
-		for(int i=movedDist;i>0;i--){
-			moveRobot((byte)5);
-		}
-		turn90onPlace('r');
+		return movedDist;
 	}
 }
