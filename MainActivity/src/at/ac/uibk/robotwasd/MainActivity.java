@@ -329,4 +329,29 @@ public class MainActivity extends Activity {
 		}
 		return movedDist;
 	}
+	
+	/**
+	 * Tries to move the robot to point (x,y)
+	 * 
+	 * first drive and read sensor (check for obstacles) method
+	 */
+	public void moveToPoint(int x, int y) {
+		double tol = 1;
+		double[] currLoc;
+		int dist;
+		int angle;
+		int moved = 0;
+		
+		currLoc = getPosition();
+		angle = (int) Math.atan((x-currLoc[0])/(y-currLoc[1]));
+		dist = (int) Math.sqrt(Math.pow(x-currLoc[0],2) + Math.pow(y-currLoc[1], 2));
+		
+		turnRobot((byte) angle,'l');
+		
+		while (moved < dist) {
+			moved++;
+			driveAndRead();
+		}
+	}
+	
 }
