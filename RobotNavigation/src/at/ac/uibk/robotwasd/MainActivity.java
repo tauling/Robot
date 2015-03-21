@@ -330,6 +330,10 @@ public class MainActivity extends Activity {
 		return movedDist;
 	}
 	
+	public double[] getPosition(){
+		return null;
+	}
+	
 	/**
 	 * Tries to move the robot to point (x,y)
 	 * 
