@@ -1,4 +1,4 @@
-package at.ac.uibk.robotwasd;
+package robot.navigate;
 
 import jp.ksksue.driver.serial.FTDriver;
 import android.app.Activity;
@@ -9,6 +9,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import at.ac.uibk.robotwasd.R;
+import at.ac.uibk.robotwasd.R.id;
+import at.ac.uibk.robotwasd.R.layout;
+import at.ac.uibk.robotwasd.R.menu;
 
 public class MainActivity extends Activity {
 
