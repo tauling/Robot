@@ -20,7 +20,9 @@ public class MainActivity extends Activity {
 	private String TAG = "iRobot";
 	private TextView textLog;
 	private FTDriver com;
-	private Integer ObsDetecBorder = 5;
+	private Integer ObsDetecBorder = 10; // Working range of sensors is 10 to 80
+											// cm (every other value should be
+											// treated as no obstacle)
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -207,14 +209,18 @@ public class MainActivity extends Activity {
 		robotSetLeds((byte) 255, (byte) 128);
 	}
 
-	public void buttonSensor_onClick(View v) {
-		// logText(comReadWrite(new byte[] { 'q','\r', '\n' }));
-		logText(Integer.parseInt(comReadWrite(new byte[] { 'q', '\r', '\n' })));
-	}
-
 	public void buttonLedOff_onClick(View v) {
 		// logText(comReadWrite(new byte[] { 'e', '\r', '\n' }));
 		robotSetLeds((byte) 0, (byte) 0);
+	}
+
+	public void buttonSensor_onClick(View v) {
+		// logText(comReadWrite(new byte[] { 'q','\r', '\n' }));
+		logText(Integer.parseInt(comReadWrite(new byte[] { 'q', '\r', '\n' })));
+		
+		MoveSquare(20,'r');
+		//driveAndRead();
+		//driveAroundNextCorner();
 	}
 
 	public void moveRobot(byte dist) {
@@ -241,7 +247,7 @@ public class MainActivity extends Activity {
 	 */
 	public void MoveSquare(int dist, char dir) {
 		for (int i = 0; i < 4; i++) {
-			turnRobot((byte) 90, dir);
+			turn90onPlace( dir);
 			moveRobot((byte) dist);
 		}
 	}
@@ -308,7 +314,7 @@ public class MainActivity extends Activity {
 	 * allows robot to drive around simple square object
 	 */
 	public void moveAroundObstacle() {
-		int firEdge = 0, secEdge = 0;
+		int firEdge = 0, secEdge = 0; //length of each edge
 		turn90onPlace('r');
 		firEdge = driveAroundNextCorner();
 		secEdge = driveAroundNextCorner();
