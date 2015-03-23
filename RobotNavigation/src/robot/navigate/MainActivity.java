@@ -227,21 +227,16 @@ public class MainActivity extends Activity {
 		//driveAroundNextCorner();
 	}
 
-	public void moveRobot(byte dist) {
-		double correctDist = 100.0/72;
-		int fdist = (int)(dist * correctDist);
-		logText(fdist);
-		logText(comReadWrite(new byte[] { 'k', (byte) fdist, '\r', '\n' },
-				dist * 200));
-	}
-
 	public void moveRobot(int dist) {
-		double correctDist = 100.0/72;
-		int fdist = (int)(dist * correctDist);
-		logText("correctDist"+correctDist);
-		logText("fdist"+fdist);
-		logText(comReadWrite(new byte[] { 'k', (byte) fdist, '\r', '\n' },
-				dist * 100));
+		double corrDistFact = 100.0/72; // Coming from a measurement
+		int corrDist = (int)(dist * corrDistFact);
+		while (Math.abs(corrDist) > 127) { // Byte stores values from -128 to 127
+			corrDist -= (int)(Math.signum(corrDist))*127;
+			logText(comReadWrite(new byte[] { 'k', (byte) 127, '\r', '\n' },
+					127 * 100));
+		}
+		logText(comReadWrite(new byte[] { 'k', (byte) corrDist, '\r', '\n' },
+				Math.abs(dist) * 100));
 	}
 
 	/**
@@ -252,7 +247,7 @@ public class MainActivity extends Activity {
 	 * @param dist
 	 *            in cm
 	 */
-	public void MoveSquare(int dist, char dir) {
+	public void moveSquare(int dist, char dir) {
 		for (int i = 0; i < 4; i++) {
 			turn90onPlace( dir);
 			moveRobot((byte) dist);
