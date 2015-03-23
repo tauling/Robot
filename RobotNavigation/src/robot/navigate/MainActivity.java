@@ -34,6 +34,7 @@ public class MainActivity extends Activity {
 		com = new FTDriver((UsbManager) getSystemService(USB_SERVICE));
 
 		connect();
+		robotSetBar((byte)0.75);
 	}
 
 	public void connect() {
@@ -216,23 +217,29 @@ public class MainActivity extends Activity {
 
 	public void buttonSensor_onClick(View v) {
 		// logText(comReadWrite(new byte[] { 'q','\r', '\n' }));
-		logText(Integer.parseInt(comReadWrite(new byte[] { 'q', '\r', '\n' })));
-		
-		MoveSquare(20,'r');
+		//logText(Integer.parseInt(comReadWrite(new byte[] { 'q', '\r', '\n' })));
+		turn90onPlace('l');
+		turn90onPlace('l');
+		turn90onPlace('l');
+		turn90onPlace('l');
+		//MoveSquare(20,'r');
 		//driveAndRead();
 		//driveAroundNextCorner();
 	}
 
 	public void moveRobot(byte dist) {
-		int correctDist = 1;
-		int fdist = dist * correctDist;
+		double correctDist = 100.0/72;
+		int fdist = (int)(dist * correctDist);
+		logText(fdist);
 		logText(comReadWrite(new byte[] { 'k', (byte) fdist, '\r', '\n' },
-				dist * 100));
+				dist * 200));
 	}
 
 	public void moveRobot(int dist) {
-		int correctDist = 1;
-		int fdist = dist * correctDist;
+		double correctDist = 100.0/72;
+		int fdist = (int)(dist * correctDist);
+		logText("correctDist"+correctDist);
+		logText("fdist"+fdist);
 		logText(comReadWrite(new byte[] { 'k', (byte) fdist, '\r', '\n' },
 				dist * 100));
 	}
@@ -273,12 +280,12 @@ public class MainActivity extends Activity {
 		int left = 0, right = 0;
 		switch (dir) {
 		case 'l':
-			left = 100;
-			right = -100;
+			left = 10;
+			right = -10;
 			break;
 		case 'r':
-			left = -100;
-			right = 100;
+			left = -10;
+			right = 10;
 			break;
 		default:
 			logText("wrong turn direction parameter");
