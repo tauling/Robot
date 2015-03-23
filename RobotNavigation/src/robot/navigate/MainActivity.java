@@ -207,6 +207,11 @@ public class MainActivity extends Activity {
 		robotSetLeds((byte) 255, (byte) 128);
 	}
 
+	public void buttonSensor_onClick(View v) {
+		// logText(comReadWrite(new byte[] { 'q','\r', '\n' }));
+		logText(Integer.parseInt(comReadWrite(new byte[] { 'q', '\r', '\n' })));
+	}
+
 	public void buttonLedOff_onClick(View v) {
 		// logText(comReadWrite(new byte[] { 'e', '\r', '\n' }));
 		robotSetLeds((byte) 0, (byte) 0);
@@ -218,12 +223,27 @@ public class MainActivity extends Activity {
 		logText(comReadWrite(new byte[] { 'k', (byte) fdist, '\r', '\n' },
 				dist * 100));
 	}
-	
+
 	public void moveRobot(int dist) {
 		int correctDist = 1;
 		int fdist = dist * correctDist;
 		logText(comReadWrite(new byte[] { 'k', (byte) fdist, '\r', '\n' },
 				dist * 100));
+	}
+
+	/**
+	 * tells the robot to move along a square
+	 * 
+	 * @param dir
+	 *            ("l" = left; "r" = right)
+	 * @param dist
+	 *            in cm
+	 */
+	public void MoveSquare(int dist, char dir) {
+		for (int i = 0; i < 4; i++) {
+			turnRobot((byte) 90, dir);
+			moveRobot((byte) dist);
+		}
 	}
 
 	/**
@@ -262,26 +282,6 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * tells the robot to move along a square
-	 * 
-	 * @param dir
-	 *            ("l" = left; "r" = right)
-	 * @param dist
-	 *            in cm
-	 */
-	public void MoveSquare(int dist, char dir) {
-		for (int i = 0; i < 4; i++) {
-			turnRobot((byte) 90, dir);
-			moveRobot((byte) dist);
-		}
-	}
-
-	public void buttonSensor_onClick(View v) {
-		// logText(comReadWrite(new byte[] { 'q','\r', '\n' }));
-		logText(Integer.parseInt(comReadWrite(new byte[] { 'q', '\r', '\n' })));
-	}
-
-	/**
 	 * returns distance in cm
 	 */
 	public int getDistance() {
@@ -296,48 +296,53 @@ public class MainActivity extends Activity {
 	public void driveAndRead() {
 		while (true) {
 			moveRobot(5);
-			if (getDistance() <= ObsDetecBorder) {	//checks if robot hit near obstacle (value of 5 is randomly chosen)
+			if (getDistance() <= ObsDetecBorder) { // checks if robot hit near
+													// obstacle (value of 5 is
+													// randomly chosen)
 				moveAroundObstacle();
 			}
 		}
 	}
-	
+
 	/**
 	 * allows robot to drive around simple square object
 	 */
 	public void moveAroundObstacle() {
-		int firEdge = 0,secEdge=0;				
+		int firEdge = 0, secEdge = 0;
 		turn90onPlace('r');
 		firEdge = driveAroundNextCorner();
 		secEdge = driveAroundNextCorner();
-		for(int i=firEdge;i>0;i--){
+		for (int i = firEdge; i > 0; i--) {
 			moveRobot(5);
 		}
 		turn90onPlace('r');
 	}
-		
+
 	/**
-	 * move forward and turn left at next corner 
+	 * move forward and turn left at next corner
 	 */
-	public int driveAroundNextCorner(){
-		int movedDist = 0;							//moved distance units
+	public int driveAroundNextCorner() {
+		int movedDist = 0; // moved distance units
 		boolean turnLeft = false;
-		while(!turnLeft){
+		while (!turnLeft) {
 			moveRobot(5);
 			movedDist++;
 			turn90onPlace('l');
-			if(getDistance() > ObsDetecBorder){ 	//checks if robot can now drive around obstacle corner (value of 66 isn't correct)
+			if (getDistance() > ObsDetecBorder) { // checks if robot can now
+													// drive around obstacle
+													// corner (value of 66 isn't
+													// correct)
 				turnLeft = true;
-			} 
+			}
 			turn90onPlace('r');
 		}
 		return movedDist;
 	}
-	
-	public double[] getPosition(){
+
+	public double[] getPosition() {
 		return null;
 	}
-	
+
 	/**
 	 * Tries to move the robot to point (x,y)
 	 * 
@@ -349,17 +354,18 @@ public class MainActivity extends Activity {
 		int dist;
 		int angle;
 		int moved = 0;
-		
+
 		currLoc = getPosition();
-		angle = (int) Math.atan((x-currLoc[0])/(y-currLoc[1]));
-		dist = (int) Math.sqrt(Math.pow(x-currLoc[0],2) + Math.pow(y-currLoc[1], 2));
-		
-		turnRobot((byte) angle,'l');
-		
+		angle = (int) Math.atan((x - currLoc[0]) / (y - currLoc[1]));
+		dist = (int) Math.sqrt(Math.pow(x - currLoc[0], 2)
+				+ Math.pow(y - currLoc[1], 2));
+
+		turnRobot((byte) angle, 'l');
+
 		while (moved < dist) {
 			moved++;
 			driveAndRead();
 		}
 	}
-	
+
 }
