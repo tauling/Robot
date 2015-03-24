@@ -21,9 +21,15 @@ public class MainActivity extends Activity {
 	private TextView textLog;
 	private FTDriver com;
 	private Integer ObsDetecBorder = 10; // Working range of sensors is 10 to 80
-											// cm (every other value should be
-											// treated as no obstacle)
+										 // cm (every other value should be
+										 // treated as no obstacle)
 
+
+	/**
+	 * Connects to the robot when app is started and initializes the position of the robot's bar.
+	 * 
+	 * @param savedInstanceState
+	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -34,26 +40,35 @@ public class MainActivity extends Activity {
 		com = new FTDriver((UsbManager) getSystemService(USB_SERVICE));
 
 		connect();
-		robotSetBar((byte)0.75);
+		
+		robotSetBar((byte) 0.75); // Initializing height of the bar. 
 	}
 
-	public void connect() {
-		// TODO implement permission request
 
+	/**
+	 * Establishes connection to the robot.
+	 */
+	public void connect() {
 		if (com.begin(9600)) {
-			textLog.append("connected\n");
+			writeLog("connected\n");
 		} else {
-			textLog.append("could not connect\n");
+			writeLog("could not connect\n");
 		}
 	}
 
+
+
+	/**
+	 * Closes the connection to the robot.
+	 */
 	public void disconnect() {
 		com.end();
 		if (!com.isConnected()) {
-			textLog.append("disconnected\n");
+			writeLog("disconnected\n");
 		}
 	}
 
+	
 	/**
 	 * transfers given bytes via the serial connection.
 	 * 
@@ -62,13 +77,14 @@ public class MainActivity extends Activity {
 	public void comWrite(byte[] data) {
 		if (com.isConnected()) {
 			com.write(data);
+			writeLog("comWrite(data)\n"); // TODO Add the content of data to the log.
 		} else {
-			textLog.append("not connected\n");
+			writeLog("not connected\n");
 		}
 	}
 
 	/**
-	 * reads from the serial buffer. due to buffering, the read command is
+	 * Reads from the serial buffer. Due to buffering, the read command is
 	 * issued 3 times at minimum and continuously as long as there are bytes to
 	 * read from the buffer. Note that this function does not block, it might
 	 * return an empty string if no bytes have been read at all.
@@ -79,7 +95,7 @@ public class MainActivity extends Activity {
 		String s = "";
 		int i = 0;
 		int n = 0;
-		while (i < 3 || n > 0) {
+		while (i < 3 && n == 0) {
 			byte[] buffer = new byte[256];
 			n = com.read(buffer);
 			s += new String(buffer, 0, n);
@@ -87,26 +103,28 @@ public class MainActivity extends Activity {
 		}
 		return s;
 	}
+	
 
 	/**
-	 * write data to serial interface, wait 100 ms and read answer.
+	 * Write data to serial interface, wait 300 ms and read answer.
 	 * 
-	 * @param data
-	 *            to write
+	 * @param data to write
 	 * @return answer from serial interface
 	 */
 	public String comReadWrite(byte[] data) {
-		com.write(data);
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e) {
-			// ignore
-		}
-		return comRead();
+		return comReadWrite(data, 300);
 	}
+	
 
+	/**
+	 * Write data to serial interface, wait for the specified time and read answer.
+	 * 
+	 * @param data to write
+	 * @param time to wait in ms
+	 * @return answer from serial interface
+	 */
 	public String comReadWrite(byte[] data, int time) {
-		com.write(data);
+		comWrite(data);
 		try {
 			Thread.sleep(time);
 		} catch (InterruptedException e) {
@@ -114,23 +132,38 @@ public class MainActivity extends Activity {
 		}
 		return comRead();
 	}
+	
 
-	public void logText(String text) {
+	/**
+	 * Add the given text to the log file; also writes the length of the text into the log-file.
+	 * @param text
+	 */
+	public void writeLog(String text) {
 		if (text.length() > 0) {
 			textLog.append("[" + text.length() + "] " + text + "\n");
 		}
 	}
 
-	public void logText(int value) {
+	/**
+	 * Add the given integer to the log file.
+	 * @param value
+	 */
+	public void writeLog(int value) {
 		textLog.append(value + "\n");
 	}
+	
 
+	// TODO Check if needed
+	// TODO Add comment
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
+	
 
+	// TODO Check if needed
+	// TODO Add comment
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -146,37 +179,44 @@ public class MainActivity extends Activity {
 			return super.onOptionsItemSelected(item);
 		}
 	}
-
-	public void robotSetLeds(byte red, byte blue) {
-		logText(comReadWrite(new byte[] { 'u', red, blue, '\r', '\n' }));
+	
+	/**
+	 * Sets the blue and red LED of the robot.
+	 * @param red sets the intensity of the red colored LED (min value 0, max value 127)
+	 * @param blue sets the intensity of the blue colored LED (min value 0, max value 127)
+	 */
+	// TODO Check, whether or not the robot does what it says in the function description.
+	public void robotSetLeds(int red, int blue) {
+		writeLog(comReadWrite(new byte[] { 'u', (byte) Math.min(Math.max(red, 127),0), (byte) Math.min(Math.max(blue, 127),0), '\r', '\n' }));
 	}
+	
 
 	public void robotSetVelocity(byte left, byte right) {
-		logText(comReadWrite(new byte[] { 'i', left, right, '\r', '\n' }));
+		writeLog(comReadWrite(new byte[] { 'i', left, right, '\r', '\n' }));
 	}
 
 	public void robotSetBar(byte value) {
-		logText(comReadWrite(new byte[] { 'o', value, '\r', '\n' }));
+		writeLog(comReadWrite(new byte[] { 'o', value, '\r', '\n' }));
 	}
 
 	// move forward
 	public void buttonW_onClick(View v) {
-		logText(comReadWrite(new byte[] { 'w', '\r', '\n' }));
+		writeLog(comReadWrite(new byte[] { 'w', '\r', '\n' }));
 	}
 
 	// turn left
 	public void buttonA_onClick(View v) {
-		logText(comReadWrite(new byte[] { 'a', '\r', '\n' }));
+		writeLog(comReadWrite(new byte[] { 'a', '\r', '\n' }));
 	}
 
 	// stop
 	public void buttonS_onClick(View v) {
-		logText(comReadWrite(new byte[] { 's', '\r', '\n' }));
+		writeLog(comReadWrite(new byte[] { 's', '\r', '\n' }));
 	}
 
 	// turn right
 	public void buttonD_onClick(View v) {
-		logText(comReadWrite(new byte[] { 'd', '\r', '\n' }));
+		writeLog(comReadWrite(new byte[] { 'd', '\r', '\n' }));
 	}
 
 	// move backward
@@ -187,12 +227,12 @@ public class MainActivity extends Activity {
 
 	// lower bar a few degrees
 	public void buttonMinus_onClick(View v) {
-		logText(comReadWrite(new byte[] { '-', '\r', '\n' }));
+		writeLog(comReadWrite(new byte[] { '-', '\r', '\n' }));
 	}
 
 	// rise bar a few degrees
 	public void buttonPlus_onClick(View v) {
-		logText(comReadWrite(new byte[] { '+', '\r', '\n' }));
+		writeLog(comReadWrite(new byte[] { '+', '\r', '\n' }));
 	}
 
 	// fixed position for bar (low)
@@ -217,25 +257,27 @@ public class MainActivity extends Activity {
 
 	public void buttonSensor_onClick(View v) {
 		// logText(comReadWrite(new byte[] { 'q','\r', '\n' }));
-		//logText(Integer.parseInt(comReadWrite(new byte[] { 'q', '\r', '\n' })));
+		// logText(Integer.parseInt(comReadWrite(new byte[] { 'q', '\r', '\n'
+		// })));
 		turn90onPlace('l');
 		turn90onPlace('l');
 		turn90onPlace('l');
 		turn90onPlace('l');
-		//MoveSquare(20,'r');
-		//driveAndRead();
-		//driveAroundNextCorner();
+		// MoveSquare(20,'r');
+		// driveAndRead();
+		// driveAroundNextCorner();
 	}
 
 	public void moveRobot(int dist) {
-		double corrDistFact = 100.0/72; // Coming from a measurement
-		int corrDist = (int)(dist * corrDistFact);
-		while (Math.abs(corrDist) > 127) { // Byte stores values from -128 to 127
-			corrDist -= (int)(Math.signum(corrDist))*127;
-			logText(comReadWrite(new byte[] { 'k', (byte) 127, '\r', '\n' },
+		double corrDistFact = 100.0 / 72; // Coming from a measurement
+		int corrDist = (int) (dist * corrDistFact);
+		while (Math.abs(corrDist) > 127) { // Byte stores values from -128 to
+											// 127
+			corrDist -= (int) (Math.signum(corrDist)) * 127;
+			writeLog(comReadWrite(new byte[] { 'k', (byte) 127, '\r', '\n' },
 					127 * 100));
 		}
-		logText(comReadWrite(new byte[] { 'k', (byte) corrDist, '\r', '\n' },
+		writeLog(comReadWrite(new byte[] { 'k', (byte) corrDist, '\r', '\n' },
 				Math.abs(dist) * 100));
 	}
 
@@ -249,7 +291,7 @@ public class MainActivity extends Activity {
 	 */
 	public void moveSquare(int dist, char dir) {
 		for (int i = 0; i < 4; i++) {
-			turn90onPlace( dir);
+			turn90onPlace(dir);
 			moveRobot((byte) dist);
 		}
 	}
@@ -283,14 +325,15 @@ public class MainActivity extends Activity {
 			right = 10;
 			break;
 		default:
-			logText("wrong turn direction parameter");
+			writeLog("wrong turn direction parameter");
 			break;
 		}
 		double startTime = System.nanoTime();
-		int runtime = 100; //we have to verify this value
-		double finishTime =  startTime+runtime;
-		while(finishTime < System.nanoTime())
-			comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r', '\n' });
+		int runtime = 100; // we have to verify this value
+		double finishTime = startTime + runtime;
+		while (finishTime < System.nanoTime())
+			comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r',
+					'\n' });
 	}
 
 	/**
@@ -319,7 +362,7 @@ public class MainActivity extends Activity {
 	 * allows robot to drive around simple square object
 	 */
 	public void moveAroundObstacle() {
-		int firEdge = 0, secEdge = 0; //length of each edge
+		int firEdge = 0, secEdge = 0; // length of each edge
 		turn90onPlace('r');
 		firEdge = driveAroundNextCorner();
 		secEdge = driveAroundNextCorner();
