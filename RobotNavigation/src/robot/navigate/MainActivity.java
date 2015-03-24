@@ -309,8 +309,7 @@ public class MainActivity extends Activity {
 		while (true) {
 			moveRobot(5);
 			if (getDistance() <= ObsDetecBorder) { // checks if robot hit near
-													// obstacle (value of 5 is
-													// randomly chosen)
+													// obstacle
 				moveAroundObstacle();
 			}
 		}
@@ -342,8 +341,7 @@ public class MainActivity extends Activity {
 			turn90onPlace('l');
 			if (getDistance() > ObsDetecBorder) { // checks if robot can now
 													// drive around obstacle
-													// corner (value of 66 isn't
-													// correct)
+													// corner
 				turnLeft = true;
 			}
 			turn90onPlace('r');
