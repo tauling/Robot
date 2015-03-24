@@ -41,7 +41,7 @@ public class MainActivity extends Activity {
 
 		connect();
 		
-		robotSetBar((byte) 0.75); // Initializing height of the bar. 
+		robotSetBar((byte) 50); // Initializing height of the bar. 
 	}
 
 
@@ -95,7 +95,7 @@ public class MainActivity extends Activity {
 		String s = "";
 		int i = 0;
 		int n = 0;
-		while (i < 3 && n == 0) {
+		while (i < 3  || n > 0) {
 			byte[] buffer = new byte[256];
 			n = com.read(buffer);
 			s += new String(buffer, 0, n);
@@ -191,6 +191,7 @@ public class MainActivity extends Activity {
 	}
 	
 
+	
 	public void robotSetVelocity(byte left, byte right) {
 		writeLog(comReadWrite(new byte[] { 'i', left, right, '\r', '\n' }));
 	}
@@ -259,10 +260,22 @@ public class MainActivity extends Activity {
 		// logText(comReadWrite(new byte[] { 'q','\r', '\n' }));
 		// logText(Integer.parseInt(comReadWrite(new byte[] { 'q', '\r', '\n'
 		// })));
-		turn90onPlace('l');
-		turn90onPlace('l');
-		turn90onPlace('l');
-		turn90onPlace('l');
+		int i = 0;
+		String[] measurement;
+		while(i < 1) {
+			i++;
+			try{
+			Thread.sleep(300);} catch(Exception e) {}
+			measurement = comReadWrite(new byte[] { 'q','\r', '\n' }).split(" ");
+			writeLog(comReadWrite(new byte[] { 'q','\r', '\n' }));
+			for (String value: measurement) {
+				writeLog(value);
+				writeLog(value.substring(2,4).toUpperCase());
+				writeLog(Integer.toString(Integer.parseInt(value.substring(2,4).toUpperCase(),16)));
+			}
+			writeLog("Measurement " + i);
+		}
+//		getDistance();
 		// MoveSquare(20,'r');
 		// driveAndRead();
 		// driveAroundNextCorner();
@@ -271,14 +284,15 @@ public class MainActivity extends Activity {
 	public void moveRobot(int dist) {
 		double corrDistFact = 100.0 / 72; // Coming from a measurement
 		int corrDist = (int) (dist * corrDistFact);
+		int waitTimeFact = 100;
 		while (Math.abs(corrDist) > 127) { // Byte stores values from -128 to
 											// 127
 			corrDist -= (int) (Math.signum(corrDist)) * 127;
 			writeLog(comReadWrite(new byte[] { 'k', (byte) 127, '\r', '\n' },
-					127 * 100));
+					127 * waitTimeFact));
 		}
 		writeLog(comReadWrite(new byte[] { 'k', (byte) corrDist, '\r', '\n' },
-				Math.abs(dist) * 100));
+				Math.abs(dist) * waitTimeFact));
 	}
 
 	/**
@@ -291,7 +305,7 @@ public class MainActivity extends Activity {
 	 */
 	public void moveSquare(int dist, char dir) {
 		for (int i = 0; i < 4; i++) {
-			turn90onPlace(dir);
+			turnRobot(90,dir);
 			moveRobot((byte) dist);
 		}
 	}
@@ -304,37 +318,14 @@ public class MainActivity extends Activity {
 	 * @param dir
 	 *            ("l" = left; "r" = right)
 	 */
-	public void turnRobot(byte angle, char dir) {
-		int corrAngle = 1;
-		int degrees = corrAngle * angle;
-		int waitTimeMs = (500 * degrees) / 90;
-		comReadWrite(new byte[] { (byte) dir, (byte) degrees, 'r', '\n' },
-				waitTimeMs);
+	public void turnRobot(int angle, char dir) {
+		double corrAngle = 8.0/7; // Coming from a measurement
+		int degrees = (int) (corrAngle * angle);
+		int waitTimeMs = (1500 * degrees) / 90;
+		writeLog(comReadWrite(new byte[] { (byte) dir, (byte) degrees, 'r', '\n' },
+				waitTimeMs));
 	}
-
-	// test velocity values for left and right wheel
-	public void turn90onPlace(char dir) {
-		int left = 0, right = 0;
-		switch (dir) {
-		case 'l':
-			left = 10;
-			right = -10;
-			break;
-		case 'r':
-			left = -10;
-			right = 10;
-			break;
-		default:
-			writeLog("wrong turn direction parameter");
-			break;
-		}
-		double startTime = System.nanoTime();
-		int runtime = 100; // we have to verify this value
-		double finishTime = startTime + runtime;
-		while (finishTime < System.nanoTime())
-			comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r',
-					'\n' });
-	}
+	
 
 	/**
 	 * returns distance in cm
@@ -343,17 +334,25 @@ public class MainActivity extends Activity {
 		return Integer.parseInt(comReadWrite(new byte[] { 'q', '\r', '\n' }));
 	}
 
+	
 	/**
 	 * Obstacle avoidance
 	 * 
 	 * drive on straight line and read sensor (check for obstacles)
 	 */
 	public void driveAndRead() {
-		while (true) {
-			moveRobot(5);
-			if (getDistance() <= ObsDetecBorder) { // checks if robot hit near
-													// obstacle
-				moveAroundObstacle();
+		int i = 0;
+		while (i < 3) {
+			moveRobot(1);
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e) {
+				writeLog("Can't sleep");
+			}			
+			writeLog(getDistance());
+			if (getDistance() <= ObsDetecBorder) { // checks if robot hit near obstacle
+				turnRobot(90,'r');
+				i++;
 			}
 		}
 	}
@@ -363,13 +362,13 @@ public class MainActivity extends Activity {
 	 */
 	public void moveAroundObstacle() {
 		int firEdge = 0, secEdge = 0; // length of each edge
-		turn90onPlace('r');
+		turnRobot(90,'r');
 		firEdge = driveAroundNextCorner();
 		secEdge = driveAroundNextCorner();
 		for (int i = firEdge; i > 0; i--) {
 			moveRobot(5);
 		}
-		turn90onPlace('r');
+		turnRobot(90,'r');
 	}
 
 	/**
@@ -381,13 +380,13 @@ public class MainActivity extends Activity {
 		while (!turnLeft) {
 			moveRobot(5);
 			movedDist++;
-			turn90onPlace('l');
+			turnRobot(90,'l');
 			if (getDistance() > ObsDetecBorder) { // checks if robot can now
 													// drive around obstacle
 													// corner
 				turnLeft = true;
 			}
-			turn90onPlace('r');
+			turnRobot(90,'r');
 		}
 		return movedDist;
 	}
