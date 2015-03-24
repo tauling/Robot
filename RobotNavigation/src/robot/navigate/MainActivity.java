@@ -286,7 +286,11 @@ public class MainActivity extends Activity {
 			logText("wrong turn direction parameter");
 			break;
 		}
-		comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r', '\n' });
+		double startTime = System.nanoTime();
+		int runtime = 100; //we have to verify this value
+		double finishTime =  startTime+runtime;
+		while(finishTime < System.nanoTime())
+			comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r', '\n' });
 	}
 
 	/**
