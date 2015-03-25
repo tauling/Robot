@@ -30,6 +30,7 @@ public class MainActivity extends Activity {
 											// treated as no obstacle)
 
 	private int Xg = 0, Yg = 0, Tg = 0;
+
 	/**
 	 * Connects to the robot when app is started and initializes the position of
 	 * the robot's bar.
@@ -272,10 +273,38 @@ public class MainActivity extends Activity {
 		Iterator<String> measureIter = measurement.keySet().iterator();
 
 		measurement = getDistance();
-		
-		while(measureIter.hasNext()){
-		  String key = measureIter.next();
-		  writeLog(measurement.get(key));
+
+		while (measureIter.hasNext()) {
+			String key = measureIter.next();
+			writeLog(measurement.get(key));
+		}
+	}
+
+	/**
+	 * updates global Position parameters after Robot moved one stepLength
+	 * 
+	 * @param stepLength
+	 */
+
+	public void updatePosition(int stepLength) {
+		int movementX = 0, movementY = 0;
+		movementX = (int) Math.sin(Tg) * stepLength;
+		movementY = (int) (movementX / Math.tan(Tg));
+		Xg = movementX;
+		Yg = movementY;
+	}
+
+	public void updateRotation(int angle, char dir) {
+		switch (dir) {
+		case 'l':
+			Tg -= angle;
+			break;
+		case 'r':
+			Tg += angle;
+			break;
+		default:
+			writeLog("wrong input direction");
+			break;
 		}
 	}
 
@@ -291,6 +320,7 @@ public class MainActivity extends Activity {
 		}
 		writeLog(comReadWrite(new byte[] { 'k', (byte) corrDist, '\r', '\n' },
 				Math.abs(dist) * waitTimeFact));
+		updatePosition(dist);
 	}
 
 	/**
@@ -317,13 +347,15 @@ public class MainActivity extends Activity {
 	 *            ("l" = left; "r" = right)
 	 */
 	public void turnRobot(int angle, char dir) {
-//		if (dir == 'r') {
-//			angle = -angle;
-//		}
+		// if (dir == 'r') {
+		// angle = -angle;
+		// }
 		double corrAngle = 8.0 / 7; // Coming from a measurement
 		int degrees = (int) (corrAngle * angle);
 		int waitTimeMs = (1500 * degrees) / 90;
-		writeLog(comReadWrite(new byte[] { 'l', (byte) degrees, '\r','\n' },waitTimeMs));
+		writeLog(comReadWrite(new byte[] { 'l', (byte) degrees, '\r', '\n' },
+				waitTimeMs));
+		updateRotation(angle,dir);
 	}
 
 	/**
@@ -378,33 +410,39 @@ public class MainActivity extends Activity {
 	 */
 	public void driveAndRead() {
 		int i = 0;
-		comReadWrite( new byte[] {'i',15,15,'\r','\n'});
-			while (i < 3) {
-//			try {
-//				Thread.sleep(200);
-//			} catch (InterruptedException e) {
-//				writeLog("Can't sleep");
-//			}
+		comReadWrite(new byte[] { 'i', 15, 15, '\r', '\n' });
+		while (i < 3) {
+			// try {
+			// Thread.sleep(200);
+			// } catch (InterruptedException e) {
+			// writeLog("Can't sleep");
+			// }
+			try {
+				Thread.sleep(50);
+			} catch (Exception e) {
+			}
+			if (getDistance().get("frontMiddle") <= ObsDetecBorder) { // checks
+																		// if
+																		// robot
+																		// hit
+																		// near
+				// obstacle
+				comReadWrite(new byte[] { 'i', 0, 0, '\r', '\n' });
+				writeLog(comReadWrite(new byte[] { 'u', (byte) 127, (byte) 0,
+						'\r', '\n' }));
+				turnRobot(90, 'l');
 				try {
-			Thread.sleep(50); } catch (Exception e) {}
-			if (getDistance().get("frontMiddle") <= ObsDetecBorder) { // checks if robot hit near
-													// obstacle
-				comReadWrite( new byte[] {'i',0,0,'\r','\n'});
-				writeLog(comReadWrite(new byte[] { 'u',
-						(byte) 127,
-						(byte) 0, '\r', '\n' }));
-				turnRobot(90,'l');
-				try {
-			Thread.sleep(1000); } catch (Exception e) {}
-				writeLog(comReadWrite(new byte[] { 'u',
-						(byte) 0,
-						(byte) 127, '\r', '\n' }));
-				comReadWrite( new byte[] {'i',15,15,'\r','\n'});
+					Thread.sleep(1000);
+				} catch (Exception e) {
+				}
+				writeLog(comReadWrite(new byte[] { 'u', (byte) 0, (byte) 127,
+						'\r', '\n' }));
+				comReadWrite(new byte[] { 'i', 15, 15, '\r', '\n' });
 				i++;
 			}
 			writeLog(getDistance().get("frontMiddle"));
 		}
-		comReadWrite( new byte[] {'i',0,0,'\r','\n'});
+		comReadWrite(new byte[] { 'i', 0, 0, '\r', '\n' });
 	}
 
 	/**
@@ -432,10 +470,11 @@ public class MainActivity extends Activity {
 			moveRobot(5);
 			movedDist++;
 			measurement = getDistance();
-			if (measurement.get("frontLeft") > ObsDetecBorder) { 
+			if (measurement.get("frontLeft") > ObsDetecBorder) {
 				turnLeft = true;
 			}
 		}
+		turnRobot(90, 'l');
 		return movedDist;
 	}
 
@@ -445,35 +484,30 @@ public class MainActivity extends Activity {
 	 * first drive and read sensor (check for obstacles) method
 	 */
 	public void moveToPoint(int x, int y, int theta) {
-		double tol = 1;
-		double[] currLoc = null; //we need a global start position (0,0,theta)
-		currLoc[0] = Xg;
-		currLoc[1] = Yg;
 		int dist;
 		int angle;
 		int moved = 0;
 
-		angle = (int) Math.atan((x - currLoc[0]) / (y - currLoc[1]));
-		dist = (int) Math.sqrt(Math.pow(x - currLoc[0], 2)
-				+ Math.pow(y - currLoc[1], 2));
-		
-		//we need to update the robots own position information
-		turnRobot((byte) angle, 'l');
+		angle = (int) Math.atan((x - Xg) / (y - Yg));
+		dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+
+		// we need to update the robots own position information
+		turnRobot((byte) angle, 'r');
 		Tg = angle;
-		
+
+		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		while (moved < dist) {
 			moved++;
-			//we need to update the robots own position information after each step
-			//driveAndRead();
-			int stepLength = 5;
+			// we need to update the robots own position information after each
+			// step
+			// driveAndRead();
+			int stepLength = 2;
 			moveRobot(stepLength);
-			int Xnew = 0,Ynew = 0;
-			int movementX = 0,movementY = 0;
-			movementX = (int)Math.sin(angle)*stepLength;
-			movementY = (int)(movementX/Math.tan(angle));
-			Xg = movementX;
-			Yg = movementY;
+			measurement = getDistance();
+			if (measurement.get("frontMiddle") <= ObsDetecBorder) {
+				moveAroundObstacle();
+			}
+
 		}
 	}
-
 }
