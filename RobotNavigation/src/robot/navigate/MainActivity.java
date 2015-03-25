@@ -2,6 +2,7 @@ package robot.navigate;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import jp.ksksue.driver.serial.FTDriver;
@@ -266,14 +267,15 @@ public class MainActivity extends Activity {
 	}
 
 	public void buttonSensor_onClick(View v) {
-		// logText(comReadWrite(new byte[] { 'q','\r', '\n' }));
-		// logText(Integer.parseInt(comReadWrite(new byte[] { 'q', '\r', '\n'
-		// })));
-//		turnRobot(90, 'r');
-		driveAndRead();
-		 //moveSquare(20,'r');
-		// driveAndRead();
-		// driveAroundNextCorner();
+		Map<String, Integer> measurement = new HashMap<String, Integer>();
+		Iterator<String> measureIter = measurement.keySet().iterator();
+
+		measurement = getDistance();
+		
+		while(measureIter.hasNext()){
+		  String key = measureIter.next();
+		  writeLog(measurement.get(key));
+		}
 	}
 
 	public void moveRobot(int dist) {
@@ -336,7 +338,8 @@ public class MainActivity extends Activity {
 			i++;
 			try {
 				Thread.sleep(0);
-			} catch (Exception e) {
+			} catch (InterruptedException e) {
+				e.getMessage();
 			}
 			sensorInfo = comReadWrite(new byte[] { 'q', '\r', '\n' })
 					.split(" ");
@@ -358,8 +361,9 @@ public class MainActivity extends Activity {
 						break;
 					}
 					sensNr++;
-				} catch (Exception e) {
+				} catch (NumberFormatException e) {
 					// Can't be parsed; do nothing
+					writeLog("Integer parsing problem");
 				}
 			}
 		}
@@ -422,16 +426,14 @@ public class MainActivity extends Activity {
 	public int driveAroundNextCorner() {
 		int movedDist = 0; // moved distance units
 		boolean turnLeft = false;
+		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		while (!turnLeft) {
 			moveRobot(5);
 			movedDist++;
-			turnRobot(90, 'l');
-//			if (getDistance() > ObsDetecBorder) { // checks if robot can now
-//													// drive around obstacle
-//													// corner
-//				turnLeft = true;
-//			}
-			turnRobot(90, 'r');
+			measurement = getDistance();
+			if (measurement.get("frontLeft") > ObsDetecBorder) { 
+				turnLeft = true;
+			}
 		}
 		return movedDist;
 	}

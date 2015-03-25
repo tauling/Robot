@@ -147,17 +147,36 @@
             android:id="@+id/textLog"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
+            android:layout_above="@+id/button1"
             android:layout_alignParentLeft="true"
             android:layout_alignParentRight="true"
             android:layout_below="@+id/buttonLedOn"
             android:ems="10"
             android:enabled="false"
-            android:scrollbars="none"
+            android:scrollbars="none|horizontal"
             android:textSize="12sp" >
 
             <requestFocus />
         </EditText>
+
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:onClick="driveAndRead"
+            android:text="driveAndRead" />
+
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_toRightOf="@+id/button1"
+            android:onClick="moveAroundObstacle"
+            android:text="driveArObstacle" />
+
     </RelativeLayout>
 
 </LinearLayout>
