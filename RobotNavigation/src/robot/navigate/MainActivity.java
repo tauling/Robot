@@ -29,6 +29,7 @@ public class MainActivity extends Activity {
 											// cm (every other value should be
 											// treated as no obstacle)
 
+	private int Xg = 0, Yg = 0, Tg = 0;
 	/**
 	 * Connects to the robot when app is started and initializes the position of
 	 * the robot's bar.
@@ -438,32 +439,40 @@ public class MainActivity extends Activity {
 		return movedDist;
 	}
 
-	public double[] getPosition() {
-		return null;
-	}
-
 	/**
 	 * Tries to move the robot to point (x,y)
 	 * 
 	 * first drive and read sensor (check for obstacles) method
 	 */
-	public void moveToPoint(int x, int y) {
+	public void moveToPoint(int x, int y, int theta) {
 		double tol = 1;
-		double[] currLoc;
+		double[] currLoc = null; //we need a global start position (0,0,theta)
+		currLoc[0] = Xg;
+		currLoc[1] = Yg;
 		int dist;
 		int angle;
 		int moved = 0;
 
-		currLoc = getPosition();
 		angle = (int) Math.atan((x - currLoc[0]) / (y - currLoc[1]));
 		dist = (int) Math.sqrt(Math.pow(x - currLoc[0], 2)
 				+ Math.pow(y - currLoc[1], 2));
-
+		
+		//we need to update the robots own position information
 		turnRobot((byte) angle, 'l');
-
+		Tg = angle;
+		
 		while (moved < dist) {
 			moved++;
-			driveAndRead();
+			//we need to update the robots own position information after each step
+			//driveAndRead();
+			int stepLength = 5;
+			moveRobot(stepLength);
+			int Xnew = 0,Ynew = 0;
+			int movementX = 0,movementY = 0;
+			movementX = (int)Math.sin(angle)*stepLength;
+			movementY = (int)(movementX/Math.tan(angle));
+			Xg = movementX;
+			Yg = movementY;
 		}
 	}
 
