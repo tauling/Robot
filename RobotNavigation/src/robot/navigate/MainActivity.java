@@ -292,6 +292,7 @@ public class MainActivity extends Activity {
 		movementY = (int) (movementX / Math.tan(Tg));
 		Xg = movementX;
 		Yg = movementY;
+		writeLog("my Position: (" + Xg+","+Yg+","+Tg+")");
 	}
 
 	public void updateRotation(int angle, char dir) {
@@ -306,6 +307,7 @@ public class MainActivity extends Activity {
 			writeLog("wrong input direction");
 			break;
 		}
+		writeLog("my Position: (" + Xg+","+Yg+","+Tg+")");
 	}
 
 	public void moveRobot(int dist) {
