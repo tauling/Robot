@@ -1,6 +1,5 @@
 package robot.navigate;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -11,19 +10,13 @@ import android.app.Activity;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import at.ac.uibk.robotwasd.R;
-import at.ac.uibk.robotwasd.R.id;
-import at.ac.uibk.robotwasd.R.layout;
-import at.ac.uibk.robotwasd.R.menu;
 
 public class MainActivity extends Activity {
 
-	@SuppressWarnings("unused")
-	private String TAG = "iRobot";
 	private TextView textLog;
 	private FTDriver com;
 	private Integer ObsDetecBorder = 50; // Working range of sensors is 10 to 80
@@ -49,7 +42,8 @@ public class MainActivity extends Activity {
 
 		connect();
 
-		robotSetBar((byte) 50); // Initializing height of the bar.
+		robotSetBar((byte) 127);
+		writeLog("onCreate!\n");
 	}
 
 	/**
@@ -98,13 +92,17 @@ public class MainActivity extends Activity {
 	 */
 	public String comRead() {
 		String s = "";
-		int i = 0;
-		int n = 0;
-		while (i < 3 || n > 0) {
-			byte[] buffer = new byte[256];
-			n = com.read(buffer);
-			s += new String(buffer, 0, n);
-			i++;
+		if (com.isConnected()) {
+			int i = 0;
+			int n = 0;
+			while (i < 3 || n > 0) {
+				byte[] buffer = new byte[256];
+				n = com.read(buffer);
+				s += new String(buffer, 0, n);
+				i++;
+			}
+		} else {
+			writeLog("not connected\n");
 		}
 		return s;
 	}
@@ -205,6 +203,17 @@ public class MainActivity extends Activity {
 				(byte) Math.min(Math.max(blue, 127), 0), '\r', '\n' }));
 	}
 
+	public void moveRobotByVelocity(int left, int right, int time) {
+		writeLog(comReadWrite(new byte[] { 'i', (byte) left, (byte) right,
+				'\r', '\n' }));
+		try {
+			Thread.sleep(time);
+		} catch (Exception e) {
+		} finally {
+			writeLog(comReadWrite(new byte[] { 's', '\r', '\n' }));
+		}
+	}
+
 	public void robotSetVelocity(byte left, byte right) {
 		writeLog(comReadWrite(new byte[] { 'i', left, right, '\r', '\n' }));
 	}
@@ -215,79 +224,104 @@ public class MainActivity extends Activity {
 
 	// move forward
 	public void buttonW_onClick(View v) {
+		writeLog("Called by W");
 		writeLog(comReadWrite(new byte[] { 'w', '\r', '\n' }));
 	}
 
 	// turn left
 	public void buttonA_onClick(View v) {
+		writeLog("Called by A");
 		writeLog(comReadWrite(new byte[] { 'a', '\r', '\n' }));
 	}
 
 	// stop
 	public void buttonS_onClick(View v) {
+		writeLog("Called by S");
 		writeLog(comReadWrite(new byte[] { 's', '\r', '\n' }));
 	}
 
 	// turn right
 	public void buttonD_onClick(View v) {
+		writeLog("Called by D");
 		writeLog(comReadWrite(new byte[] { 'd', '\r', '\n' }));
 	}
 
 	// move backward
 	public void buttonX_onClick(View v) {
+		writeLog("Called by X");
 		// logText(comReadWrite(new byte[] { 'x', '\r', '\n' }));
 		robotSetVelocity((byte) -30, (byte) -30);
 	}
 
 	// lower bar a few degrees
 	public void buttonMinus_onClick(View v) {
+		writeLog("Called by Minus");
 		writeLog(comReadWrite(new byte[] { '-', '\r', '\n' }));
 	}
 
 	// rise bar a few degrees
 	public void buttonPlus_onClick(View v) {
+		writeLog("Called by Plus");
 		writeLog(comReadWrite(new byte[] { '+', '\r', '\n' }));
 	}
 
 	// fixed position for bar (low)
 	public void buttonDown_onClick(View v) {
+
+		turnRobot(90, 'l');
+		turnRobot(90, 'r');
+
 		robotSetBar((byte) 0);
 	}
 
 	// fixed position for bar (high)
 	public void buttonUp_onClick(View v) {
+		writeLog("Called by Up");
 		robotSetBar((byte) 255);
 	}
 
 	public void buttonLedOn_onClick(View v) {
+		writeLog("Called by LED ON");
 		// logText(comReadWrite(new byte[] { 'r', '\r', '\n' }));
-		robotSetLeds((byte) 255, (byte) 128);
+		try {
+			Thread.sleep(500);
+			robotSetLeds((byte) 50, (byte) 50);
+			Thread.sleep(500);
+			robotSetLeds((byte) 127, (byte) 50);
+			Thread.sleep(500);
+			robotSetLeds((byte) 127, (byte) 0);
+			Thread.sleep(500);
+			robotSetLeds((byte) 50, (byte) 50);
+			Thread.sleep(500);
+			robotSetLeds((byte) 50, (byte) 127);
+			Thread.sleep(500);
+			robotSetLeds((byte) 0, (byte) 127);
+			Thread.sleep(500);
+			robotSetLeds((byte) 0, (byte) 0);
+		} catch (Exception e) {
+		}
 	}
 
 	public void buttonLedOff_onClick(View v) {
+		writeLog("Called by LedOff");
 		// logText(comReadWrite(new byte[] { 'e', '\r', '\n' }));
-		robotSetLeds((byte) 0, (byte) 0);
+		moveRobotByVelocity(100, 100, 1000);
 	}
 
 	public void buttonSensor_onClick(View v) {
-//		Map<String, Integer> measurement = new HashMap<String, Integer>();
-//		measurement = getDistance();
-		writeLog("reading sensors");
-		Set set = getDistance().entrySet();
-		 // Get an iterator
-	      Iterator i = set.iterator();
-	      // Display elements
-	      while(i.hasNext()) {
-	    	  try{
-	         Map.Entry me = (Map.Entry)i.next();
-	         writeLog(me.getKey() + ": ");
-	         writeLog(me.getValue().toString());
-	    	  }catch(Exception e){
-	    		  //do nothing
-	    		  writeLog("problem with getDistance HashMap");
-	    	  }
-	      }
+		Map<String, Integer> measurement = new HashMap<String, Integer>();
+		measurement = getDistance();
+		for (Map.Entry<String, Integer> entry : measurement.entrySet()) {
+			   writeLog(entry.getKey() + entry.getValue());
+			}
+	}
 
+	public void buttonDriveArObstacle_onClick(View v) {
+		moveAroundObstacle();
+	}
+
+	public void buttonDriveAndRead_onClick(View v) {
+		driveAndRead();
 	}
 
 	/**
@@ -302,7 +336,7 @@ public class MainActivity extends Activity {
 		movementY = (int) (movementX / Math.tan(Tg));
 		Xg = movementX;
 		Yg = movementY;
-		writeLog("my Position: (" + Xg+","+Yg+","+Tg+")");
+		writeLog("my Position: (" + Xg + "," + Yg + "," + Tg + ")");
 	}
 
 	public void updateRotation(int angle, char dir) {
@@ -317,7 +351,7 @@ public class MainActivity extends Activity {
 			writeLog("wrong input direction");
 			break;
 		}
-		writeLog("my Position: (" + Xg+","+Yg+","+Tg+")");
+		writeLog("my Position: (" + Xg + "," + Yg + "," + Tg + ")");
 	}
 
 	public void moveRobot(int dist) {
@@ -358,16 +392,18 @@ public class MainActivity extends Activity {
 	 * @param dir
 	 *            ("l" = left; "r" = right)
 	 */
+	// TODO Allow to turn right.
 	public void turnRobot(int angle, char dir) {
-		// if (dir == 'r') {
-		// angle = -angle;
-		// }
 		double corrAngle = 8.0 / 7; // Coming from a measurement
 		int degrees = (int) (corrAngle * angle);
 		int waitTimeMs = (1500 * degrees) / 90;
+
+		if (dir == 'r') {
+			degrees = -degrees;
+		}
 		writeLog(comReadWrite(new byte[] { 'l', (byte) degrees, '\r', '\n' },
 				waitTimeMs));
-		updateRotation(angle,dir);
+		updateRotation(angle, dir);
 	}
 
 	/**
@@ -391,8 +427,7 @@ public class MainActivity extends Activity {
 			sensNr = 1;
 			for (String value : sensorInfo) {
 				try {
-					val = Integer.parseInt(value.substring(2, 4).toUpperCase(),
-							16);
+					val = Integer.parseInt(value.substring(2, 4), 16);
 
 					switch (sensNr) {
 					case 4:
@@ -408,7 +443,6 @@ public class MainActivity extends Activity {
 					sensNr++;
 				} catch (NumberFormatException e) {
 					// Can't be parsed; do nothing
-					writeLog("Integer parsing problem");
 				}
 			}
 		}
@@ -480,9 +514,10 @@ public class MainActivity extends Activity {
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		while (!turnLeft) {
 			moveRobot(5);
-			movedDist++;
 			measurement = getDistance();
+			writeLog(measurement.get("frontLeft"));
 			if (measurement.get("frontLeft") > ObsDetecBorder) {
+				writeLog("My way is free");
 				turnLeft = true;
 			}
 		}
