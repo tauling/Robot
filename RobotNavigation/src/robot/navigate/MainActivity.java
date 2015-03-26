@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import jp.ksksue.driver.serial.FTDriver;
 import android.app.Activity;
@@ -269,15 +270,24 @@ public class MainActivity extends Activity {
 	}
 
 	public void buttonSensor_onClick(View v) {
-		Map<String, Integer> measurement = new HashMap<String, Integer>();
-		Iterator<String> measureIter = measurement.keySet().iterator();
+//		Map<String, Integer> measurement = new HashMap<String, Integer>();
+//		measurement = getDistance();
+		writeLog("reading sensors");
+		Set set = getDistance().entrySet();
+		 // Get an iterator
+	      Iterator i = set.iterator();
+	      // Display elements
+	      while(i.hasNext()) {
+	    	  try{
+	         Map.Entry me = (Map.Entry)i.next();
+	         writeLog(me.getKey() + ": ");
+	         writeLog(me.getValue().toString());
+	    	  }catch(Exception e){
+	    		  //do nothing
+	    		  writeLog("problem with getDistance HashMap");
+	    	  }
+	      }
 
-		measurement = getDistance();
-
-		while (measureIter.hasNext()) {
-			String key = measureIter.next();
-			writeLog(measurement.get(key));
-		}
 	}
 
 	/**
