@@ -176,6 +176,7 @@
                 android:id="@+id/button3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:onClick="buttonDriveByVelo_onClick"
                 android:text="driveByVelo" />
 
             <Button
@@ -183,14 +184,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="2.80"
-                android:text="BUG1" />
+                android:onClick="buttonBug1_onClick"
+                android:text="Bug1" />
 
             <Button
                 android:id="@+id/Button03"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="2.80"
-                android:text="BUG2" />
+                android:text="Bug2" />
         </LinearLayout>
 
     </ScrollView>

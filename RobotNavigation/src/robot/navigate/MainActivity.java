@@ -1,6 +1,7 @@
 package robot.navigate;
 
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -312,8 +313,8 @@ public class MainActivity extends Activity {
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		measurement = getDistance();
 		for (Map.Entry<String, Integer> entry : measurement.entrySet()) {
-			   writeLog(entry.getKey() + entry.getValue());
-			}
+			writeLog(entry.getKey() + entry.getValue());
+		}
 	}
 
 	public void buttonDriveArObstacle_onClick(View v) {
@@ -322,6 +323,18 @@ public class MainActivity extends Activity {
 
 	public void buttonDriveAndRead_onClick(View v) {
 		driveAndRead();
+	}
+
+	public void buttonDriveByVelo_onClick(View v) {
+		driveByVelocity();
+	}
+
+	public void buttonBug1_onClick(View v) {
+		bug1();
+	}
+
+	public void driveByVelocity() {
+		// ToDo
 	}
 
 	/**
@@ -514,6 +527,7 @@ public class MainActivity extends Activity {
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		while (!turnLeft) {
 			moveRobot(5);
+			movedDist = movedDist + 5;
 			measurement = getDistance();
 			writeLog(measurement.get("frontLeft"));
 			if (measurement.get("frontLeft") > ObsDetecBorder) {
@@ -556,5 +570,89 @@ public class MainActivity extends Activity {
 			}
 
 		}
+	}
+
+	public void moveToGoal(int x, int y) {
+		int dist;
+		int angle;
+		int moved = 0;
+
+		angle = (int) Math.atan((x - Xg) / (y - Yg));
+		dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+
+		// we need to update the robots own position information
+		turnRobot((byte) angle, 'r');
+		Tg = angle;
+
+		Map<String, Integer> measurement = new HashMap<String, Integer>();
+		while (moved < dist) {
+			moved++;
+			int stepLength = 2;
+			moveRobot(stepLength);
+			measurement = getDistance();
+			if (measurement.get("frontMiddle") <= ObsDetecBorder) {
+				roundObstacle(x, y);
+				break;
+			}
+
+		}
+	}
+
+	public void roundObstacle(int Goalx, int Goaly) {
+		HashMap<Integer, Position> goalDist = new HashMap<Integer, Position>();
+		// distance form current postition to goal
+		int curGoalDist = (int) Math.sqrt(Math.pow(Xg - Goalx, 2)
+				+ Math.pow(Yg - Goaly, 2));
+		goalDist.put(curGoalDist, getMyPosition());
+		turnRobot(90, 'r');
+		for (int i = 0; i < 4; i++) {
+			boolean turnLeft = false;
+			Map<String, Integer> measurement = new HashMap<String, Integer>();
+			while (!turnLeft) {
+				moveRobot(5);
+				curGoalDist = (int) Math.sqrt(Math.pow(Xg - Goalx, 2)
+						+ Math.pow(Yg - Goaly, 2));
+				goalDist.put(curGoalDist, getMyPosition());
+				if (goalDist.containsKey(getMyPosition())) {
+					break; // robot drove around obstacle and measurte all
+							// distances
+				}
+				measurement = getDistance();
+				writeLog(measurement.get("frontLeft"));
+				if (measurement.get("frontLeft") > ObsDetecBorder) {
+					writeLog("My way is free");
+					turnLeft = true;
+				}
+			}
+			turnRobot(90, 'l');
+			int minDist = curGoalDist;
+			Position nextStartPt = null;
+			for (Integer elem : goalDist.keySet()) {
+				if (elem < minDist) {
+					minDist = elem;
+					nextStartPt = goalDist.get(elem);
+				}
+			}
+			moveToPoint(nextStartPt.getX(), nextStartPt.getX(), nextStartPt.getTheta());
+			moveToGoal(Goalx, Goaly);
+		}
+		turnRobot(90, 'r');
+	}
+
+	/**
+	 * Bug1 algorithm 1) head toward goal 2) if an obstacle is encountered
+	 * circumnavigate it and remember how close you get to the goal 3) return to
+	 * that closest point(by wall-following) and continue
+	 */
+	public void bug1() {
+		int[] goal = null;
+		goal[0] = 30;
+		goal[1] = 30;
+		moveToGoal(goal[0], goal[1]);
+	}
+
+	public Position getMyPosition() {
+		Position myPos = new Position(Xg, Yg, Tg);
+		return myPos;
 	}
 }
