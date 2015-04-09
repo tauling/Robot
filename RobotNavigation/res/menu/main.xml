@@ -1,5 +1,4 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <item android:id="@+id/connect" android:title="Connect"></item>
     <item android:id="@+id/disconnect" android:title="Disconnect"></item>
-
 </menu>
