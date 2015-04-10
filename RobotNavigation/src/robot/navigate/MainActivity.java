@@ -1,20 +1,16 @@
 package robot.navigate;
 
 import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
+
+import robot.generated.R;
 
 import jp.ksksue.driver.serial.FTDriver;
 import android.app.Activity;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import at.ac.uibk.robotwasd.R;
 
 public class MainActivity extends Activity {
 
@@ -26,6 +22,9 @@ public class MainActivity extends Activity {
 
 	private int Xg = 0, Yg = 0, Tg = 0;
 
+	// TODO: Fix Crash when robot is off
+	
+	
 	/**
 	 * Connects to the robot when app is started and initializes the position of
 	 * the robot's bar.
@@ -43,7 +42,7 @@ public class MainActivity extends Activity {
 
 		connect();
 
-		robotSetBar((byte) 127);
+		robotSetBar((byte) 127); // TODO Still drops to the floor.
 		writeLog("onCreate!\n");
 	}
 
@@ -78,6 +77,7 @@ public class MainActivity extends Activity {
 			com.write(data);
 			writeLog("comWrite(data)\n"); // TODO Add the content of data to the
 											// log.
+			writeLog(data.toString());
 		} else {
 			writeLog("not connected\n");
 		}
@@ -134,7 +134,6 @@ public class MainActivity extends Activity {
 		try {
 			Thread.sleep(time);
 		} catch (InterruptedException e) {
-			// ignore
 		}
 		return comRead();
 	}
@@ -160,32 +159,6 @@ public class MainActivity extends Activity {
 		textLog.append(value + "\n");
 	}
 
-	// TODO Check if needed
-	// TODO Add comment
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-
-	// TODO Check if needed
-	// TODO Add comment
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case R.id.connect:
-			connect();
-			return true;
-
-		case R.id.disconnect:
-			disconnect();
-			return true;
-
-		default:
-			return super.onOptionsItemSelected(item);
-		}
-	}
-
 	/**
 	 * Sets the blue and red LED of the robot.
 	 * 
@@ -196,14 +169,17 @@ public class MainActivity extends Activity {
 	 *            sets the intensity of the blue colored LED (min value 0, max
 	 *            value 127)
 	 */
-	// TODO Check, whether or not the robot does what it says in the function
-	// description.
 	public void robotSetLeds(int red, int blue) {
 		writeLog(comReadWrite(new byte[] { 'u',
-				(byte) Math.min(Math.max(red, 127), 0),
-				(byte) Math.min(Math.max(blue, 127), 0), '\r', '\n' }));
+				(byte) Math.max(Math.min(red, 127), 0),
+				(byte) Math.max(Math.min(blue, 127), 0), 
+				'\r', 
+				'\n' }));
 	}
 
+	
+	// TODO: Check if needed
+	// TODO: Add Comment
 	public void moveRobotByVelocity(int left, int right, int time) {
 		writeLog(comReadWrite(new byte[] { 'i', (byte) left, (byte) right,
 				'\r', '\n' }));
@@ -333,10 +309,32 @@ public class MainActivity extends Activity {
 		bug1();
 	}
 
-	public void driveByVelocity() {
-		// ToDo
+	public void buttonTest_onClick(View v) {
+		try {
+			robotSetLeds(0,127);
+			Thread.sleep(500);
+			robotSetLeds(0,50);
+			Thread.sleep(500);
+			robotSetLeds(0,127);
+			Thread.sleep(500);
+			robotSetLeds(50,127);
+			Thread.sleep(500);
+			robotSetLeds(127,127);
+			Thread.sleep(500);
+			robotSetLeds(127,50);
+			Thread.sleep(500);
+			robotSetLeds(127,0);
+			Thread.sleep(500);
+			robotSetLeds(0,0);
+		} catch (Exception e) {
+		}
 	}
 
+	public void driveByVelocity() {
+		// TODO Add functionality.
+	}
+	
+	
 	/**
 	 * updates global Position parameters after Robot moved one stepLength
 	 * 
@@ -633,7 +631,8 @@ public class MainActivity extends Activity {
 					nextStartPt = goalDist.get(elem);
 				}
 			}
-			moveToPoint(nextStartPt.getX(), nextStartPt.getX(), nextStartPt.getTheta());
+			moveToPoint(nextStartPt.getX(), nextStartPt.getX(),
+					nextStartPt.getTheta());
 			moveToGoal(Goalx, Goaly);
 		}
 		turnRobot(90, 'r');
