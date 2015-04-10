@@ -5,8 +5,6 @@ import java.util.Map;
 
 import robot.generated.R;
 
-import org.apache.http.impl.conn.Wire;
-
 import jp.ksksue.driver.serial.FTDriver;
 import android.app.Activity;
 import android.hardware.usb.UsbManager;
@@ -25,8 +23,7 @@ public class MainActivity extends Activity {
 	private int Xg = 0, Yg = 0, Tg = 0;
 
 	// TODO: Fix Crash when robot is off
-	
-	
+
 	/**
 	 * Connects to the robot when app is started and initializes the position of
 	 * the robot's bar.
@@ -43,9 +40,7 @@ public class MainActivity extends Activity {
 		com = new FTDriver((UsbManager) getSystemService(USB_SERVICE));
 
 		connect();
-
-		robotSetBar((byte) 127); // TODO Still drops to the floor.
-		writeLog("onCreate!\n");
+		writeLog("onCreate!");
 	}
 
 	/**
@@ -53,9 +48,9 @@ public class MainActivity extends Activity {
 	 */
 	public void connect() {
 		if (com.begin(9600)) {
-			writeLog("connected\n");
+			writeLog("connected");
 		} else {
-			writeLog("could not connect\n");
+			writeLog("could not connect");
 		}
 	}
 
@@ -65,7 +60,7 @@ public class MainActivity extends Activity {
 	public void disconnect() {
 		com.end();
 		if (!com.isConnected()) {
-			writeLog("disconnected\n");
+			writeLog("disconnected");
 		}
 	}
 
@@ -77,11 +72,9 @@ public class MainActivity extends Activity {
 	public void comWrite(byte[] data) {
 		if (com.isConnected()) {
 			com.write(data);
-			writeLog("comWrite(data)\n"); // TODO Add the content of data to the
-											// log.
-			writeLog(data.toString());
+			writeLog("comWrite(data)");
 		} else {
-			writeLog("not connected\n");
+			writeLog("not connected");
 		}
 	}
 
@@ -105,7 +98,7 @@ public class MainActivity extends Activity {
 				i++;
 			}
 		} else {
-			writeLog("not connected\n");
+			writeLog("not connected");
 		}
 		return s;
 	}
@@ -162,6 +155,15 @@ public class MainActivity extends Activity {
 	}
 
 	/**
+	 * Add the given long integer to the log file.
+	 * 
+	 * @param value
+	 */
+	public void writeLog(long value) {
+		textLog.append(value + "\n");
+	}
+
+	/**
 	 * Sets the blue and red LED of the robot.
 	 * 
 	 * @param red
@@ -174,12 +176,9 @@ public class MainActivity extends Activity {
 	public void robotSetLeds(int red, int blue) {
 		writeLog(comReadWrite(new byte[] { 'u',
 				(byte) Math.max(Math.min(red, 127), 0),
-				(byte) Math.max(Math.min(blue, 127), 0), 
-				'\r', 
-				'\n' }));
+				(byte) Math.max(Math.min(blue, 127), 0), '\r', '\n' }));
 	}
 
-	
 	// TODO: Check if needed
 	// TODO: Add Comment
 	public void moveRobotByVelocity(int left, int right, int time) {
@@ -193,101 +192,22 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	public void robotSetVelocity(byte left, byte right) {
-		writeLog(comReadWrite(new byte[] { 'i', left, right, '\r', '\n' }));
-	}
-
-	public void robotSetBar(byte value) {
-		writeLog(comReadWrite(new byte[] { 'o', value, '\r', '\n' }));
-	}
-
-	// move forward
-	public void buttonW_onClick(View v) {
-		writeLog("Called by W");
-		writeLog(comReadWrite(new byte[] { 'w', '\r', '\n' }));
-	}
-
-	// turn left
-	public void buttonA_onClick(View v) {
-		writeLog("Called by A");
-		writeLog(comReadWrite(new byte[] { 'a', '\r', '\n' }));
-	}
-
-	// stop
-	public void buttonS_onClick(View v) {
-		writeLog("Called by S");
-		writeLog(comReadWrite(new byte[] { 's', '\r', '\n' }));
-	}
-
-	// turn right
-	public void buttonD_onClick(View v) {
-		writeLog("Called by D");
-		writeLog(comReadWrite(new byte[] { 'd', '\r', '\n' }));
-	}
-
-	// move backward
-	public void buttonX_onClick(View v) {
-		writeLog("Called by X");
-		// logText(comReadWrite(new byte[] { 'x', '\r', '\n' }));
-		robotSetVelocity((byte) -30, (byte) -30);
-	}
-
+	// TODO: Delete, once it is not needed anymore
 	// lower bar a few degrees
 	public void buttonMinus_onClick(View v) {
 		writeLog("Called by Minus");
 		writeLog(comReadWrite(new byte[] { '-', '\r', '\n' }));
 	}
 
+	// TODO: Delete, once it is not needed anymore
 	// rise bar a few degrees
 	public void buttonPlus_onClick(View v) {
 		writeLog("Called by Plus");
 		writeLog(comReadWrite(new byte[] { '+', '\r', '\n' }));
 	}
 
-	// fixed position for bar (low)
-	public void buttonDown_onClick(View v) {
-
-		turnRobot(90, 'l');
-		turnRobot(90, 'r');
-
-		robotSetBar((byte) 0);
-	}
-
-	// fixed position for bar (high)
-	public void buttonUp_onClick(View v) {
-		writeLog("Called by Up");
-		robotSetBar((byte) 255);
-	}
-
-	public void buttonLedOn_onClick(View v) {
-		writeLog("Called by LED ON");
-		// logText(comReadWrite(new byte[] { 'r', '\r', '\n' }));
-		try {
-			Thread.sleep(500);
-			robotSetLeds((byte) 50, (byte) 50);
-			Thread.sleep(500);
-			robotSetLeds((byte) 127, (byte) 50);
-			Thread.sleep(500);
-			robotSetLeds((byte) 127, (byte) 0);
-			Thread.sleep(500);
-			robotSetLeds((byte) 50, (byte) 50);
-			Thread.sleep(500);
-			robotSetLeds((byte) 50, (byte) 127);
-			Thread.sleep(500);
-			robotSetLeds((byte) 0, (byte) 127);
-			Thread.sleep(500);
-			robotSetLeds((byte) 0, (byte) 0);
-		} catch (Exception e) {
-		}
-	}
-
-	public void buttonLedOff_onClick(View v) {
-		writeLog("Called by LedOff");
-		// logText(comReadWrite(new byte[] { 'e', '\r', '\n' }));
-		moveRobotByVelocity(100, 100, 1000);
-	}
-
 	public void buttonSensor_onClick(View v) {
+		// TODO: Fix: Crashes when not connected.
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		measurement = getDistance();
 		for (Map.Entry<String, Integer> entry : measurement.entrySet()) {
@@ -311,44 +231,32 @@ public class MainActivity extends Activity {
 		bug1();
 	}
 
+	// TODO: Delete once not needed anymore.
 	public void buttonTest_onClick(View v) {
 		try {
-			robotSetLeds(0,127);
+			turnRobot(90, 'l');
 			Thread.sleep(500);
-			robotSetLeds(0,50);
-			Thread.sleep(500);
-			robotSetLeds(0,127);
-			Thread.sleep(500);
-			robotSetLeds(50,127);
-			Thread.sleep(500);
-			robotSetLeds(127,127);
-			Thread.sleep(500);
-			robotSetLeds(127,50);
-			Thread.sleep(500);
-			robotSetLeds(127,0);
-			Thread.sleep(500);
-			robotSetLeds(0,0);
+			turnRobot(90, 'r');
 		} catch (Exception e) {
 		}
 	}
-	
+
 	public void driveByVelocity(int dist) {
 		long start = System.nanoTime();
 		writeLog("startTime: "+(int)start);
 		double corrDistFact = 500.0; // Coming from a measurement
 		long corrDist = (long) (dist * corrDistFact);
 		long end = start + dist*corrDist;
-		writeLog("endTime: "+(int)end);
 		int waitTimeFact = 100, left = 20, right = 20;
 		while (start <= end) {
 			comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r',
 					'\n' }, waitTimeFact);
 			start = System.nanoTime();
 		}
-		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r',
-		'\n' }, waitTimeFact);
+		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' },
+				waitTimeFact);
 	}
-	
+
 	/**
 	 * updates global Position parameters after Robot moved one stepLength
 	 * 
@@ -394,6 +302,7 @@ public class MainActivity extends Activity {
 		updatePosition(dist);
 	}
 
+	// TODO: Add Button to demonstrate
 	/**
 	 * tells the robot to move along a square
 	 * 
@@ -417,7 +326,6 @@ public class MainActivity extends Activity {
 	 * @param dir
 	 *            ("l" = left; "r" = right)
 	 */
-	// TODO Allow to turn right.
 	public void turnRobot(int angle, char dir) {
 		double corrAngle = 8.0 / 7; // Coming from a measurement
 		int degrees = (int) (corrAngle * angle);
@@ -432,48 +340,39 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * returns distance in cm
+	 * returns distances of all sensors in cm
 	 */
 	public Map<String, Integer> getDistance() {
-		int i = 0;
 		int sensNr;
 		int val;
 		String[] sensorInfo;
 		Map<String, Integer> readSensor = new HashMap<String, Integer>();
-		while (i < 1) {
-			i++;
+		sensorInfo = comReadWrite(new byte[] { 'q', '\r', '\n' }).split(" ");
+		sensNr = 1;
+		for (String value : sensorInfo) {
 			try {
-				Thread.sleep(0);
-			} catch (InterruptedException e) {
-				e.getMessage();
-			}
-			sensorInfo = comReadWrite(new byte[] { 'q', '\r', '\n' })
-					.split(" ");
-			sensNr = 1;
-			for (String value : sensorInfo) {
-				try {
-					val = Integer.parseInt(value.substring(2, 4), 16);
+				val = Integer.parseInt(value.substring(2, 4), 16);
 
-					switch (sensNr) {
-					case 4:
-						readSensor.put("frontLeft", val);
-						break;
-					case 8:
-						readSensor.put("frontMiddle", val);
-						break;
-					case 5:
-						readSensor.put("frontRight", val);
-						break;
-					}
-					sensNr++;
-				} catch (NumberFormatException e) {
-					// Can't be parsed; do nothing
+				switch (sensNr) {
+				case 4:
+					readSensor.put("frontLeft", val);
+					break;
+				case 5:
+					readSensor.put("frontRight", val);
+					break;
+				case 8:
+					readSensor.put("frontMiddle", val);
+					break;
 				}
+				sensNr++;
+			} catch (NumberFormatException e) {
+				// Can't be parsed; do nothing
 			}
 		}
 		return readSensor;
 	}
 
+	// TODO: Delete once not needed anymore
 	/**
 	 * Obstacle avoidance
 	 * 
@@ -483,11 +382,6 @@ public class MainActivity extends Activity {
 		int i = 0;
 		comReadWrite(new byte[] { 'i', 15, 15, '\r', '\n' });
 		while (i < 3) {
-			// try {
-			// Thread.sleep(200);
-			// } catch (InterruptedException e) {
-			// writeLog("Can't sleep");
-			// }
 			try {
 				Thread.sleep(50);
 			} catch (Exception e) {
@@ -516,6 +410,8 @@ public class MainActivity extends Activity {
 		comReadWrite(new byte[] { 'i', 0, 0, '\r', '\n' });
 	}
 
+	
+	// TODO Check if needed
 	/**
 	 * allows robot to drive around simple square object
 	 */
@@ -530,6 +426,7 @@ public class MainActivity extends Activity {
 		turnRobot(90, 'r');
 	}
 
+	// TODO: Delete once not needed anymore
 	/**
 	 * move forward and turn left at next corner
 	 */
@@ -556,7 +453,7 @@ public class MainActivity extends Activity {
 	 * 
 	 * first drive and read sensor (check for obstacles) method
 	 */
-	public void moveToPoint(int x, int y, int theta) {
+	public void moveToPoint(int x, int y) {
 		int dist;
 		int angle;
 		int moved = 0;
@@ -584,6 +481,7 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	// TODO: Check if needed
 	public void moveToGoal(int x, int y) {
 		int dist;
 		int angle;
@@ -665,7 +563,7 @@ public class MainActivity extends Activity {
 		int[] goal = null;
 		goal[0] = 30;
 		goal[1] = 30;
-		moveToGoal(goal[0], goal[1]);
+		//moveToGoal(goal[0], goal[1]);
 	}
 
 	public Position getMyPosition() {

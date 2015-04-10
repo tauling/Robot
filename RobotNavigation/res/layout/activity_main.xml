@@ -17,147 +17,47 @@
 
             <GridLayout
                 android:layout_width="match_parent"
-                android:layout_height="386dp"
-                android:layout_weight="2.80"
+                android:layout_height="279dp"
                 android:columnCount="1" >
-
-                <Button
-                    android:id="@+id/buttonX"
-                    android:layout_width="80dp"
-                    android:layout_height="60dp"
-                    android:layout_column="0"
-                    android:layout_gravity="center_horizontal|bottom"
-                    android:layout_row="0"
-                    android:onClick="buttonX_onClick"
-                    android:text="X" />
-
-                <Button
-                    android:id="@+id/buttonA"
-                    android:layout_width="80dp"
-                    android:layout_height="60dp"
-                    android:layout_column="0"
-                    android:layout_gravity="left|center_vertical"
-                    android:layout_row="0"
-                    android:onClick="buttonA_onClick"
-                    android:text="A" />
-
-                <Button
-                    android:id="@+id/buttonS"
-                    android:layout_width="80dp"
-                    android:layout_height="60dp"
-                    android:layout_column="0"
-                    android:layout_gravity="center"
-                    android:layout_row="0"
-                    android:onClick="buttonS_onClick"
-                    android:text="S" />
-
-                <Button
-                    android:id="@+id/buttonD"
-                    android:layout_width="80dp"
-                    android:layout_height="60dp"
-                    android:layout_column="0"
-                    android:layout_gravity="right|center_vertical"
-                    android:layout_row="0"
-                    android:onClick="buttonD_onClick"
-                    android:text="D" />
-
-                <Button
-                    android:id="@+id/buttonW"
-                    android:layout_width="80dp"
-                    android:layout_height="60dp"
-                    android:layout_column="0"
-                    android:layout_gravity="center_horizontal|top"
-                    android:layout_row="0"
-                    android:onClick="buttonW_onClick"
-                    android:text="W" />
-
-                <Button
-                    android:id="@+id/ButtonDown"
-                    android:layout_width="80dp"
-                    android:layout_height="60dp"
-                    android:layout_column="0"
-                    android:layout_gravity="left|bottom"
-                    android:layout_row="0"
-                    android:onClick="buttonDown_onClick"
-                    android:text="Down" />
-
-                <Button
-                    android:id="@+id/ButtonUp"
-                    android:layout_width="80dp"
-                    android:layout_height="60dp"
-                    android:layout_column="0"
-                    android:layout_gravity="right|bottom"
-                    android:layout_row="0"
-                    android:onClick="buttonUp_onClick"
-                    android:text="Up" />
 
                 <Button
                     android:id="@+id/ButtonMinus"
                     android:layout_width="80dp"
                     android:layout_height="60dp"
-                    android:layout_column="0"
-                    android:layout_gravity="left|top"
-                    android:layout_row="0"
+                    android:layout_gravity="start|top"
                     android:onClick="buttonMinus_onClick"
                     android:text="-" />
+                
+                <EditText
+                    android:id="@+id/textLog"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal|fill_vertical"
+                    android:enabled="false"
+                    android:hint="Shows log"
+                    android:inputType="text"
+                    android:textSize="12sp" />
 
                 <Button
                     android:id="@+id/ButtonPlus"
                     android:layout_width="80dp"
                     android:layout_height="60dp"
                     android:layout_column="0"
-                    android:layout_gravity="right|top"
+                    android:layout_gravity="end|top"
                     android:layout_row="0"
                     android:onClick="buttonPlus_onClick"
                     android:text="+" />
-
-                <Button
-                    android:id="@+id/buttonLedOn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="left"
-                    android:minHeight="60dp"
-                    android:minWidth="80dp"
-                    android:onClick="buttonLedOn_onClick"
-                    android:text="LED on" />
-
-                <EditText
-                    android:id="@+id/textLog"
-                    android:layout_width="wrap_content"
-                    android:layout_height="160dp"
-                    android:layout_gravity="fill_horizontal"
-                    android:ems="10"
-                    android:enabled="false"
-                    android:scrollHorizontally="true"
-                    android:scrollbars="horizontal"
-                    android:textSize="12sp" >
-
-                    <requestFocus />
-                </EditText>
-
-                <Button
-                    android:id="@+id/buttonLedOff"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_column="0"
-                    android:layout_gravity="right|top"
-                    android:layout_row="1"
-                    android:minHeight="60dp"
-                    android:minWidth="80dp"
-                    android:onClick="buttonLedOff_onClick"
-                    android:text="LED off" />
 
                 <Button
                     android:id="@+id/buttonSensor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_column="0"
-                    android:layout_gravity="center_horizontal|top"
-                    android:layout_row="1"
-                    android:minHeight="60dp"
-                    android:minWidth="80dp"
+                    android:layout_gravity="center"
+                    android:layout_row="0"
                     android:onClick="buttonSensor_onClick"
                     android:text="Read Sensor" />
+
             </GridLayout>
 
             <Button
