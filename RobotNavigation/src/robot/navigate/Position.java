@@ -1,7 +1,5 @@
 package robot.navigate;
 
-import Position;
-
 public class Position implements Comparable{
 	int x;
 	int y;

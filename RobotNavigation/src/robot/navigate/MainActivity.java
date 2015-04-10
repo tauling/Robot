@@ -559,7 +559,7 @@ public class MainActivity extends Activity {
 					closestDistance = curGoalDist;
 					closestPosition = getMyPosition();
 				}
-				if ((startPosition - getMyPosition() < TOL)
+				if ((startPosition.minus(getMyPosition()) < TOL)
 						&& movedTotalDistance >= 5) { // Check if start position
 														// is reached again
 					startPositionReached = true;
@@ -590,7 +590,7 @@ public class MainActivity extends Activity {
 					turnRobot(90, 'r');
 				}
 				moveRobot(1);
-				if (closestPosition - getMyPosition < TOL) {
+				if (closestPosition.minus(getMyPosition()) < TOL) {
 					closestPositionReached = true;
 				}
 			}
