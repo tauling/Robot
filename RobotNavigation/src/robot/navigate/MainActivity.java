@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.http.impl.conn.Wire;
+
 import jp.ksksue.driver.serial.FTDriver;
 import android.app.Activity;
 import android.hardware.usb.UsbManager;
@@ -326,15 +328,27 @@ public class MainActivity extends Activity {
 	}
 
 	public void buttonDriveByVelo_onClick(View v) {
-		driveByVelocity();
+		driveByVelocity(50);
 	}
 
 	public void buttonBug1_onClick(View v) {
 		bug1();
 	}
 
-	public void driveByVelocity() {
-		// ToDo
+	public void driveByVelocity(int dist) {
+		long start = System.nanoTime();
+		writeLog((int)start);
+		// double corrDistFact = 100.0 / 72; // Coming from a measurement
+		// long corrDist = (long) (dist * corrDistFact);
+		long end = start + 2000;
+		writeLog((int)end);
+		int waitTimeFact = 100, left = 20, right = 20;
+		while (start <= end) {
+			comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r',
+					'\n' }, waitTimeFact);
+		}
+		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r',
+		'\n' }, waitTimeFact);
 	}
 
 	/**
@@ -633,7 +647,8 @@ public class MainActivity extends Activity {
 					nextStartPt = goalDist.get(elem);
 				}
 			}
-			moveToPoint(nextStartPt.getX(), nextStartPt.getX(), nextStartPt.getTheta());
+			moveToPoint(nextStartPt.getX(), nextStartPt.getX(),
+					nextStartPt.getTheta());
 			moveToGoal(Goalx, Goaly);
 		}
 		turnRobot(90, 'r');
