@@ -16,7 +16,7 @@ public class MainActivity extends Activity {
 
 	private TextView textLog;
 	private FTDriver com;
-	private Integer ObsDetecBorder = 50; // Working range of sensors is 10 to 80
+	private Integer ObsDetecBorder = 15; // Working range of sensors is 10 to 80
 											// cm (every other value should be
 											// treated as no obstacle)
 
@@ -228,7 +228,7 @@ public class MainActivity extends Activity {
 	}
 
 	public void buttonBug1_onClick(View v) {
-		bug1(50, 50);
+		bug1(120, 120);
 	}
 
 	// TODO: Delete once not needed anymore.
@@ -487,8 +487,10 @@ public class MainActivity extends Activity {
 		int moved = 0;
 		boolean obstacleFound = false;
 
-		angle = (int) Math.atan((x - Xg) / (y - Yg));
+		angle = (int) Math.atan(((double) (x - Xg)) / (y - Yg));
 		dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+		
+		writeLog("Moving to goal at angle " + angle + " in " + dist + "cm distance");
 
 		// we need to update the robots own position information
 		turnRobot(angle, 'r');
@@ -501,6 +503,7 @@ public class MainActivity extends Activity {
 			moveRobot(stepLength);
 			measurement = getDistance();
 			if (measurement.get("frontMiddle") <= ObsDetecBorder) {
+				writeLog("Obstacle found at " + getMyPosition());
 				roundObstacle(x, y);
 				obstacleFound = true;
 			}
@@ -523,6 +526,8 @@ public class MainActivity extends Activity {
 				+ Math.pow(Yg - goalY, 2)); // distance form current position to
 											// goal
 		int closestDistance = curGoalDist;
+		
+		writeLog("Going around obstacle");
 
 		while (!startPositionReached) {
 			while ((getDistance().get("frontLeft") < ObsDetecBorder)) { // Drive
@@ -547,7 +552,7 @@ public class MainActivity extends Activity {
 																			// continue
 					turnRobot(90, 'r');
 				}
-				moveRobot(1);
+				moveRobot(12);
 				movedTotalDistance = movedTotalDistance + 1;
 				curGoalDist = (int) Math.sqrt(Math.pow(Xg - goalX, 2)
 						+ Math.pow(Yg - goalY, 2)); // distance form current
@@ -558,17 +563,20 @@ public class MainActivity extends Activity {
 														// goal or not
 					closestDistance = curGoalDist;
 					closestPosition = getMyPosition();
+					writeLog("Closest point to goal found at (" + getMyPosition().x + "," + getMyPosition().y + ") - distance to goal: " + closestDistance + "cm");
 				}
 				if ((startPosition.minus(getMyPosition()) < TOL)
 						&& movedTotalDistance >= 5) { // Check if start position
 														// is reached again
 					startPositionReached = true;
+					writeLog("Back at starting position");
 				}
 				turnRobot(90, 'l');
 
 			}
 		}
 
+		writeLog("Navigating to the closest point (" + closestPosition.x + "," + closestPosition.y + ")");
 		while (!closestPositionReached) {
 			while ((getDistance().get("frontLeft") > ObsDetecBorder)) { // Drive
 																		// around
@@ -589,9 +597,10 @@ public class MainActivity extends Activity {
 																			// continue
 					turnRobot(90, 'r');
 				}
-				moveRobot(1);
+				moveRobot(12);
 				if (closestPosition.minus(getMyPosition()) < TOL) {
 					closestPositionReached = true;
+					writeLog("Closest Point reached");
 				}
 			}
 			turnRobot(90, 'l');
