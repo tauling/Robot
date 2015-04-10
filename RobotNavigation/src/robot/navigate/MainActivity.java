@@ -228,7 +228,7 @@ public class MainActivity extends Activity {
 	}
 
 	public void buttonBug1_onClick(View v) {
-		bug1();
+		bug1(50, 50);
 	}
 
 	// TODO: Delete once not needed anymore.
@@ -243,10 +243,10 @@ public class MainActivity extends Activity {
 
 	public void driveByVelocity(int dist) {
 		long start = System.nanoTime();
-		writeLog("startTime: "+(int)start);
+		writeLog("startTime: " + (int) start);
 		double corrDistFact = 500.0; // Coming from a measurement
 		long corrDist = (long) (dist * corrDistFact);
-		long end = start + dist*corrDist;
+		long end = start + dist * corrDist;
 		int waitTimeFact = 100, left = 20, right = 20;
 		while (start <= end) {
 			comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r',
@@ -410,7 +410,6 @@ public class MainActivity extends Activity {
 		comReadWrite(new byte[] { 'i', 0, 0, '\r', '\n' });
 	}
 
-	
 	// TODO Check if needed
 	/**
 	 * allows robot to drive around simple square object
@@ -486,72 +485,120 @@ public class MainActivity extends Activity {
 		int dist;
 		int angle;
 		int moved = 0;
+		boolean obstacleFound = false;
 
 		angle = (int) Math.atan((x - Xg) / (y - Yg));
 		dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
 
 		// we need to update the robots own position information
-		turnRobot((byte) angle, 'r');
+		turnRobot(angle, 'r');
 		Tg = angle;
 
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
-		while (moved < dist) {
+		while ((moved < dist) & !obstacleFound) {
 			moved++;
 			int stepLength = 2;
 			moveRobot(stepLength);
 			measurement = getDistance();
 			if (measurement.get("frontMiddle") <= ObsDetecBorder) {
 				roundObstacle(x, y);
-				break;
+				obstacleFound = true;
 			}
-
 		}
 	}
 
-	public void roundObstacle(int Goalx, int Goaly) {
-		HashMap<Integer, Position> goalDist = new HashMap<Integer, Position>();
-		// distance form current postition to goal
-		int curGoalDist = (int) Math.sqrt(Math.pow(Xg - Goalx, 2)
-				+ Math.pow(Yg - Goaly, 2));
-		goalDist.put(curGoalDist, getMyPosition());
-		turnRobot(90, 'r');
-		for (int i = 0; i < 4; i++) {
-			boolean turnLeft = false;
-			Map<String, Integer> measurement = new HashMap<String, Integer>();
-			while (!turnLeft) {
-				moveRobot(5);
-				curGoalDist = (int) Math.sqrt(Math.pow(Xg - Goalx, 2)
-						+ Math.pow(Yg - Goaly, 2));
-				writeLog("current goal distance: "+ curGoalDist);
-				goalDist.put(curGoalDist, getMyPosition());
-				if (goalDist.containsKey(getMyPosition())) {
-					break; // robot drove around obstacle and measurte all
-							// distances
+	// TODO: add comment
+	public void roundObstacle(int goalX, int goalY) {
+		Position startPosition = getMyPosition();
+		Position closestPosition = startPosition;
+		boolean startPositionReached = false;
+		boolean closestPositionReached = false;
+		final double TOL = 3.0; // Tolerated distance for comparison of current
+								// and start position
+		int movedTotalDistance = 0; // minimum distance needs to exceed a
+									// certain value before current and start
+									// position get compared
+
+		int curGoalDist = (int) Math.sqrt(Math.pow(Xg - goalX, 2)
+				+ Math.pow(Yg - goalY, 2)); // distance form current position to
+											// goal
+		int closestDistance = curGoalDist;
+
+		while (!startPositionReached) {
+			while ((getDistance().get("frontLeft") < ObsDetecBorder)) { // Drive
+																		// around
+																		// obstacle
+																		// and
+																		// find
+																		// closest
+																		// position
+																		// to
+																		// goal
+				if (getDistance().get("frontMiddle") < ObsDetecBorder) { // If
+																			// there
+																			// is
+																			// an
+																			// obstacle
+																			// in
+																			// front,
+																			// turn
+																			// right
+																			// and
+																			// continue
+					turnRobot(90, 'r');
 				}
-				measurement = getDistance();
-				writeLog(measurement.get("frontLeft"));
-				if (measurement.get("frontLeft") > ObsDetecBorder) {
-					writeLog("My way is free");
-					turnLeft = true;
+				moveRobot(1);
+				movedTotalDistance = movedTotalDistance + 1;
+				curGoalDist = (int) Math.sqrt(Math.pow(Xg - goalX, 2)
+						+ Math.pow(Yg - goalY, 2)); // distance form current
+													// position to goal // TODO:
+													// Implement function
+				if (curGoalDist < closestDistance) { // Check whether current
+														// point is closer to
+														// goal or not
+					closestDistance = curGoalDist;
+					closestPosition = getMyPosition();
 				}
-				if(turnLeft == true){
-					turnRobot(90, 'l');
-					turnLeft = false;
+				if ((startPosition.minus(getMyPosition()) < TOL)
+						&& movedTotalDistance >= 5) { // Check if start position
+														// is reached again
+					startPositionReached = true;
+				}
+				turnRobot(90, 'l');
+
+			}
+		}
+
+		while (!closestPositionReached) {
+			while ((getDistance().get("frontLeft") > ObsDetecBorder)) { // Drive
+																		// around
+																		// obstacle
+																		// and
+																		// find
+				// closest position to goal
+				if (getDistance().get("frontMiddle") < ObsDetecBorder) { // If
+																			// there
+																			// is
+																			// an
+																			// obstacle
+																			// in
+																			// front,
+																			// turn
+																			// right
+																			// and
+																			// continue
+					turnRobot(90, 'r');
+				}
+				moveRobot(1);
+				if (closestPosition.minus(getMyPosition()) < TOL) {
+					closestPositionReached = true;
 				}
 			}
-			//critical
-//			int minDist = curGoalDist;
-//			Position nextStartPt = null;
-//			for (Integer elem : goalDist.keySet()) {
-//				if (elem < minDist) {
-//					minDist = elem;
-//					nextStartPt = goalDist.get(elem);
-//				}
-//			}
-//			moveToPoint(nextStartPt.getX(), nextStartPt.getX(),
-//					nextStartPt.getTheta());
-//			moveToGoal(Goalx, Goaly);
+			turnRobot(90, 'l');
 		}
+
+		moveToGoal(goalX, goalY);
+
 	}
 
 	/**
@@ -559,11 +606,8 @@ public class MainActivity extends Activity {
 	 * circumnavigate it and remember how close you get to the goal 3) return to
 	 * that closest point(by wall-following) and continue
 	 */
-	public void bug1() {
-		int[] goal = new int[2];
-		goal[0] = 30;
-		goal[1] = 30;
-		moveToGoal(goal[0], goal[1]);
+	public void bug1(int x, int y) {
+		moveToGoal(x, y);
 	}
 
 	public Position getMyPosition() {
