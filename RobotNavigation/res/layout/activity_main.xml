@@ -27,20 +27,23 @@
                     android:layout_gravity="start|top"
                     android:onClick="buttonMinus_onClick"
                     android:text="-" />
-                
-                <TextView
+
+                <EditText
                     android:id="@+id/textLog"
-                    android:layout_width="match_parent"
+                    android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal|fill_vertical"
-                    android:enabled="false"
+                    android:ems="10"
                     android:hint="Shows log"
-                    android:inputType="text"
-                    android:singleLine = "false"
-                    android:scrollHorizontally="true"
-                    android:scrollbars="horizontal"
+                    android:enabled="false"
+                    android:inputType="textMultiLine"
+                    android:scrollHorizontally="false"
+                    android:scrollbars="vertical"
+                    android:singleLine="false"
                     android:text=""
-                    android:textSize="12sp" />
+                    android:textSize="12sp" >
+
+                    <requestFocus />
+                </EditText>
 
                 <Button
                     android:id="@+id/ButtonPlus"
@@ -61,7 +64,6 @@
                     android:layout_row="0"
                     android:onClick="buttonSensor_onClick"
                     android:text="Read Sensor" />
-
             </GridLayout>
 
             <Button

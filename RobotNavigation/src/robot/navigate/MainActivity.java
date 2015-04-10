@@ -141,8 +141,7 @@ public class MainActivity extends Activity {
 	 */
 	public void writeLog(String text) {
 		if (text.length() > 0) {
-			textLog.append("[" + text.length() + "] " + text);
-			textLog.append(System.getProperty("line.separator"));
+			textLog.append("[" + text.length() + "] " + text + "\n");
 		}
 	}
 
