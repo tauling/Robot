@@ -1,6 +1,6 @@
 package robot.navigate;
 
-public class Position {
+public class Position implements Comparable{
 	int x;
 	int y;
 	int theta;
@@ -29,5 +29,15 @@ public class Position {
 	}
 	public void setTheta(int theta) {
 		this.theta = theta;
+	}
+
+	@Override
+	public int compareTo(Object another) {
+		if (this.x == ((Position) another).x && this.y == ((Position) another).y)
+            return 0;
+        else if (this.x != ((Position) another).x || this.y != ((Position) another).y)
+            return 1;
+        else
+            return -1;
 	}
 }
