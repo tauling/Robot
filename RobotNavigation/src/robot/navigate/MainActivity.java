@@ -141,7 +141,8 @@ public class MainActivity extends Activity {
 	 */
 	public void writeLog(String text) {
 		if (text.length() > 0) {
-			textLog.append("[" + text.length() + "] " + text + "\n");
+			textLog.append("[" + text.length() + "] " + text);
+			textLog.append(System.getProperty("line.separator"));
 		}
 	}
 
@@ -487,7 +488,7 @@ public class MainActivity extends Activity {
 		int moved = 0;
 		boolean obstacleFound = false;
 
-		angle = (int) Math.atan(((double) (x - Xg)) / (y - Yg));
+		angle = (int) Math.atan(((double) (x - Xg)) / (double) (y - Yg));
 		dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
 		
 		writeLog("Moving to goal at angle " + angle + " in " + dist + "cm distance");
