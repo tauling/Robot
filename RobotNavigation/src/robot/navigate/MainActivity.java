@@ -560,10 +560,10 @@ public class MainActivity extends Activity {
 	 * that closest point(by wall-following) and continue
 	 */
 	public void bug1() {
-		int[] goal = null;
+		int[] goal = new int[2];
 		goal[0] = 30;
 		goal[1] = 30;
-		//moveToGoal(goal[0], goal[1]);
+		moveToGoal(goal[0], goal[1]);
 	}
 
 	public Position getMyPosition() {
