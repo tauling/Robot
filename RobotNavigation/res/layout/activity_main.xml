@@ -1,14 +1,29 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/FrameLayout1"
+    android:id="@+id/LinearLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity" >
+
+    <TextView
+        android:id="@+id/textLog"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_gravity="fill_horizontal"
+        android:gravity="left"
+        android:lines="20"
+        android:maxLines="20"
+        android:scrollHorizontally="false"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
+        android:scrollbarStyle="insideOverlay"
+        android:scrollbars="vertical" />
 
     <ScrollView
         android:id="@+id/myScrollView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="398dp"
+        android:layout_gravity="fill_horizontal" >
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -27,23 +42,6 @@
                     android:layout_gravity="start|top"
                     android:onClick="buttonMinus_onClick"
                     android:text="-" />
-
-                <EditText
-                    android:id="@+id/textLog"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:ems="10"
-                    android:hint="Shows log"
-                    android:enabled="false"
-                    android:inputType="textMultiLine"
-                    android:scrollHorizontally="false"
-                    android:scrollbars="vertical"
-                    android:singleLine="false"
-                    android:text=""
-                    android:textSize="12sp" >
-
-                    <requestFocus />
-                </EditText>
 
                 <Button
                     android:id="@+id/ButtonPlus"
@@ -112,4 +110,9 @@
         </LinearLayout>
     </ScrollView>
 
-</FrameLayout>
+    <Space
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="fill_vertical" />
+
+</LinearLayout>

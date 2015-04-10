@@ -243,10 +243,10 @@ public class MainActivity extends Activity {
 
 	public void driveByVelocity(int dist) {
 		long start = System.nanoTime();
-		writeLog("startTime: " + (int) start);
+		writeLog("startTime: "+(int)start);
 		double corrDistFact = 500.0; // Coming from a measurement
 		long corrDist = (long) (dist * corrDistFact);
-		long end = start + dist * corrDist;
+		long end = start + dist*corrDist;
 		int waitTimeFact = 100, left = 20, right = 20;
 		while (start <= end) {
 			comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r',
@@ -410,6 +410,7 @@ public class MainActivity extends Activity {
 		comReadWrite(new byte[] { 'i', 0, 0, '\r', '\n' });
 	}
 
+	
 	// TODO Check if needed
 	/**
 	 * allows robot to drive around simple square object
@@ -485,19 +486,18 @@ public class MainActivity extends Activity {
 		int dist;
 		int angle;
 		int moved = 0;
-		boolean obstacleFound = false;
 
-		angle = (int) Math.atan(((double) (x - Xg)) / (double) (y - Yg));
+		angle = (int) (360*Math.atan(((double) (x - Xg)) /  (y - Yg))/(2*Math.PI));
 		dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
 		
 		writeLog("Moving to goal at angle " + angle + " in " + dist + "cm distance");
 
 		// we need to update the robots own position information
-		turnRobot(angle, 'r');
+		turnRobot((byte) angle, 'r');
 		Tg = angle;
 
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
-		while ((moved < dist) & !obstacleFound) {
+		while (moved < dist) {
 			moved++;
 			int stepLength = 2;
 			moveRobot(stepLength);
@@ -505,8 +505,9 @@ public class MainActivity extends Activity {
 			if (measurement.get("frontMiddle") <= ObsDetecBorder) {
 				writeLog("Obstacle found at " + getMyPosition());
 				roundObstacle(x, y);
-				obstacleFound = true;
+				break;
 			}
+
 		}
 	}
 
@@ -571,8 +572,6 @@ public class MainActivity extends Activity {
 					startPositionReached = true;
 					writeLog("Back at starting position");
 				}
-				turnRobot(90, 'l');
-
 			}
 		}
 
@@ -607,7 +606,6 @@ public class MainActivity extends Activity {
 		}
 
 		moveToGoal(goalX, goalY);
-
 	}
 
 	/**
