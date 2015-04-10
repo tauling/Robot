@@ -36,9 +36,10 @@
                     android:enabled="false"
                     android:hint="Shows log"
                     android:inputType="text"
-                    android:scrollHorizontally="true"
-                    android:scrollbars="horizontal"
-                    android:text="TextView"
+                    android:scrollHorizontally="false"
+                    android:scrollbarAlwaysDrawVerticalTrack="true"
+                    android:scrollbarStyle="insideOverlay"
+                    android:scrollbars="vertical"
                     android:textSize="12sp" />
 
                 <Button
