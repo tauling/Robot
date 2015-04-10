@@ -334,15 +334,16 @@ public class MainActivity extends Activity {
 	
 	public void driveByVelocity(int dist) {
 		long start = System.nanoTime();
-		writeLog((int)start);
-		// double corrDistFact = 100.0 / 72; // Coming from a measurement
-		// long corrDist = (long) (dist * corrDistFact);
-		long end = start + 2000;
-		writeLog((int)end);
+		writeLog("startTime: "+(int)start);
+		double corrDistFact = 500.0; // Coming from a measurement
+		long corrDist = (long) (dist * corrDistFact);
+		long end = start + dist*corrDist;
+		writeLog("endTime: "+(int)end);
 		int waitTimeFact = 100, left = 20, right = 20;
 		while (start <= end) {
 			comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r',
 					'\n' }, waitTimeFact);
+			start = System.nanoTime();
 		}
 		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r',
 		'\n' }, waitTimeFact);
@@ -623,6 +624,7 @@ public class MainActivity extends Activity {
 				moveRobot(5);
 				curGoalDist = (int) Math.sqrt(Math.pow(Xg - Goalx, 2)
 						+ Math.pow(Yg - Goaly, 2));
+				writeLog("current goal distance: "+ curGoalDist);
 				goalDist.put(curGoalDist, getMyPosition());
 				if (goalDist.containsKey(getMyPosition())) {
 					break; // robot drove around obstacle and measurte all
@@ -634,21 +636,24 @@ public class MainActivity extends Activity {
 					writeLog("My way is free");
 					turnLeft = true;
 				}
-			}
-			turnRobot(90, 'l');
-			int minDist = curGoalDist;
-			Position nextStartPt = null;
-			for (Integer elem : goalDist.keySet()) {
-				if (elem < minDist) {
-					minDist = elem;
-					nextStartPt = goalDist.get(elem);
+				if(turnLeft == true){
+					turnRobot(90, 'l');
+					turnLeft = false;
 				}
 			}
-			moveToPoint(nextStartPt.getX(), nextStartPt.getX(),
-					nextStartPt.getTheta());
-			moveToGoal(Goalx, Goaly);
+			//critical
+//			int minDist = curGoalDist;
+//			Position nextStartPt = null;
+//			for (Integer elem : goalDist.keySet()) {
+//				if (elem < minDist) {
+//					minDist = elem;
+//					nextStartPt = goalDist.get(elem);
+//				}
+//			}
+//			moveToPoint(nextStartPt.getX(), nextStartPt.getX(),
+//					nextStartPt.getTheta());
+//			moveToGoal(Goalx, Goaly);
 		}
-		turnRobot(90, 'r');
 	}
 
 	/**
