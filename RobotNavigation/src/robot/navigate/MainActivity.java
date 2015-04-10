@@ -16,7 +16,7 @@ public class MainActivity extends Activity {
 
 	private TextView textLog;
 	private FTDriver com;
-	private Integer ObsDetecBorder = 15; // Working range of sensors is 10 to 80
+	private Integer ObsDetecBorder = 18; // Working range of sensors is 10 to 80
 											// cm (every other value should be
 											// treated as no obstacle)
 
@@ -386,7 +386,7 @@ public class MainActivity extends Activity {
 				Thread.sleep(50);
 			} catch (Exception e) {
 			}
-			if (getDistance().get("frontMiddle") <= ObsDetecBorder) { // checks
+			if (getDistance().get("frontRight") <= ObsDetecBorder) { // checks
 																		// if
 																		// robot
 																		// hit
@@ -405,7 +405,7 @@ public class MainActivity extends Activity {
 				comReadWrite(new byte[] { 'i', 15, 15, '\r', '\n' });
 				i++;
 			}
-			writeLog(getDistance().get("frontMiddle"));
+			writeLog(getDistance().get("frontRight"));
 		}
 		comReadWrite(new byte[] { 'i', 0, 0, '\r', '\n' });
 	}
@@ -474,7 +474,7 @@ public class MainActivity extends Activity {
 			int stepLength = 2;
 			moveRobot(stepLength);
 			measurement = getDistance();
-			if (measurement.get("frontMiddle") <= ObsDetecBorder) {
+			if (measurement.get("frontRight") <= ObsDetecBorder) {
 				moveAroundObstacle();
 			}
 
@@ -502,7 +502,7 @@ public class MainActivity extends Activity {
 			int stepLength = 2;
 			moveRobot(stepLength);
 			measurement = getDistance();
-			if (measurement.get("frontMiddle") <= ObsDetecBorder) {
+			if (measurement.get("frontRight") <= ObsDetecBorder) {
 				writeLog("Obstacle found at " + getMyPosition());
 				roundObstacle(x, y);
 				break;
@@ -540,7 +540,7 @@ public class MainActivity extends Activity {
 																		// position
 																		// to
 																		// goal
-				if (getDistance().get("frontMiddle") < ObsDetecBorder) { // If
+				if (getDistance().get("frontRight") < ObsDetecBorder) { // If
 																			// there
 																			// is
 																			// an
@@ -583,7 +583,7 @@ public class MainActivity extends Activity {
 																		// and
 																		// find
 				// closest position to goal
-				if (getDistance().get("frontMiddle") < ObsDetecBorder) { // If
+				if (getDistance().get("frontRight") < ObsDetecBorder) { // If
 																			// there
 																			// is
 																			// an
