@@ -16,9 +16,12 @@ public class MainActivity extends Activity {
 
 	private TextView textLog;
 	private FTDriver com;
-	private Integer ObsDetecBorder = 18; // Working range of sensors is 10 to 80
-											// cm (every other value should be
-											// treated as no obstacle)
+	private Integer ObsDetecBorderLR = 15;  // Working range of left/right sensor
+	   										// is 10 to 80cm (every other value 
+	   										// should be treated as no obstacle)
+	private Integer ObsDetecBorderM = 25;   // Working range of left/right sensor
+	   										// is 10 to 80cm (every other value 
+	   										// should be treated as no obstacle)
 
 	private int Xg = 0, Yg = 0, Tg = 0;
 
@@ -342,6 +345,7 @@ public class MainActivity extends Activity {
 	/**
 	 * returns distances of all sensors in cm
 	 */
+	// TODO: calibrate offsets and factors
 	public Map<String, Integer> getDistance() {
 		int sensNr;
 		int val;
@@ -355,13 +359,13 @@ public class MainActivity extends Activity {
 
 				switch (sensNr) {
 				case 4:
-					readSensor.put("frontLeft", val);
+					readSensor.put("frontLeft", val+1);
 					break;
 				case 5:
-					readSensor.put("frontRight", val);
+					readSensor.put("frontRight", val+3);
 					break;
 				case 8:
-					readSensor.put("frontMiddle", val);
+					readSensor.put("frontMiddle", val); // TODO: Middle Sensor quite exact down to 20cm. Below 20cm sensor output increases again.
 					break;
 				}
 				sensNr++;
@@ -386,7 +390,7 @@ public class MainActivity extends Activity {
 				Thread.sleep(50);
 			} catch (Exception e) {
 			}
-			if (getDistance().get("frontRight") <= ObsDetecBorder) { // checks
+			if (getDistance().get("frontMiddle") <= ObsDetecBorderM) { // checks
 																		// if
 																		// robot
 																		// hit
@@ -405,7 +409,7 @@ public class MainActivity extends Activity {
 				comReadWrite(new byte[] { 'i', 15, 15, '\r', '\n' });
 				i++;
 			}
-			writeLog(getDistance().get("frontRight"));
+			writeLog(getDistance().get("frontMiddle"));
 		}
 		comReadWrite(new byte[] { 'i', 0, 0, '\r', '\n' });
 	}
@@ -439,7 +443,7 @@ public class MainActivity extends Activity {
 			movedDist = movedDist + 5;
 			measurement = getDistance();
 			writeLog(measurement.get("frontLeft"));
-			if (measurement.get("frontLeft") > ObsDetecBorder) {
+			if (measurement.get("frontLeft") > ObsDetecBorderLR) {
 				writeLog("My way is free");
 				turnLeft = true;
 			}
@@ -474,7 +478,7 @@ public class MainActivity extends Activity {
 			int stepLength = 2;
 			moveRobot(stepLength);
 			measurement = getDistance();
-			if (measurement.get("frontRight") <= ObsDetecBorder) {
+			if (measurement.get("frontMiddle") <= ObsDetecBorderM) {
 				moveAroundObstacle();
 			}
 
@@ -502,7 +506,7 @@ public class MainActivity extends Activity {
 			int stepLength = 2;
 			moveRobot(stepLength);
 			measurement = getDistance();
-			if (measurement.get("frontRight") <= ObsDetecBorder) {
+			if (measurement.get("frontMiddle") <= ObsDetecBorderM) {
 				writeLog("Obstacle found at " + getMyPosition());
 				roundObstacle(x, y);
 				break;
@@ -531,7 +535,7 @@ public class MainActivity extends Activity {
 		writeLog("Going around obstacle");
 
 		while (!startPositionReached) {
-			while ((getDistance().get("frontLeft") < ObsDetecBorder)) { // Drive
+			while ((getDistance().get("frontLeft") < ObsDetecBorderLR)) { // Drive
 																		// around
 																		// obstacle
 																		// and
@@ -540,7 +544,7 @@ public class MainActivity extends Activity {
 																		// position
 																		// to
 																		// goal
-				if (getDistance().get("frontRight") < ObsDetecBorder) { // If
+				if (getDistance().get("frontMiddle") < ObsDetecBorderM) { // If
 																			// there
 																			// is
 																			// an
@@ -573,17 +577,18 @@ public class MainActivity extends Activity {
 					writeLog("Back at starting position");
 				}
 			}
+			turnRobot(90, 'l');
 		}
 
 		writeLog("Navigating to the closest point (" + closestPosition.x + "," + closestPosition.y + ")");
 		while (!closestPositionReached) {
-			while ((getDistance().get("frontLeft") > ObsDetecBorder)) { // Drive
+			while ((getDistance().get("frontLeft") > ObsDetecBorderLR)) { // Drive
 																		// around
 																		// obstacle
 																		// and
 																		// find
 				// closest position to goal
-				if (getDistance().get("frontRight") < ObsDetecBorder) { // If
+				if (getDistance().get("frontMiddle") < ObsDetecBorderM) { // If
 																			// there
 																			// is
 																			// an
