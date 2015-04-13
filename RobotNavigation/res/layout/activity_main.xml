@@ -36,7 +36,8 @@
 
             <GridLayout
                 android:layout_width="match_parent"
-                android:layout_height="279dp"
+                android:layout_height="73dp"
+                android:layout_weight="0.04"
                 android:columnCount="1" >
 
                 <Button
@@ -110,13 +111,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="2.80"
                 android:onClick="buttonTest_onClick"
-                android:text="TestButton" />
+                android:text="Test" />
         </LinearLayout>
     </ScrollView>
-
-    <Space
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="fill_vertical" />
-
 </LinearLayout>
