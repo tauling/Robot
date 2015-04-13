@@ -265,8 +265,8 @@ public class MainActivity extends Activity {
 
 	public void updatePosition(int stepLength) {
 		int movementX = 0, movementY = 0;
-		movementX = (int) Math.sin(Tg) * stepLength;
-		movementY = (int) (movementX / Math.tan(Tg));
+		movementX = (int) Math.cos(Tg) * stepLength;
+		movementY = (int) (movementX * Math.tan(Tg));
 		Xg = movementX;
 		Yg = movementY;
 		writeLog("my Position: (" + Xg + "," + Yg + "," + Tg + ")");
@@ -531,26 +531,10 @@ public class MainActivity extends Activity {
 		writeLog("Going around obstacle");
 
 		while (!startPositionReached) {
-			while ((getDistance().get("frontLeft") < ObsDetecBorder)) { // Drive
-																		// around
-																		// obstacle
-																		// and
-																		// find
-																		// closest
-																		// position
-																		// to
-																		// goal
-				if (getDistance().get("frontMiddle") < ObsDetecBorder) { // If
-																			// there
-																			// is
-																			// an
-																			// obstacle
-																			// in
-																			// front,
-																			// turn
-																			// right
-																			// and
-																			// continue
+			//Drive around obstacle and find closest position to goal
+			while ((getDistance().get("frontLeft") < ObsDetecBorder)) { 
+				// If there is an obstacle in front, turn right and continue
+				if (getDistance().get("frontMiddle") < ObsDetecBorder) { 
 					turnRobot(90, 'r');
 				}
 				moveRobot(12);
