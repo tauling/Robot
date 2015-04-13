@@ -1,27 +1,27 @@
 package robot.navigate;
 
 public class Position implements Comparable{
-	int x;
-	int y;
+	double x;
+	double y;
 	int theta;
 	
-	public Position(int x,int y,int theta){
+	public Position(double x,double y,int theta){
 		this.x = x;
 		this.y = y;
 		this.theta = theta;
 	}
 	
-	public int getX() {
+	public double getX() {
 		return x;
 	}
 	
-	public void setX(int x) {
+	public void setX(double x) {
 		this.x = x;
 	}
-	public int getY() {
+	public double getY() {
 		return y;
 	}
-	public void setY(int y) {
+	public void setY(double y) {
 		this.y = y;
 	}
 	public int getTheta() {
@@ -31,8 +31,8 @@ public class Position implements Comparable{
 		this.theta = theta;
 	}
 
-	public int minus(Position two){
-		return (int) Math.sqrt(Math.pow(this.x - two.getX(), 2) + Math.pow(this.y - two.getY(), 2));
+	public double minus(Position two){
+		return Math.sqrt(Math.pow(this.x - two.getX(), 2) + Math.pow(this.y - two.getY(), 2));
 	}
 	
 	@Override
