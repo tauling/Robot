@@ -16,12 +16,12 @@ public class MainActivity extends Activity {
 
 	private TextView textLog;
 	private FTDriver com;
-	private Integer ObsDetecBorderLR = 35;  // Working range of left/right sensor
-	   										// is 10 to 80cm (every other value 
-	   										// should be treated as no obstacle)
-	private Integer ObsDetecBorderM = 30;   // Working range of left/right sensor
-	   										// is 10 to 80cm (every other value 
-	   										// should be treated as no obstacle)
+	private Integer ObsDetecBorderLR = 35; // Working range of left/right sensor
+											// is 10 to 80cm (every other value
+											// should be treated as no obstacle)
+	private Integer ObsDetecBorderM = 30; // Working range of left/right sensor
+											// is 10 to 80cm (every other value
+											// should be treated as no obstacle)
 
 	private int Xg = 0, Yg = 0, Tg = 0;
 
@@ -239,33 +239,33 @@ public class MainActivity extends Activity {
 		try {
 			turnRobot(250, 'l');
 			Thread.sleep(500);
-			robotSetLeds(127,0);
+			robotSetLeds(127, 0);
 			Thread.sleep(500);
 			moveRobot(20);
 			Thread.sleep(500);
-			robotSetLeds(0,127);
+			robotSetLeds(0, 127);
 			Thread.sleep(500);
 			moveRobot(-20);
 			Thread.sleep(500);
-			robotSetLeds(127,0);
+			robotSetLeds(127, 0);
 			Thread.sleep(500);
 			moveRobot(200);
 			Thread.sleep(500);
-			robotSetLeds(0,127);
+			robotSetLeds(0, 127);
 			Thread.sleep(500);
 			moveRobot(-200);
 			Thread.sleep(500);
-			robotSetLeds(127,0);
+			robotSetLeds(127, 0);
 		} catch (Exception e) {
 		}
 	}
 
 	public void driveByVelocity(int dist) {
 		long start = System.nanoTime();
-		writeLog("startTime: "+(int)start);
+		writeLog("startTime: " + (int) start);
 		double corrDistFact = 500.0; // Coming from a measurement
 		long corrDist = (long) (dist * corrDistFact);
-		long end = start + dist*corrDist;
+		long end = start + dist * corrDist;
 		int waitTimeFact = 100, left = 20, right = 20;
 		while (start <= end) {
 			comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r',
@@ -319,8 +319,10 @@ public class MainActivity extends Activity {
 		while (Math.abs(corrDist) > 127) { // Byte stores values from -128 to
 											// 127
 			corrDist -= (int) (Math.signum(corrDist)) * 127;
-			writeLog(comReadWrite(new byte[] { 'k', (byte) 127, '\r', '\n' },
-					127 * waitTimeFact));
+			writeLog(comReadWrite(
+					new byte[] { 'k',
+							(byte) ((int) (Math.signum(corrDist)) * 127), '\r',
+							'\n' }, 127 * waitTimeFact));
 		}
 		writeLog(comReadWrite(new byte[] { 'k', (byte) corrDist, '\r', '\n' },
 				Math.abs(dist) * waitTimeFact));
@@ -363,11 +365,13 @@ public class MainActivity extends Activity {
 		while (Math.abs(degrees) > 127) { // Byte stores values from -128 to
 											// 127
 			degrees -= (int) (Math.signum(degrees)) * 127;
-			writeLog(comReadWrite(new byte[] { 'l', (byte) ((int) Math.signum(degrees)*127), '\r', '\n' },
-					waitTimeFact*127));
+			writeLog(comReadWrite(
+					new byte[] { 'l',
+							(byte) ((int) (Math.signum(degrees)) * 127), '\r',
+							'\n' }, waitTimeFact * 127));
 		}
 		writeLog(comReadWrite(new byte[] { 'l', (byte) degrees, '\r', '\n' },
-				waitTimeFact*degrees));
+				waitTimeFact * Math.abs(degrees)));
 		updateRotation(angle, dir);
 	}
 
@@ -388,13 +392,17 @@ public class MainActivity extends Activity {
 
 				switch (sensNr) {
 				case 4:
-					readSensor.put("frontLeft", val+1);
+					readSensor.put("frontLeft", val + 1);
 					break;
 				case 5:
-					readSensor.put("frontRight", val+3);
+					readSensor.put("frontRight", val + 3);
 					break;
 				case 8:
-					readSensor.put("frontMiddle", val); // TODO: Middle Sensor quite exact down to 20cm. Below 20cm sensor output increases again.
+					readSensor.put("frontMiddle", val); // Middle Sensor quite
+														// exact down to 20cm.
+														// Below 20cm sensor
+														// output increases
+														// again.
 					break;
 				}
 				sensNr++;
@@ -443,7 +451,6 @@ public class MainActivity extends Activity {
 		comReadWrite(new byte[] { 'i', 0, 0, '\r', '\n' });
 	}
 
-	
 	// TODO Check if needed
 	/**
 	 * allows robot to drive around simple square object
@@ -520,10 +527,11 @@ public class MainActivity extends Activity {
 		int angle;
 		int moved = 0;
 
-		angle = (int) (360*Math.atan(((double) (x - Xg)) /  (y - Yg))/(2*Math.PI));
+		angle = (int) (360 * Math.atan(((double) (x - Xg)) / (y - Yg)) / (2 * Math.PI));
 		dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
-		
-		writeLog("Moving to goal at angle " + angle + " in " + dist + "cm distance");
+
+		writeLog("Moving to goal at angle " + angle + " in " + dist
+				+ "cm distance");
 
 		// we need to update the robots own position information
 		turnRobot((byte) angle, 'r');
@@ -559,19 +567,19 @@ public class MainActivity extends Activity {
 				+ Math.pow(Yg - goalY, 2)); // distance form current position to
 											// goal
 		int closestDistance = curGoalDist;
-		
+
 		writeLog("Going around obstacle");
 
 		while (!startPositionReached) {
 			while ((getDistance().get("frontLeft") < ObsDetecBorderLR)) { // Drive
-																		// around
-																		// obstacle
-																		// and
-																		// find
-																		// closest
-																		// position
-																		// to
-																		// goal
+																			// around
+																			// obstacle
+																			// and
+																			// find
+																			// closest
+																			// position
+																			// to
+																			// goal
 				if (getDistance().get("frontMiddle") < ObsDetecBorderM) { // If
 																			// there
 																			// is
@@ -596,25 +604,31 @@ public class MainActivity extends Activity {
 														// goal or not
 					closestDistance = curGoalDist;
 					closestPosition = getMyPosition();
-					writeLog("Closest point to goal found at (" + getMyPosition().x + "," + getMyPosition().y + ") - distance to goal: " + closestDistance + "cm");
-				}
-				if ((startPosition.minus(getMyPosition()) < TOL)
-						&& movedTotalDistance >= 5) { // Check if start position
-														// is reached again
-					startPositionReached = true;
-					writeLog("Back at starting position");
+					writeLog("Closest point to goal found at ("
+							+ getMyPosition().x + "," + getMyPosition().y
+							+ ") - distance to goal: " + closestDistance + "cm");
 				}
 			}
+			if ((startPosition.minus(getMyPosition()) < TOL)
+					&& movedTotalDistance >= 5) { // Check if start position
+													// is reached again
+				startPositionReached = true;
+				writeLog("Back at starting position");
+			}
 			turnRobot(90, 'l');
+			if (getDistance().get("frontMiddle") > ObsDetecBorderM) {
+				moveRobot(20);
+			}
 		}
 
-		writeLog("Navigating to the closest point (" + closestPosition.x + "," + closestPosition.y + ")");
+		writeLog("Navigating to the closest point (" + closestPosition.x + ","
+				+ closestPosition.y + ")");
 		while (!closestPositionReached) {
 			while ((getDistance().get("frontLeft") > ObsDetecBorderLR)) { // Drive
-																		// around
-																		// obstacle
-																		// and
-																		// find
+																			// around
+																			// obstacle
+																			// and
+																			// find
 				// closest position to goal
 				if (getDistance().get("frontMiddle") < ObsDetecBorderM) { // If
 																			// there
