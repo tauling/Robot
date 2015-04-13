@@ -16,10 +16,10 @@ public class MainActivity extends Activity {
 
 	private TextView textLog;
 	private FTDriver com;
-	private Integer ObsDetecBorderLR = 15;  // Working range of left/right sensor
+	private Integer ObsDetecBorderLR = 35;  // Working range of left/right sensor
 	   										// is 10 to 80cm (every other value 
 	   										// should be treated as no obstacle)
-	private Integer ObsDetecBorderM = 25;   // Working range of left/right sensor
+	private Integer ObsDetecBorderM = 30;   // Working range of left/right sensor
 	   										// is 10 to 80cm (every other value 
 	   										// should be treated as no obstacle)
 
@@ -231,15 +231,31 @@ public class MainActivity extends Activity {
 	}
 
 	public void buttonBug1_onClick(View v) {
-		bug1(120, 120);
+		bug1(120, 200);
 	}
 
 	// TODO: Delete once not needed anymore.
 	public void buttonTest_onClick(View v) {
 		try {
-			turnRobot(90, 'l');
+			turnRobot(250, 'l');
 			Thread.sleep(500);
-			turnRobot(90, 'r');
+			robotSetLeds(127,0);
+			Thread.sleep(500);
+			moveRobot(20);
+			Thread.sleep(500);
+			robotSetLeds(0,127);
+			Thread.sleep(500);
+			moveRobot(-20);
+			Thread.sleep(500);
+			robotSetLeds(127,0);
+			Thread.sleep(500);
+			moveRobot(200);
+			Thread.sleep(500);
+			robotSetLeds(0,127);
+			Thread.sleep(500);
+			moveRobot(-200);
+			Thread.sleep(500);
+			robotSetLeds(127,0);
 		} catch (Exception e) {
 		}
 	}
@@ -268,10 +284,10 @@ public class MainActivity extends Activity {
 
 	public void updatePosition(int stepLength) {
 		int movementX = 0, movementY = 0;
-		movementX = (int) Math.sin(Tg) * stepLength;
-		movementY = (int) (movementX / Math.tan(Tg));
-		Xg = movementX;
-		Yg = movementY;
+		movementX = (int) Math.cos(Tg) * stepLength;
+		movementY = (int) (movementX * Math.tan(Tg));
+		Xg += movementX;
+		Yg += movementY;
 		writeLog("my Position: (" + Xg + "," + Yg + "," + Tg + ")");
 	}
 
@@ -279,9 +295,15 @@ public class MainActivity extends Activity {
 		switch (dir) {
 		case 'l':
 			Tg -= angle;
+			if (Tg < 0) {
+				Tg += 360;
+			}
 			break;
 		case 'r':
 			Tg += angle;
+			if (Tg > 360) {
+				Tg -= 360;
+			}
 			break;
 		default:
 			writeLog("wrong input direction");
@@ -332,13 +354,20 @@ public class MainActivity extends Activity {
 	public void turnRobot(int angle, char dir) {
 		double corrAngle = 8.0 / 7; // Coming from a measurement
 		int degrees = (int) (corrAngle * angle);
-		int waitTimeMs = (1500 * degrees) / 90;
+		int waitTimeFact = 17;
 
 		if (dir == 'r') {
 			degrees = -degrees;
 		}
+
+		while (Math.abs(degrees) > 127) { // Byte stores values from -128 to
+											// 127
+			degrees -= (int) (Math.signum(degrees)) * 127;
+			writeLog(comReadWrite(new byte[] { 'l', (byte) ((int) Math.signum(degrees)*127), '\r', '\n' },
+					waitTimeFact*127));
+		}
 		writeLog(comReadWrite(new byte[] { 'l', (byte) degrees, '\r', '\n' },
-				waitTimeMs));
+				waitTimeFact*degrees));
 		updateRotation(angle, dir);
 	}
 
@@ -498,7 +527,6 @@ public class MainActivity extends Activity {
 
 		// we need to update the robots own position information
 		turnRobot((byte) angle, 'r');
-		Tg = angle;
 
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		while (moved < dist) {
@@ -557,7 +585,7 @@ public class MainActivity extends Activity {
 																			// continue
 					turnRobot(90, 'r');
 				}
-				moveRobot(12);
+				moveRobot(20);
 				movedTotalDistance = movedTotalDistance + 1;
 				curGoalDist = (int) Math.sqrt(Math.pow(Xg - goalX, 2)
 						+ Math.pow(Yg - goalY, 2)); // distance form current
@@ -601,7 +629,7 @@ public class MainActivity extends Activity {
 																			// continue
 					turnRobot(90, 'r');
 				}
-				moveRobot(12);
+				moveRobot(20);
 				if (closestPosition.minus(getMyPosition()) < TOL) {
 					closestPositionReached = true;
 					writeLog("Closest Point reached");
