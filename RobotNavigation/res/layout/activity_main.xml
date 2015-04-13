@@ -107,6 +107,20 @@
                 android:text="Bug2" />
 
             <Button
+                android:id="@+id/button5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.04"
+                android:text="1m" />
+
+            <Button
+                android:id="@+id/button6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.04"
+                android:text="90°" />
+
+            <Button
                 android:id="@+id/TestButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
