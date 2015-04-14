@@ -17,7 +17,7 @@ public class MainActivity extends Activity {
 	private TextView textLog;
 	private FTDriver com;
 
-// -> Robot Calibration
+	// -> Robot Calibration
 	private Integer ObsDetectBorderLR = 35; // Measurements in front of the
 											// robot
 											// below this value are treated as
@@ -73,13 +73,11 @@ public class MainActivity extends Activity {
 																			// found
 																			// obstacle.
 
-// <- Robot Calibration
-	
-	
+	// <- Robot Calibration
+
 	private double Xg = 0, Yg = 0; // Position of the robot.
 	private int Tg = 0; // Angle of the robot.
 
-	
 	// TODO: Fix Crash when robot is off
 
 	/**
@@ -301,12 +299,12 @@ public class MainActivity extends Activity {
 		} catch (Exception e) {
 		}
 	}
-	
+
 	public void buttonOneMeter_onClick(View v) {
 		moveRobot(100);
 	}
-	
-	public void button90Deg_onClick(View v){
+
+	public void button90Deg_onClick(View v) {
 		turnRobot(90, 'r');
 		turnRobot(90, 'l');
 	}
@@ -503,81 +501,13 @@ public class MainActivity extends Activity {
 		comReadWrite(new byte[] { 'i', 0, 0, '\r', '\n' });
 	}
 
-	// TODO Check if needed
 	/**
-	 * allows robot to drive around simple square object
-	 */
-	public void moveAroundObstacle() {
-		int firEdge = 0, secEdge = 0; // length of each edge
-		turnRobot(90, 'r');
-		firEdge = driveAroundNextCorner();
-		secEdge = driveAroundNextCorner();
-		for (int i = firEdge; i > 0; i--) {
-			moveRobot(5);
-		}
-		turnRobot(90, 'r');
-	}
-
-	// TODO: Delete once not needed anymore
-	/**
-	 * move forward and turn left at next corner
-	 */
-	public int driveAroundNextCorner() {
-		int movedDist = 0; // moved distance units
-		boolean turnLeft = false;
-		Map<String, Integer> measurement = new HashMap<String, Integer>();
-		while (!turnLeft) {
-			moveRobot(5);
-			movedDist = movedDist + 5;
-			measurement = getDistance();
-			writeLog(measurement.get("frontLeft"));
-			if (measurement.get("frontLeft") > ObsDetectBorderM) {
-				writeLog("My way is free");
-				turnLeft = true;
-			}
-		}
-		turnRobot(90, 'l');
-		return movedDist;
-	}
-
-	/**
-	 * Tries to move the robot to point (x,y)
+	 * methods tests whether an obstacle is in the range of the 3 front sensors
+	 * or not
 	 * 
-	 * first drive and read sensor (check for obstacles) method
-	 */
-	public void moveToPoint(int x, int y) {
-		int dist;
-		int angle;
-		int moved = 0;
-
-		angle = (int) Math.atan((x - Xg) / (y - Yg));
-		dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
-
-		// we need to update the robots own position information
-		turnRobot((byte) angle, 'r');
-		Tg = angle;
-
-		Map<String, Integer> measurement = new HashMap<String, Integer>();
-		while (moved < dist) {
-			moved++;
-			// we need to update the robots own position information after each
-			// step
-			// driveAndRead();
-			int stepLength = 2;
-			moveRobot(stepLength);
-			measurement = getDistance();
-			if (measurement.get("frontMiddle") <= ObsDetectBorderM) {
-				moveAroundObstacle();
-			}
-
-		}
-	}
-	
-	/**
-	 * methods tests whether an obstacle is in the range of the 3 front sensors  or not
 	 * @return true - obstacle detected; false - free way
 	 */
-	public Boolean obstacleInFront(){
+	public Boolean obstacleInFront() {
 		Boolean detected = false;
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		measurement = getDistance();
@@ -588,10 +518,11 @@ public class MainActivity extends Activity {
 		}
 		return detected;
 	}
-	
+
 	/**
 	 * checks if an obstacle is in the range of the left sensor
-	 * @return 
+	 * 
+	 * @return
 	 */
 	public Boolean obstacleLeft() {
 		Boolean detected = false;
@@ -603,19 +534,19 @@ public class MainActivity extends Activity {
 		return detected;
 	}
 
-	
 	/**
 	 * checks if an obstacle is in the range of the right sensor
-	 * @return 
+	 * 
+	 * @return
 	 */
-	public Boolean obstacleRight(){
+	public Boolean obstacleRight() {
 		Boolean detected = false;
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		measurement = getDistance();
 		if (measurement.get("frontRight") <= ObsDetectBorderLR) {
 			detected = true;
 		}
-		return detected;		
+		return detected;
 	}
 
 	// TODO: Fix this method; Add description.
@@ -633,12 +564,9 @@ public class MainActivity extends Activity {
 		// we need to update the robots own position information
 		turnRobot((byte) angle, 'r');
 
-		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		while (moved < dist) {
 			moved++;
-			int stepLength = 2;
-			moveRobot(stepLength);
-			measurement = getDistance();
+			moveRobot(2);
 			if (obstacleInFront()) {
 				writeLog("Obstacle found at " + getMyPosition());
 				roundObstacle(x, y);
@@ -703,14 +631,14 @@ public class MainActivity extends Activity {
 		writeLog("Going around obstacle");
 
 		while (!startPositionReached) {
-			//Drive around obstacle and find closest position to goal
-			while (obstacleLeft()) { 
+			// Drive around obstacle and find closest position to goal
+			while (obstacleLeft()) {
 				// If there is an obstacle in front, turn right and continue
-				if (obstacleInFront()) { 
+				if (obstacleInFront()) {
 					turnRobot(90, 'r');
 				}
-				moveRobot(10);
-				movedTotalDistance = movedTotalDistance + 1;
+				moveRobot(5);
+				movedTotalDistance = movedTotalDistance + 5;
 				curGoalDist = (int) Math.sqrt(Math.pow(Xg - goalX, 2)
 						+ Math.pow(Yg - goalY, 2)); // distance form current
 													// position to goal // TODO:
@@ -731,26 +659,29 @@ public class MainActivity extends Activity {
 				startPositionReached = true;
 				writeLog("Back at starting position");
 			}
-			turnRobot(90, 'l');
-			if (obstacleInFront()) {
-				moveRobot(20);
+			if (!obstacleInFront()) {
+				moveRobot(DistToPassObstacleL);
 			}
+			turnRobot(90, 'l');
 		}
 
 		writeLog("Navigating to the closest point (" + closestPosition.x + ","
 				+ closestPosition.y + ")");
 		while (!closestPositionReached) {
 			// Drive around obstacle and find closest position to goal
-			while ((getDistance().get("frontLeft") > ObsDetectBorderLR)) {
-				 // If there is an obstacle in front turn right and continue
+			while (obstacleLeft()) {
+				// If there is an obstacle in front turn right and continue
 				if (obstacleInFront()) {
 					turnRobot(90, 'r');
 				}
-				moveRobot(20);
+				moveRobot(5);
 				if (closestPosition.minus(getMyPosition()) < TOL) {
 					closestPositionReached = true;
 					writeLog("Closest Point reached");
 				}
+			}
+			if (!obstacleInFront()) {
+				moveRobot(DistToPassObstacleL);
 			}
 			turnRobot(90, 'l');
 		}
