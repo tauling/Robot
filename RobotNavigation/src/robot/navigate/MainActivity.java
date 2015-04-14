@@ -242,6 +242,15 @@ public class MainActivity extends Activity {
 		} catch (Exception e) {
 		}
 	}
+	
+	public void buttonOneMeter_onClick(View v) {
+		moveRobot(100);
+	}
+	
+	public void button90Deg_onClick(View v){
+		turnRobot(90, 'r');
+		turnRobot(90, 'l');
+	}
 
 	public void driveByVelocity(int dist) {
 		long start = System.nanoTime();
@@ -503,9 +512,11 @@ public class MainActivity extends Activity {
 		}
 	}
 	
-	//TODO
-	//rename "obstacleInFront"
-	public Boolean detecObstacle(){
+	/**
+	 * methods tests whether an obstacle is in the range of the 3 front sensors  or not
+	 * @return true - obstacle detected; false - free way
+	 */
+	public Boolean obstacleInFront(){
 		Boolean detected = false;
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		measurement = getDistance();
@@ -515,13 +526,31 @@ public class MainActivity extends Activity {
 		return detected;
 	}
 	
+	/**
+	 * checks if an obstacle is in the range of the left sensor
+	 * @return 
+	 */
 	public Boolean obstacleLeft(){
 		Boolean detected = false;
+		Map<String, Integer> measurement = new HashMap<String, Integer>();
+		measurement = getDistance();
+		if (measurement.get("frontLeft") <= ObsDetecBorderLR) {
+			detected = true;
+		}
 		return detected;
 	}
 	
+	/**
+	 * checks if an obstacle is in the range of the right sensor
+	 * @return 
+	 */
 	public Boolean obstacleRight(){
 		Boolean detected = false;
+		Map<String, Integer> measurement = new HashMap<String, Integer>();
+		measurement = getDistance();
+		if (measurement.get("frontRight") <= ObsDetecBorderLR) {
+			detected = true;
+		}
 		return detected;		
 	}
 
@@ -546,7 +575,7 @@ public class MainActivity extends Activity {
 			int stepLength = 2;
 			moveRobot(stepLength);
 			measurement = getDistance();
-			if (measurement.get("frontMiddle") <= ObsDetecBorderM) {
+			if (obstacleInFront()) {
 				writeLog("Obstacle found at " + getMyPosition());
 				roundObstacle(x, y);
 				break;
@@ -578,7 +607,7 @@ public class MainActivity extends Activity {
 			int stepLength = 2;
 			moveRobot(stepLength);
 			measurement = getDistance();
-			if (measurement.get("frontMiddle") <= ObsDetecBorderM) {
+			if (obstacleInFront()) {
 				writeLog("Obstacle found at " + getMyPosition());
 				obstacleFound = true;
 			}
@@ -612,9 +641,9 @@ public class MainActivity extends Activity {
 
 		while (!startPositionReached) {
 			//Drive around obstacle and find closest position to goal
-			while ((getDistance().get("frontLeft") < ObsDetecBorderLR)) { 
+			while (obstacleLeft()) { 
 				// If there is an obstacle in front, turn right and continue
-				if (detecObstacle()) { 
+				if (obstacleInFront()) { 
 					turnRobot(90, 'r');
 				}
 				moveRobot(10);
@@ -640,7 +669,7 @@ public class MainActivity extends Activity {
 				writeLog("Back at starting position");
 			}
 			turnRobot(90, 'l');
-			if (detecObstacle()) {
+			if (obstacleInFront()) {
 				moveRobot(20);
 		}
 		}
@@ -654,7 +683,7 @@ public class MainActivity extends Activity {
 																			// and
 																			// find
 				// closest position to goal
-				if (detecObstacle()) { // If
+				if (obstacleInFront()) { // If
 																			// there
 																			// is
 																			// an

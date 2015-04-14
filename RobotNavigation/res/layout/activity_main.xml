@@ -111,6 +111,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.04"
+                android:onClick="buttonOneMeter_onClick"
                 android:text="1m" />
 
             <Button
@@ -118,6 +119,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.04"
+                android:onClick="button90Deg_onClick"
                 android:text="90°" />
 
             <Button
