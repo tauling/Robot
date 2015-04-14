@@ -16,16 +16,70 @@ public class MainActivity extends Activity {
 
 	private TextView textLog;
 	private FTDriver com;
-	private Integer ObsDetecBorderLR = 35; // Working range of left/right sensor
-											// is 10 to 80cm (every other value
-											// should be treated as no obstacle)
-	private Integer ObsDetecBorderM = 30; // Working range of left/right sensor
-											// is 10 to 80cm (every other value
-											// should be treated as no obstacle)
 
-	private double Xg = 0, Yg = 0;
-    private int Tg = 0;
+// -> Robot Calibration
+	private Integer ObsDetectBorderLR = 35; // Measurements in front of the
+											// robot
+											// below this value are treated as
+											// obstacle (Working range of
+											// left/right
+											// sensor is 10 to 80cm)
+	private Integer ObsDetectBorderM = 30; // Measurements below this value are
+											// treated as obstacle (Working
+											// range of middle sensor is 20 to
+											// 80cm)
+	private Integer ObsDetectBorderL = 15; // Measurements to the left of the
+											// robot
+	// below this value are treated as
+	// obstacle (Working range of left
+	// sensor is 10 to 80cm)
+	private Integer ObsDetectBorderR = 15; // Measurements to the right of the
+											// robot
+	// below this value are treated as
+	// obstacle (Working range of right
+	// sensor is 10 to 80cm)
+	private double CorrFactMoveForward = 100.0 / 72; // Should be set, such that
+														// MoveRobot(100) moves
+														// the
+														// the robot for 100cm.
+	private double CorrFactAngle = 8.0 / 7; // Should be set, such that
+											// turnRobot(360)
+											// rotates for exactly 360 degrees.
+	private int OffsetSensorLeft = 1; // Should be set, such that the left
+										// sensor
+	// measures distances correctly in its working
+	// range.
+	private int OffsetSensorRight = 3; // Should be set, such that the right
+										// sensor
+	// measures distances correctly in its working
+	// range.
+	private int OffsetSensorMiddle = 0; // Should be set, such that the left
+										// sensor
+	// measures distances correctly in its working
+	// range.
+	private int RobotLength = 20; // Should be set to the length of the robot in
+									// cm.
+	private int DistToPassObstacleL = RobotLength + ObsDetectBorderL + 3; // Distance
+																			// to
+																			// move
+																			// once
+																			// obstacleLeft()
+																			// says
+																			// false
+																			// to
+																			// pass
+																			// the
+																			// previously
+																			// found
+																			// obstacle.
 
+// <- Robot Calibration
+	
+	
+	private double Xg = 0, Yg = 0; // Position of the robot.
+	private int Tg = 0; // Angle of the robot.
+
+	
 	// TODO: Fix Crash when robot is off
 
 	/**
@@ -210,6 +264,7 @@ public class MainActivity extends Activity {
 		writeLog(comReadWrite(new byte[] { '+', '\r', '\n' }));
 	}
 
+	// TODO: Write description
 	public void buttonSensor_onClick(View v) {
 		// TODO: Fix: Crashes when not connected.
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
@@ -219,18 +274,22 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	// TODO: Write description; Linked method deleted; Add new functionality
 	public void buttonDriveArObstacle_onClick(View v) {
-		moveAroundObstacle();
+		// moveAroundObstacle();
 	}
 
+	// TODO: Write description
 	public void buttonDriveAndRead_onClick(View v) {
 		driveAndRead();
 	}
 
+	// TODO: Write description
 	public void buttonDriveByVelo_onClick(View v) {
 		driveByVelocity(50);
 	}
 
+	// TODO: Write description
 	public void buttonBug1_onClick(View v) {
 		bug1(120, 200);
 	}
@@ -238,7 +297,7 @@ public class MainActivity extends Activity {
 	// TODO: Delete once not needed anymore.
 	public void buttonTest_onClick(View v) {
 		try {
-			moveToGoalNaive(60,100);
+			moveToGoalNaive(60, 100);
 		} catch (Exception e) {
 		}
 	}
@@ -252,6 +311,7 @@ public class MainActivity extends Activity {
 		turnRobot(90, 'l');
 	}
 
+	// TODO: Write description; Check if needed; Fix; Add odometrie
 	public void driveByVelocity(int dist) {
 		long start = System.nanoTime();
 		writeLog("startTime: " + (int) start);
@@ -273,16 +333,16 @@ public class MainActivity extends Activity {
 	 * 
 	 * @param stepLength
 	 */
-
 	public void updatePosition(int stepLength) {
 		double movementX = 0, movementY = 0;
-		movementX = Math.cos((double)(Tg)*180/Math.PI) * stepLength;
-		movementY = movementX * Math.tan((double)(Tg)*180/Math.PI);
+		movementX = Math.sin((double) (Tg) * 180 / Math.PI) * stepLength;
+		movementY = stepLength * Math.cos((double) (Tg) * 180 / Math.PI);
 		Xg += movementX;
 		Yg += movementY;
 		writeLog("my Position: (" + Xg + "," + Yg + "," + Tg + ")");
 	}
 
+	// TODO: Write description
 	public void updateRotation(int angle, char dir) {
 		switch (dir) {
 		case 'l':
@@ -304,9 +364,9 @@ public class MainActivity extends Activity {
 		writeLog("my Position: (" + Xg + "," + Yg + "," + Tg + ")");
 	}
 
+	// TODO: Write description
 	public void moveRobot(int dist) {
-		double corrDistFact = 100.0 / 72; // Coming from a measurement
-		int corrDist = (int) (dist * corrDistFact);
+		int corrDist = (int) (dist * CorrFactMoveForward);
 		int waitTimeFact = 100;
 		while (Math.abs(corrDist) > 127) { // Byte stores values from -128 to
 											// 127
@@ -338,7 +398,7 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * tells the robot to turn
+	 * Tells the robot to turn
 	 * 
 	 * @param angle
 	 *            in degrees
@@ -346,8 +406,7 @@ public class MainActivity extends Activity {
 	 *            ("l" = left; "r" = right)
 	 */
 	public void turnRobot(int angle, char dir) {
-		double corrAngle = 8.0 / 7; // Coming from a measurement
-		int degrees = (int) (corrAngle * angle);
+		int degrees = (int) (CorrFactAngle * angle);
 		int waitTimeFact = 17;
 
 		if (dir == 'r') {
@@ -383,17 +442,19 @@ public class MainActivity extends Activity {
 
 				switch (sensNr) {
 				case 4:
-					readSensor.put("frontLeft", val + 1);
+					readSensor.put("frontLeft", val + OffsetSensorLeft);
 					break;
 				case 5:
-					readSensor.put("frontRight", val + 3);
+					readSensor.put("frontRight", val + OffsetSensorRight);
 					break;
 				case 8:
-					readSensor.put("frontMiddle", val); // Middle Sensor quite
-														// exact down to 20cm.
-														// Below 20cm sensor
-														// output increases
-														// again.
+					readSensor.put("frontMiddle", val + OffsetSensorMiddle); // Middle
+																				// Sensor
+																				// quite
+					// exact down to 20cm.
+					// Below 20cm sensor
+					// output increases
+					// again.
 					break;
 				}
 				sensNr++;
@@ -404,7 +465,7 @@ public class MainActivity extends Activity {
 		return readSensor;
 	}
 
-	// TODO: Delete once not needed anymore
+	// TODO: UpdateDescription; Choose better function name
 	/**
 	 * Obstacle avoidance
 	 * 
@@ -418,7 +479,7 @@ public class MainActivity extends Activity {
 				Thread.sleep(50);
 			} catch (Exception e) {
 			}
-			if (getDistance().get("frontMiddle") <= ObsDetecBorderM) { // checks
+			if (getDistance().get("frontMiddle") <= ObsDetectBorderM) { // checks
 																		// if
 																		// robot
 																		// hit
@@ -470,7 +531,7 @@ public class MainActivity extends Activity {
 			movedDist = movedDist + 5;
 			measurement = getDistance();
 			writeLog(measurement.get("frontLeft"));
-			if (measurement.get("frontLeft") > ObsDetecBorderM) {
+			if (measurement.get("frontLeft") > ObsDetectBorderM) {
 				writeLog("My way is free");
 				turnLeft = true;
 			}
@@ -505,7 +566,7 @@ public class MainActivity extends Activity {
 			int stepLength = 2;
 			moveRobot(stepLength);
 			measurement = getDistance();
-			if (measurement.get("frontMiddle") <= ObsDetecBorderM) {
+			if (measurement.get("frontMiddle") <= ObsDetectBorderM) {
 				moveAroundObstacle();
 			}
 
@@ -520,7 +581,9 @@ public class MainActivity extends Activity {
 		Boolean detected = false;
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		measurement = getDistance();
-		if (measurement.get("frontLeft") <= ObsDetecBorderLR || measurement.get("fronRight") <= ObsDetecBorderLR || measurement.get("frontMiddle") <= ObsDetecBorderM) {
+		if (measurement.get("frontLeft") <= ObsDetectBorderLR
+				|| measurement.get("fronRight") <= ObsDetectBorderLR
+				|| measurement.get("frontMiddle") <= ObsDetectBorderM) {
 			detected = true;
 		}
 		return detected;
@@ -530,15 +593,16 @@ public class MainActivity extends Activity {
 	 * checks if an obstacle is in the range of the left sensor
 	 * @return 
 	 */
-	public Boolean obstacleLeft(){
+	public Boolean obstacleLeft() {
 		Boolean detected = false;
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		measurement = getDistance();
-		if (measurement.get("frontLeft") <= ObsDetecBorderLR) {
+		if (measurement.get("frontLeft") <= ObsDetectBorderLR) {
 			detected = true;
 		}
 		return detected;
 	}
+
 	
 	/**
 	 * checks if an obstacle is in the range of the right sensor
@@ -548,13 +612,13 @@ public class MainActivity extends Activity {
 		Boolean detected = false;
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		measurement = getDistance();
-		if (measurement.get("frontRight") <= ObsDetecBorderLR) {
+		if (measurement.get("frontRight") <= ObsDetectBorderLR) {
 			detected = true;
 		}
 		return detected;		
 	}
 
-	// TODO: Check if needed
+	// TODO: Fix this method; Add description.
 	public void moveToGoal(int x, int y) {
 		int dist;
 		int angle;
@@ -583,9 +647,8 @@ public class MainActivity extends Activity {
 
 		}
 	}
-	
 
-	// TODO: Check if needed
+	// TODO: Check if needed; Fix this function; Add description
 	public void moveToGoalNaive(double x, double y) {
 		int dist;
 		int angle;
@@ -612,15 +675,15 @@ public class MainActivity extends Activity {
 				obstacleFound = true;
 			}
 		}
-		
+
 		if (obstacleFound) {
-			turnRobot(90 + (int)(Math.random()*180),'r');
-			moveRobot(Math.min(measurement.get("frontMiddle")-10,50));
-			moveToGoalNaive(x,y);
+			turnRobot(90 + (int) (Math.random() * 180), 'r');
+			moveRobot(Math.min(measurement.get("frontMiddle") - 10, 50));
+			moveToGoalNaive(x, y);
 		}
 	}
 
-	// TODO: add comment
+	// TODO: add comment; choose better name
 	public void roundObstacle(int goalX, int goalY) {
 		Position startPosition = getMyPosition();
 		Position closestPosition = startPosition;
@@ -671,29 +734,16 @@ public class MainActivity extends Activity {
 			turnRobot(90, 'l');
 			if (obstacleInFront()) {
 				moveRobot(20);
-		}
+			}
 		}
 
 		writeLog("Navigating to the closest point (" + closestPosition.x + ","
 				+ closestPosition.y + ")");
 		while (!closestPositionReached) {
-			while ((getDistance().get("frontLeft") > ObsDetecBorderLR)) { // Drive
-																			// around
-																			// obstacle
-																			// and
-																			// find
-				// closest position to goal
-				if (obstacleInFront()) { // If
-																			// there
-																			// is
-																			// an
-																			// obstacle
-																			// in
-																			// front,
-																			// turn
-																			// right
-																			// and
-																			// continue
+			// Drive around obstacle and find closest position to goal
+			while ((getDistance().get("frontLeft") > ObsDetectBorderLR)) {
+				 // If there is an obstacle in front turn right and continue
+				if (obstacleInFront()) {
 					turnRobot(90, 'r');
 				}
 				moveRobot(20);
@@ -708,6 +758,7 @@ public class MainActivity extends Activity {
 		moveToGoal(goalX, goalY);
 	}
 
+	// TODO: Update description; Delete and rename moveToGoal() to bug1?
 	/**
 	 * Bug1 algorithm 1) head toward goal 2) if an obstacle is encountered
 	 * circumnavigate it and remember how close you get to the goal 3) return to
@@ -717,6 +768,7 @@ public class MainActivity extends Activity {
 		moveToGoal(x, y);
 	}
 
+	// TODO: Update description
 	public Position getMyPosition() {
 		Position myPos = new Position(Xg, Yg, Tg);
 		return myPos;
