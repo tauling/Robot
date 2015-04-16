@@ -19,7 +19,6 @@
             android:layout_height="120dp"
             android:gravity="left"
             android:lines="80"
-            android:maxLines="80"
             android:scrollbars="vertical" />
     </ScrollView>
 
@@ -151,8 +150,8 @@
                     android:layout_gravity="left|top"
                     android:layout_row="1"
                     android:layout_weight="0.04"
-                    android:onClick="button90Deg_onClick"
-                    android:text="90°" />
+                    android:onClick="button360Deg_onClick"
+                    android:text="360°" />
 
                 <Button
                     android:id="@+id/button2"
