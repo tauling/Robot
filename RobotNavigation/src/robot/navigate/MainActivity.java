@@ -301,12 +301,16 @@ public class MainActivity extends Activity {
 	}
 
 	public void buttonOneMeter_onClick(View v) {
-		moveRobot(100);
+		turnRobot(30, 'r');
+		moveRobot(50);
+		turnRobot(180, 'r');
+		moveRobot(50);
 	}
 
 	public void button90Deg_onClick(View v) {
-		turnRobot(90, 'r');
-		turnRobot(90, 'l');
+		turnRobot(90,'l');
+		turnRobot(405, 'r');
+		turnRobot(45, 'l');
 	}
 
 	// TODO: Write description; Check if needed; Fix; Add odometrie
@@ -333,8 +337,8 @@ public class MainActivity extends Activity {
 	 */
 	public void updatePosition(int stepLength) {
 		double movementX = 0, movementY = 0;
-		movementX = Math.sin((double) (Tg) * 180 / Math.PI) * stepLength;
-		movementY = stepLength * Math.cos((double) (Tg) * 180 / Math.PI);
+		movementX = Math.sin((double) (Tg) * Math.PI/180) * stepLength;
+		movementY = stepLength * Math.sin((double) (Tg) * Math.PI/180);
 		Xg += movementX;
 		Yg += movementY;
 		writeLog("my Position: (" + Xg + "," + Yg + "," + Tg + ")");
