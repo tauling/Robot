@@ -293,7 +293,7 @@ public class MainActivity extends Activity {
 
 	// TODO: Delete once not needed anymore.
 	public void buttonTest_onClick(View v) {
-		driveToObstacle(100);
+		moveToGoalNaive3(120,120);
 	}
 
 	// TODO: Delete once not needed anymore.
@@ -352,34 +352,25 @@ public class MainActivity extends Activity {
 	 * drive to obstacle by velocity, update position based on droven way
 	 */
 	public Boolean driveToObstacle(int dist) {
-		double start = System.currentTimeMillis() / 1000;
+		double start = System.currentTimeMillis(); // [ms]
 		double curTime = start;
+		int velocity = 20;
 		writeLog("startTime: " + (int) start);
-		double corrDistFact = 0.05; // Coming from a measurement
-		double corrDist = dist * corrDistFact;
-		double end = start + corrDist;
-		int waitTimeFact = 100, left = 20, right = 20;
+		double speed = 100.0/(1000*velocity); // Coming from a measurement [cm/ms]
+		double corrTime = dist / speed; // [ms]
+		double end = start + corrTime;
 		boolean freeWay = true;
-		comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r', '\n' },
-				waitTimeFact);
+		comReadWrite(new byte[] { 'i', (byte) velocity, (byte) velocity, '\r', '\n' });
 		while (curTime <= end && freeWay) {
-			if (!obstacleInFront()) {
-				curTime = System.currentTimeMillis() / 1000;
-			} else {
-				comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' },
-						waitTimeFact);
+			if (obstacleInFront()) {
 				freeWay = false;
 			}
+			curTime = System.currentTimeMillis();
 		}
-		if (freeWay) {
-			comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' },
-					waitTimeFact);
-			updatePosition(dist);
-		}else{
-			double movedTime = curTime-start;
-			double speed = 0.06; // m/s
-			updatePosition((int)(movedTime * speed));
-		}
+		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' });
+		double movedTime = curTime-start;
+		
+		updatePosition((int)(movedTime * speed));
 		return freeWay;
 	}
 
@@ -780,11 +771,9 @@ public class MainActivity extends Activity {
 	public void moveToGoalNaive3(double x, double y) {
 		int dist;
 		int angle;
-		int moved;
 		int stepLength = 5;
 		boolean obstacleFound;
 		boolean goalReached = false;
-		Map<String, Integer> measurement = new HashMap<String, Integer>();
 
 		while (!goalReached) {
 			obstacleFound = false;
@@ -796,8 +785,7 @@ public class MainActivity extends Activity {
 					+ "cm distance");
 
 			turnRobot(angle, 'r');
-			moved = 0;
-			 if (!driveToObstacle()) {
+			 if (!driveToObstacle(dist)) {
 				 obstacleFound = true;
  				 writeLog("Obstacle found at " + getMyPosition());
 			 }
@@ -812,11 +800,8 @@ public class MainActivity extends Activity {
 
 			if (obstacleFound) {
 				turnRobot((int) Math.signum((Math.random() - 0.5))
-						* (90 + (int) (Math.random() * 45)), 'r');
-				measurement = getDistance();
-				moveRobot(Math.min(measurement.get("frontRight") - 5, Math.min(
-						measurement.get("frontLeft") - 5,
-						Math.min(measurement.get("frontMiddle") - 5, 50))));
+						* (90 + (int) (Math.random() * 25)), 'r');
+				driveToObstacle(50);
 			}
 			if (Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)) < stepLength + 1) {
 				goalReached = true;
