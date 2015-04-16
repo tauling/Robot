@@ -104,6 +104,12 @@
                     android:text="Bug1" />
 
                 <Button
+                    android:id="@+id/button3"
+                    android:layout_gravity="left"
+                     android:onClick="buttonrotateToWall_onClick"
+                    android:text="rotateToWall" />
+
+                <Button
                     android:id="@+id/button1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
