@@ -301,7 +301,7 @@ public class MainActivity extends Activity {
 
 	// TODO: Delete once not needed anymore.
 	public void buttonTest_onClick(View v) {
-		driveByVelocity(100);
+		driveToObstacle(100);
 	}
 
 	// TODO: Delete once not needed anymore.
@@ -325,29 +325,70 @@ public class MainActivity extends Activity {
 		turnRobot(45, 'l');
 	}
 
-	public void buttonrotateToWall_onClick(View v){
+	public void buttonrotateToWall_onClick(View v) {
 		rotateToWall();
 	}
 
 	/**
 	 * drive distance by velocity and update robot position knowledge
+	 * 
 	 * @param dist
 	 */
 	public void driveByVelocity(int dist) {
-		double start = System.currentTimeMillis()/1000;
+		double start = System.currentTimeMillis() / 1000;
 		writeLog("startTime: " + (int) start);
 		double corrDistFact = 0.05; // Coming from a measurement
 		double corrDist = dist * corrDistFact;
 		double end = start + corrDist;
 		int waitTimeFact = 100, left = 20, right = 20;
-		while (start <= end) {
-			comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r',
-					'\n' }, waitTimeFact);
-			start = System.currentTimeMillis()/1000;
+		comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r', '\n' },
+				waitTimeFact);
+//		while (start <= end) {
+//			start = System.currentTimeMillis() / 1000;
+//		}
+		try {
+			Thread.sleep((int)(dist*0.06)*1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' },
 				waitTimeFact);
 		updatePosition(dist);
+	}
+
+	/*
+	 * drive to obstacle by velocity, update position based on droven way
+	 */
+	public void driveToObstacle(int dist) {
+		double start = System.currentTimeMillis() / 1000;
+		double curTime = start;
+		writeLog("startTime: " + (int) start);
+		double corrDistFact = 0.05; // Coming from a measurement
+		double corrDist = dist * corrDistFact;
+		double end = start + corrDist;
+		int waitTimeFact = 100, left = 20, right = 20;
+		boolean freeWay = true;
+		comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r', '\n' },
+				waitTimeFact);
+		while (curTime <= end && freeWay) {
+			if (!obstacleInFront()) {
+				curTime = System.currentTimeMillis() / 1000;
+			} else {
+				comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' },
+						waitTimeFact);
+				freeWay = false;
+			}
+		}
+		if (freeWay) {
+			comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' },
+					waitTimeFact);
+			updatePosition(dist);
+		}else{
+			double movedTime = curTime-start;
+			double speed = 0.06; // m/s
+			updatePosition((int)(movedTime * speed));
+		}
 	}
 
 	/**
@@ -720,37 +761,39 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	//TODO: choose better name; comment 
-	public void rotateToWall(){
+	// TODO: choose better name; comment
+	public void rotateToWall() {
 		Map<String, Integer> measurement = getDistance();
 		double TOL = 10;
 		int start = 1;
 		boolean atTheEdge = false;
-		if(measurement.get("frontLeft") > 200){
+		if (measurement.get("frontLeft") > 200) {
 			atTheEdge = true;
-			while(measurement.get("frontRight") < 200/2){
+			while (measurement.get("frontRight") < 200 / 2) {
 				turnRobot(start++, 'l');
 				measurement = getDistance();
 			}
 			turnRobot(180, 'r');
 		}
 		start = 1;
-		if(measurement.get("frontRight") > 200/2){
+		if (measurement.get("frontRight") > 200 / 2) {
 			atTheEdge = true;
-			while(measurement.get("frontLeft") < 200){
+			while (measurement.get("frontLeft") < 200) {
 				turnRobot(start++, 'r');
 				measurement = getDistance();
 			}
 			turnRobot(180, 'l');
 		}
-		//Robot is now parallel to wall
-		
+		// Robot is now parallel to wall
+
 		start = 1;
-		while(measurement.get("frontLeft")/2 - measurement.get("frontRight") < TOL && atTheEdge == false){
+		while (measurement.get("frontLeft") / 2 - measurement.get("frontRight") < TOL
+				&& atTheEdge == false) {
 			turnRobot(start++, 'r');
 			measurement = getDistance();
 		}
 	}
+
 	// TODO: add comment; choose better name
 	public void roundObstacle(int goalX, int goalY) {
 		Position startPosition = getMyPosition();
