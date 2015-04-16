@@ -351,7 +351,7 @@ public class MainActivity extends Activity {
 	/*
 	 * drive to obstacle by velocity, update position based on droven way
 	 */
-	public void driveToObstacle(int dist) {
+	public Boolean driveToObstacle(int dist) {
 		double start = System.currentTimeMillis() / 1000;
 		double curTime = start;
 		writeLog("startTime: " + (int) start);
@@ -380,6 +380,7 @@ public class MainActivity extends Activity {
 			double speed = 0.06; // m/s
 			updatePosition((int)(movedTime * speed));
 		}
+		return freeWay;
 	}
 
 	/**
