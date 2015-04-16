@@ -19,7 +19,6 @@
             android:layout_height="120dp"
             android:gravity="left"
             android:lines="80"
-            android:maxLines="80"
             android:scrollbars="vertical" />
     </ScrollView>
 

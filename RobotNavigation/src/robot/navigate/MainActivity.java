@@ -294,57 +294,7 @@ public class MainActivity extends Activity {
 	// TODO: Delete once not needed anymore.
 	public void buttonTest_onClick(View v) {
 		try {
-			int x = 100;
-			int y = 100;
 			moveToGoalNaive2(150, 150);
-//			turnRobot(60,'r');
-//			moveRobot(50);
-//			System.out.println(getAngleToGoal(x,y));
-//			turnRobot(60,'r');
-//			moveRobot(10);
-//			System.out.println(getAngleToGoal(x,y));
-//			turnRobot(60,'r');
-//			moveRobot(10);
-//			System.out.println(getAngleToGoal(x,y));
-//			turnRobot(60,'r');
-//			moveRobot(10);
-//			System.out.println(getAngleToGoal(x,y));
-//			turnRobot(60,'r');
-//			moveRobot(10);
-//			System.out.println(getAngleToGoal(x,y));
-//			turnRobot(60,'r');
-//			moveRobot(10);
-//			System.out.println(getAngleToGoal(x,y));
-			// int x = 150;
-			// int y = 0;
-			// System.out.println(getAngleToGoal(x,y));
-			// moveRobot(20);
-			// System.out.println(getAngleToGoal(x,y));
-			// turnRobot(90,'r');
-			// System.out.println(getAngleToGoal(x,y));
-			// moveRobot(20);
-			// System.out.println(getAngleToGoal(x,y));
-			// turnRobot(45,'r');
-			// System.out.println(getAngleToGoal(x,y));
-			// moveRobot(20);
-			// System.out.println(getAngleToGoal(x,y));
-			// turnRobot(-90,'r');
-			// System.out.println(getAngleToGoal(x,y));
-			// moveRobot(20);
-			// System.out.println(getAngleToGoal(x,y));
-			// int dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg,
-			// 2));
-			//
-			// turnRobot(getAngleToGoal(x,y),'r');
-			// moveRobot(dist/2);
-			// turnRobot(35,'r');
-			// System.out.println(getAngleToGoal(x,y));
-			// moveRobot(40);
-			// dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg,
-			// 2));
-			//
-			// turnRobot(getAngleToGoal(x,y),'r');
-			// moveRobot(dist);
 		} catch (Exception e) {
 		}
 	}
@@ -365,16 +315,17 @@ public class MainActivity extends Activity {
 		turnRobot(360, 'r');
 	}
 
-	public void buttonrotateToWall_onClick(View v){
+	public void buttonrotateToWall_onClick(View v) {
 		rotateToWall();
 	}
 
 	/**
 	 * drive distance by velocity and update robot position knowledge
+	 * 
 	 * @param dist
 	 */
 	public void driveByVelocity(int dist) {
-		double start = System.currentTimeMillis()/1000;
+		double start = System.currentTimeMillis() / 1000;
 		writeLog("startTime: " + (int) start);
 		double corrDistFact = 0.05; // Coming from a measurement
 		double corrDist = dist * corrDistFact;
@@ -383,7 +334,7 @@ public class MainActivity extends Activity {
 		while (start <= end) {
 			comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r',
 					'\n' }, waitTimeFact);
-			start = System.currentTimeMillis()/1000;
+			start = System.currentTimeMillis() / 1000;
 		}
 		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' },
 				waitTimeFact);
@@ -407,9 +358,9 @@ public class MainActivity extends Activity {
 	public int getAngleToGoal(double x, double y) {
 		int angle = (int) (Math.toDegrees(Math.atan2(y - Yg, x - Xg)));
 
-		return reduceAngle(angle);
+		return reduceAngle(angle - Tg);
 	}
-	
+
 	public int reduceAngle(int angle) {
 		if (angle < 0) {
 			angle += 360;
@@ -417,7 +368,7 @@ public class MainActivity extends Activity {
 		if (angle > 360) {
 			angle -= 360;
 		}
-		
+
 		return angle;
 	}
 
@@ -484,19 +435,18 @@ public class MainActivity extends Activity {
 		angle = reduceAngle(angle);
 		updateRotation(angle, dir);
 		int degrees = angle;
-		
 
-//		if (toggleLeftRight) {
-//			if (dir == 'r') {
-//				dir = 'l';
-//			} else {
-//				dir = 'r';
-//			}
-//			toggleLeftRight = !toggleLeftRight;
-//			degrees = 360 - degrees;
-//		} else {
-//			toggleLeftRight = !toggleLeftRight;
-//		}
+		// if (toggleLeftRight) {
+		// if (dir == 'r') {
+		// dir = 'l';
+		// } else {
+		// dir = 'r';
+		// }
+		// toggleLeftRight = !toggleLeftRight;
+		// degrees = 360 - degrees;
+		// } else {
+		// toggleLeftRight = !toggleLeftRight;
+		// }
 
 		degrees = (int) (CorrFactAngle * degrees);
 
@@ -722,7 +672,8 @@ public class MainActivity extends Activity {
 		}
 
 		if (obstacleFound) {
-			turnRobot((int) Math.signum((Math.random() - 0.5))*(90 + (int) (Math.random() * 45)), 'r');
+			turnRobot((int) Math.signum((Math.random() - 0.5))
+					* (90 + (int) (Math.random() * 45)), 'r');
 			moveRobot(Math.min(measurement.get("frontMiddle") - 10, 50));
 			moveToGoalNaive(x, y);
 		}
@@ -748,72 +699,74 @@ public class MainActivity extends Activity {
 		boolean obstacleFound;
 		boolean goalReached = false;
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
-		
+
 		while (!goalReached) {
-		obstacleFound = false;
+			obstacleFound = false;
 
-		angle = getAngleToGoal(x, y);
-		dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+			angle = getAngleToGoal(x, y);
+			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
 
-		writeLog("Moving to goal at angle " + angle + " in " + dist
-				+ "cm distance");
+			writeLog("Moving to goal at angle " + angle + " in " + dist
+					+ "cm distance");
 
-		turnRobot(angle, 'r');
-		moved = 0;
-		while ((moved < dist) && !obstacleFound) {
-			moved += stepLength;
-			moveRobot(stepLength);
-			if (obstacleInFront()) {
-				writeLog("Obstacle found at " + getMyPosition());
-				obstacleFound = true;
+			turnRobot(angle, 'r');
+			moved = 0;
+			while ((moved < dist) && !obstacleFound) {
+				moved += stepLength;
+				moveRobot(stepLength);
+				if (obstacleInFront()) {
+					writeLog("Obstacle found at " + getMyPosition());
+					obstacleFound = true;
+				}
 			}
-		}
 
-		if (obstacleFound) {
-			turnRobot((int) Math.signum((Math.random() - 0.5))*(90 + (int) (Math.random() * 45)), 'r');
-			measurement = getDistance();
-			moveRobot(Math.min(
-					measurement.get("frontRight") - 5,
-					Math.min(measurement.get("frontLeft") - 5,
-							Math.min(measurement.get("frontMiddle") - 5, 50))));
-		}
-		if (Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)) < stepLength + 1) {
-			goalReached = true;
-		}
+			if (obstacleFound) {
+				turnRobot((int) Math.signum((Math.random() - 0.5))
+						* (90 + (int) (Math.random() * 45)), 'r');
+				measurement = getDistance();
+				moveRobot(Math.min(measurement.get("frontRight") - 5, Math.min(
+						measurement.get("frontLeft") - 5,
+						Math.min(measurement.get("frontMiddle") - 5, 50))));
+			}
+			if (Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)) < stepLength + 1) {
+				goalReached = true;
+			}
 		}
 	}
 
-	//TODO: choose better name; comment 
-	public void rotateToWall(){
+	// TODO: choose better name; comment
+	public void rotateToWall() {
 		Map<String, Integer> measurement = getDistance();
 		double TOL = 10;
 		int start = 1;
 		boolean atTheEdge = false;
-		if(measurement.get("frontLeft") > 200){
+		if (measurement.get("frontLeft") > 200) {
 			atTheEdge = true;
-			while(measurement.get("frontRight") < 200/2){
+			while (measurement.get("frontRight") < 200 / 2) {
 				turnRobot(start++, 'l');
 				measurement = getDistance();
 			}
 			turnRobot(180, 'r');
 		}
 		start = 1;
-		if(measurement.get("frontRight") > 200/2){
+		if (measurement.get("frontRight") > 200 / 2) {
 			atTheEdge = true;
-			while(measurement.get("frontLeft") < 200){
+			while (measurement.get("frontLeft") < 200) {
 				turnRobot(start++, 'r');
 				measurement = getDistance();
 			}
 			turnRobot(180, 'l');
 		}
-		//Robot is now parallel to wall
-		
+		// Robot is now parallel to wall
+
 		start = 1;
-		while(measurement.get("frontLeft")/2 - measurement.get("frontRight") < TOL && atTheEdge == false){
+		while (measurement.get("frontLeft") / 2 - measurement.get("frontRight") < TOL
+				&& atTheEdge == false) {
 			turnRobot(start++, 'r');
 			measurement = getDistance();
 		}
 	}
+
 	// TODO: add comment; choose better name
 	public void roundObstacle(int goalX, int goalY) {
 		Position startPosition = getMyPosition();
@@ -869,36 +822,35 @@ public class MainActivity extends Activity {
 			turnRobot(90, 'l');
 		}
 
-			writeLog("Navigating to the closest point (" + closestPosition.x
-					+ "," + closestPosition.y + ")");
-			while (!closestPositionReached) {
-				// Drive around obstacle and find closest position to goal
-				while (obstacleLeft()) {
-					// If there is an obstacle in front turn right and continue
-					if (obstacleInFront()) {
-						turnRobot(90, 'r');
-					}
-					moveRobot(5);
-					if (closestPosition.minus(getMyPosition()) < TOL) {
-						closestPositionReached = true;
-						writeLog("Closest Point reached");
-					}
+		writeLog("Navigating to the closest point (" + closestPosition.x + ","
+				+ closestPosition.y + ")");
+		while (!closestPositionReached) {
+			// Drive around obstacle and find closest position to goal
+			while (obstacleLeft()) {
+				// If there is an obstacle in front turn right and continue
+				if (obstacleInFront()) {
+					turnRobot(90, 'r');
 				}
-				// if (!obstacleInFront()) {
-				// moveRobot(DistToPassObstacleL);
-				// }
-				moveRobot(8);
-				turnRobot(90, 'l');
-				moveRobot(8);
-				moveRobot(2);
+				moveRobot(5);
+				if (closestPosition.minus(getMyPosition()) < TOL) {
+					closestPositionReached = true;
+					writeLog("Closest Point reached");
+				}
 			}
 			// if (!obstacleInFront()) {
 			// moveRobot(DistToPassObstacleL);
 			// }
 			moveRobot(8);
 			turnRobot(90, 'l');
+			moveRobot(8);
+			moveRobot(2);
 		}
-	
+		// if (!obstacleInFront()) {
+		// moveRobot(DistToPassObstacleL);
+		// }
+		moveRobot(8);
+		turnRobot(90, 'l');
+	}
 
 	//
 	// writeLog("Navigating to the closest point (" + closestPosition.x + ","
