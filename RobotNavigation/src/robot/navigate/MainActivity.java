@@ -352,12 +352,12 @@ public class MainActivity extends Activity {
 	 * drive to obstacle by velocity, update position based on droven way
 	 */
 	public Boolean driveToObstacle(int dist) {
-		double start = System.currentTimeMillis() / 1000;
+		double start = System.currentTimeMillis() / 1000.0;
 		double curTime = start;
 		writeLog("startTime: " + (int) start);
-		double corrDistFact = 0.05; // Coming from a measurement
-		double corrDist = dist * corrDistFact;
-		double end = start + corrDist;
+		double corrTimeFact = 0.06; // Coming from a measurement
+		double corrTime = dist * corrTimeFact;
+		double end = start + corrTime;
 		int waitTimeFact = 100, left = 20, right = 20;
 		boolean freeWay = true;
 		comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r', '\n' },
