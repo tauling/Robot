@@ -14,19 +14,19 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
-	private boolean toggleLeftRight = false;
+	private int balancedAngle = 0;
 
 	private TextView textLog;
 	private FTDriver com;
 
 	// -> Robot Calibration
-	private Integer ObsDetectBorderLR = 15; // Measurements in front of the
+	private Integer ObsDetectBorderLR = 25; // Measurements in front of the
 											// robot
 											// below this value are treated as
 											// obstacle (Working range of
 											// left/right
 											// sensor is 10 to 80cm)
-	private Integer ObsDetectBorderM = 28; // Measurements below this value are
+	private Integer ObsDetectBorderM = 25; // Measurements below this value are
 											// treated as obstacle (Working
 											// range of middle sensor is 20 to
 											// 80cm)
@@ -137,7 +137,7 @@ public class MainActivity extends Activity {
 	public void comWrite(byte[] data) {
 		if (com.isConnected()) {
 			com.write(data);
-			writeLog("comWrite(data)");
+//			writeLog("comWrite(data)");
 		} else {
 			writeLog("not connected");
 		}
@@ -293,7 +293,11 @@ public class MainActivity extends Activity {
 
 	// TODO: Delete once not needed anymore.
 	public void buttonTest_onClick(View v) {
-		driveToObstacle(100);
+		moveToGoalNaive3(150,150);
+	}
+	public void buttonTest2_onClick(View v) {
+		turnRobot(180,'l');
+		turnRobot(180,'r');
 	}
 
 	// TODO: Delete once not needed anymore.
@@ -352,34 +356,26 @@ public class MainActivity extends Activity {
 	 * drive to obstacle by velocity, update position based on droven way
 	 */
 	public Boolean driveToObstacle(int dist) {
-		double start = System.currentTimeMillis() / 1000.0;
+		double start = System.currentTimeMillis(); // [ms]
 		double curTime = start;
+		int velocity = 25;
+		double corrFactor = (100.0/390.0)*(2.0/3.0)*(203.0/206.0);
 		writeLog("startTime: " + (int) start);
-		double corrTimeFact = 0.06; // Coming from a measurement
-		double corrTime = dist * corrTimeFact;
+		double speed = (100.0/(1000*velocity))/corrFactor; // Coming from a measurement [cm/ms]
+		double corrTime = dist / speed; // [ms]
 		double end = start + corrTime;
-		int waitTimeFact = 100, left = 20, right = 20;
 		boolean freeWay = true;
-		comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r', '\n' },
-				waitTimeFact);
+		comReadWrite(new byte[] { 'i', (byte) velocity, (byte) velocity, '\r', '\n' });
 		while (curTime <= end && freeWay) {
-			if (!obstacleInFront()) {
-				curTime = System.currentTimeMillis() / 1000;
-			} else {
-				comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' },
-						waitTimeFact);
+			if (obstacleInFront()) {
 				freeWay = false;
 			}
+			curTime = System.currentTimeMillis();
 		}
-		if (freeWay) {
-			comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' },
-					waitTimeFact);
-			updatePosition(dist);
-		}else{
-			double movedTime = curTime-start;
-			double speed = 0.06; // m/s
-			updatePosition((int)(movedTime * speed));
-		}
+		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' });
+		double movedTime = curTime-start;
+		
+		updatePosition((int)(movedTime * speed));
 		return freeWay;
 	}
 
@@ -407,7 +403,7 @@ public class MainActivity extends Activity {
 		if (angle < 0) {
 			angle += 360;
 		}
-		if (angle > 360) {
+		if (angle >= 360) {
 			angle -= 360;
 		}
 
@@ -472,23 +468,52 @@ public class MainActivity extends Activity {
 	 * @param dir
 	 *            ("l" = left; "r" = right)
 	 */
+	public void turnRobotBalanced(int angle, char dir) {
+		angle = reduceAngle(angle);
+		if (dir == 'l') {
+			if (Math.abs(balancedAngle - angle) < Math.abs(balancedAngle + (360-angle))) {
+				balancedAngle -= angle;
+				turnRobot(angle,'l');
+			} else {
+				balancedAngle += (360 - angle);
+				turnRobot(360-angle,'r');
+			}
+		} else {
+			if (Math.abs(balancedAngle + angle) < Math.abs(balancedAngle - (360-angle))) {
+				balancedAngle += angle;
+				turnRobot(angle,'r');
+			} else {
+				balancedAngle -= (360 - angle);
+				turnRobot(360-angle,'l');
+			}
+		}
+	}
+
+	/**
+	 * Tells the robot to turn
+	 * 
+	 * @param angle
+	 *            in degrees
+	 * @param dir
+	 *            ("l" = left; "r" = right)
+	 */
 	public void turnRobot(int angle, char dir) {
 		int waitTimeFact = 17;
 		angle = reduceAngle(angle);
 		updateRotation(angle, dir);
 		int degrees = angle;
 
-		// if (toggleLeftRight) {
-		// if (dir == 'r') {
-		// dir = 'l';
-		// } else {
-		// dir = 'r';
-		// }
-		// toggleLeftRight = !toggleLeftRight;
-		// degrees = 360 - degrees;
-		// } else {
-		// toggleLeftRight = !toggleLeftRight;
-		// }
+//		if (toggleLeftRight) {
+//			if (dir == 'r') {
+//				dir = 'l';
+//			} else {
+//				dir = 'r';
+//			}
+//			toggleLeftRight = !toggleLeftRight;
+//			degrees = 360 - degrees;
+//		} else {
+//			toggleLeftRight = !toggleLeftRight;
+//		}
 
 		degrees = (int) (CorrFactAngle * degrees);
 
@@ -771,6 +796,48 @@ public class MainActivity extends Activity {
 						Math.min(measurement.get("frontMiddle") - 5, 50))));
 			}
 			if (Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)) < stepLength + 1) {
+				goalReached = true;
+			}
+		}
+	}
+
+	// TODO: Check if needed; Fix this function; Add description
+	public void moveToGoalNaive3(double x, double y) {
+		int dist;
+		int angle;
+		int TOL = 8;
+		boolean obstacleFound;
+		boolean goalReached = false;
+
+		while (!goalReached) {
+			obstacleFound = false;
+
+			angle = getAngleToGoal(x, y);
+			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+
+			writeLog("Moving to goal at angle " + angle + " in " + dist
+					+ "cm distance");
+
+			turnRobotBalanced(angle, 'r');
+			 if (!driveToObstacle(dist)) {
+				 obstacleFound = true;
+ 				 writeLog("Obstacle found at " + getMyPosition());
+			 }
+//			while ((moved < dist) && !obstacleFound) {
+//				moved += stepLength;
+//				moveRobot(stepLength);
+//				if (obstacleInFront()) {
+//					writeLog("Obstacle found at " + getMyPosition());
+//					obstacleFound = true;
+//				}
+//			}
+
+			if (obstacleFound) {
+				turnRobotBalanced((int) Math.signum((Math.random() - 0.5))
+						* (90 + (int) (Math.random() * 20)), 'r');
+				driveToObstacle(50);
+			}
+			if (Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)) < TOL) {
 				goalReached = true;
 			}
 		}

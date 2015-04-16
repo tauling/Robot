@@ -41,6 +41,15 @@
                 android:onClick="buttonTest_onClick"
                 android:text="Test" />
 
+            <Button
+                android:id="@+id/button7"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.05"
+                android:onClick="buttonTest2_onClick"
+                android:text="Test2" />
+
             <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="73dp"
