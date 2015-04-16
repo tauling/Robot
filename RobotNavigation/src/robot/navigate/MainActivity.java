@@ -775,6 +775,54 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	// TODO: Check if needed; Fix this function; Add description
+	public void moveToGoalNaive3(double x, double y) {
+		int dist;
+		int angle;
+		int moved;
+		int stepLength = 5;
+		boolean obstacleFound;
+		boolean goalReached = false;
+		Map<String, Integer> measurement = new HashMap<String, Integer>();
+
+		while (!goalReached) {
+			obstacleFound = false;
+
+			angle = getAngleToGoal(x, y);
+			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+
+			writeLog("Moving to goal at angle " + angle + " in " + dist
+					+ "cm distance");
+
+			turnRobot(angle, 'r');
+			moved = 0;
+			 if (!driveToObstacle()) {
+				 obstacleFound = true;
+ 				 writeLog("Obstacle found at " + getMyPosition());
+			 }
+//			while ((moved < dist) && !obstacleFound) {
+//				moved += stepLength;
+//				moveRobot(stepLength);
+//				if (obstacleInFront()) {
+//					writeLog("Obstacle found at " + getMyPosition());
+//					obstacleFound = true;
+//				}
+//			}
+
+			if (obstacleFound) {
+				turnRobot((int) Math.signum((Math.random() - 0.5))
+						* (90 + (int) (Math.random() * 45)), 'r');
+				measurement = getDistance();
+				moveRobot(Math.min(measurement.get("frontRight") - 5, Math.min(
+						measurement.get("frontLeft") - 5,
+						Math.min(measurement.get("frontMiddle") - 5, 50))));
+			}
+			if (Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)) < stepLength + 1) {
+				goalReached = true;
+			}
+		}
+	}
+
 	// TODO: choose better name; comment
 	public void rotateToWall() {
 		Map<String, Integer> measurement = getDistance();
