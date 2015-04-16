@@ -45,11 +45,18 @@ public class MainActivity extends Activity {
 	private double CorrFactAngle = 8.0 / 7; // Should be set, such that
 											// turnRobot(360)
 											// rotates for exactly 360 degrees.
-	private int OffsetSensorLeft = 1; // Should be set, such that the left
+	private final int IdSensorLeft = 7; // Call findSensorIDs() to determine the
+										// corresponding ID
+	private final int IdSensorRight = 8; // Call findSensorIDs() to determine
+											// the corresponding ID
+	private final int IdSensorMiddle = 9; // Call findSensorIDs() to determine
+											// the corresponding ID
+
+	private int OffsetSensorLeft = 0; // Should be set, such that the left
 										// sensor
 	// measures distances correctly in its working
 	// range.
-	private int OffsetSensorRight = 3; // Should be set, such that the right
+	private int OffsetSensorRight = -1; // Should be set, such that the right
 										// sensor
 	// measures distances correctly in its working
 	// range.
@@ -300,6 +307,14 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	// TODO: Delete once not needed anymore.
+	public void buttonFindSensorIDs_onClick(View v) {
+		try {
+			findSensorIDs();
+		} catch (Exception e) {
+		}
+	}
+
 	public void buttonOneMeter_onClick(View v) {
 		moveRobot(100);
 	}
@@ -425,6 +440,27 @@ public class MainActivity extends Activity {
 	}
 
 	/**
+	 * returns values of all sensors including ID. The ID is then used to
+	 * associate the available physical sensors with the ID
+	 */
+	public void findSensorIDs() {
+		int sensNr;
+		int val;
+		String[] sensorInfo;
+		sensorInfo = comReadWrite(new byte[] { 'q', '\r', '\n' }).split(" ");
+		sensNr = 1;
+		for (String value : sensorInfo) {
+			try {
+				val = Integer.parseInt(value.substring(2, 4), 16);
+				writeLog(sensNr + ": " + val);
+				sensNr++;
+			} catch (NumberFormatException e) {
+				// Can't be parsed; do nothing
+			}
+		}
+	}
+
+	/**
 	 * returns distances of all sensors in cm
 	 */
 	public Map<String, Integer> getDistance() {
@@ -439,13 +475,13 @@ public class MainActivity extends Activity {
 				val = Integer.parseInt(value.substring(2, 4), 16);
 
 				switch (sensNr) {
-				case 4:
+				case IdSensorLeft:
 					readSensor.put("frontLeft", val + OffsetSensorLeft);
 					break;
-				case 5:
-					readSensor.put("frontRight", val + OffsetSensorRight);
+				case IdSensorRight:
+					readSensor.put("frontRight", val/2 + OffsetSensorRight);
 					break;
-				case 8:
+				case IdSensorMiddle:
 					readSensor.put("frontMiddle", val + OffsetSensorMiddle); // Middle
 																				// Sensor
 																				// quite

@@ -34,9 +34,18 @@
             android:layout_height="85dp"
             android:orientation="vertical" >
 
+            <Button
+                android:id="@+id/TestButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.38"
+                android:onClick="buttonTest_onClick"
+                android:text="Test" />
+
             <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="73dp"
+                android:layout_marginBottom="@dimen/activity_horizontal_margin"
                 android:layout_weight="0.04"
                 android:columnCount="1" >
 
@@ -45,6 +54,7 @@
                     android:layout_width="80dp"
                     android:layout_height="60dp"
                     android:layout_gravity="start|top"
+                    android:layout_row="4"
                     android:onClick="buttonMinus_onClick"
                     android:text="-" />
 
@@ -54,81 +64,111 @@
                     android:layout_height="60dp"
                     android:layout_column="0"
                     android:layout_gravity="end|top"
-                    android:layout_row="0"
+                    android:layout_row="4"
                     android:onClick="buttonPlus_onClick"
                     android:text="+" />
+
+                <TextView
+                    android:id="@+id/textView1"
+                    android:layout_column="0"
+                    android:layout_gravity="center_horizontal|top"
+                    android:layout_row="2"
+                    android:text="Robot Bar"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
+            </GridLayout>
+
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.38"
+                android:columnCount="2" >
+
+                <TextView
+                    android:id="@+id/textView3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_weight="0.38"
+                    android:text="Working Demos"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                <Button
+                    android:id="@+id/button4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_column="1"
+                    android:layout_gravity="right|top"
+                    android:layout_row="1"
+                    android:layout_weight="2.80"
+                    android:onClick="buttonBug1_onClick"
+                    android:text="Bug1" />
+
+                <Button
+                    android:id="@+id/button1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_column="0"
+                    android:layout_gravity="left|top"
+                    android:layout_row="1"
+                    android:onClick="buttonDriveAndRead_onClick"
+                    android:text="driveAndRead" />
+
+            </GridLayout>
+
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_weight="0.04"
+                android:layout_height="wrap_content"
+                android:columnCount="2" >
+
+                <TextView
+                    android:id="@+id/textView2"
+                    android:layout_gravity="top|center_horizontal"
+                    android:text="Kalibrierung"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 <Button
                     android:id="@+id/buttonSensor"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="41dp"
                     android:layout_column="0"
-                    android:layout_gravity="center"
-                    android:layout_row="0"
+                    android:layout_gravity="left|top"
+                    android:layout_row="1"
                     android:onClick="buttonSensor_onClick"
-                    android:text="Read Sensor" />
+                    android:text="Read Sensors" />
+
+                <Button
+                    android:id="@+id/button6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_column="1"
+                    android:layout_gravity="left|top"
+                    android:layout_row="1"
+                    android:layout_weight="0.04"
+                    android:onClick="button90Deg_onClick"
+                    android:text="90°" />
+
+                <Button
+                    android:id="@+id/button2"
+                    android:layout_column="1"
+                    android:layout_gravity="right|top"
+                    android:layout_row="1"
+                    android:onClick="buttonFindSensorIDs_onClick"
+                    android:text="SensorIDs" />
+
+                <Button
+                    android:id="@+id/button5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_column="1"
+                    android:layout_gravity="right|top"
+                    android:layout_row="0"
+                    android:layout_weight="0.04"
+                    android:onClick="buttonOneMeter_onClick"
+                    android:text="1m" />
+
             </GridLayout>
 
-            <Button
-                android:id="@+id/button1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="buttonDriveAndRead_onClick"
-                android:text="driveAndRead" />
-
-            <Button
-                android:id="@+id/button2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="buttonDriveArObstacle_onClick"
-                android:text="driveArObstacle" />
-
-            <Button
-                android:id="@+id/button3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="buttonDriveByVelo_onClick"
-                android:text="driveByVelo" />
-
-            <Button
-                android:id="@+id/button4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="2.80"
-                android:onClick="buttonBug1_onClick"
-                android:text="Bug1" />
-
-            <Button
-                android:id="@+id/Button03"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="2.80"
-                android:onClick="buttonTest_onClick"
-                android:text="Bug2" />
-
-            <Button
-                android:id="@+id/button5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.04"
-                android:onClick="buttonOneMeter_onClick"
-                android:text="1m" />
-
-            <Button
-                android:id="@+id/button6"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.04"
-                android:onClick="button90Deg_onClick"
-                android:text="90°" />
-
-            <Button
-                android:id="@+id/TestButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="2.80"
-                android:onClick="buttonTest_onClick"
-                android:text="Test" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
