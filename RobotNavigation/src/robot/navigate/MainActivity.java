@@ -18,17 +18,17 @@ public class MainActivity extends Activity {
 	private FTDriver com;
 
 	// -> Robot Calibration
-	private Integer ObsDetectBorderLR = 35; // Measurements in front of the
+	private Integer ObsDetectBorderLR = 15; // Measurements in front of the
 											// robot
 											// below this value are treated as
 											// obstacle (Working range of
 											// left/right
 											// sensor is 10 to 80cm)
-	private Integer ObsDetectBorderM = 30; // Measurements below this value are
+	private Integer ObsDetectBorderM = 28; // Measurements below this value are
 											// treated as obstacle (Working
 											// range of middle sensor is 20 to
 											// 80cm)
-	private Integer ObsDetectBorderL = 15; // Measurements to the left of the
+	private Integer ObsDetectBorderL = 20; // Measurements to the left of the
 											// robot
 	// below this value are treated as
 	// obstacle (Working range of left
@@ -352,8 +352,8 @@ public class MainActivity extends Activity {
 	 */
 	public void updatePosition(int stepLength) {
 		double movementX = 0, movementY = 0;
-		movementX = Math.sin((double) (Tg) * Math.PI/180) * stepLength;
-		movementY = stepLength * Math.sin((double) (Tg) * Math.PI/180);
+		movementX = Math.sin((double) (Tg) * Math.PI/180.0) * stepLength;
+		movementY = stepLength * Math.cos((double) (Tg) * Math.PI/180.0);
 		Xg += movementX;
 		Yg += movementY;
 		writeLog("my Position: (" + Xg + "," + Yg + "," + Tg + ")");
@@ -552,7 +552,7 @@ public class MainActivity extends Activity {
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		measurement = getDistance();
 		if (measurement.get("frontLeft") <= ObsDetectBorderLR
-				|| measurement.get("fronRight") <= ObsDetectBorderLR
+				|| measurement.get("frontRight") <= ObsDetectBorderLR
 				|| measurement.get("frontMiddle") <= ObsDetectBorderM) {
 			detected = true;
 		}
@@ -568,7 +568,7 @@ public class MainActivity extends Activity {
 		Boolean detected = false;
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		measurement = getDistance();
-		if (measurement.get("frontLeft") <= ObsDetectBorderLR) {
+		if (measurement.get("frontLeft") <= ObsDetectBorderL) {
 			detected = true;
 		}
 		return detected;
@@ -602,13 +602,17 @@ public class MainActivity extends Activity {
 				+ "cm distance");
 
 		// we need to update the robots own position information
-		turnRobot((byte) angle, 'r');
+		turnRobot( angle, 'r');
 
 		while (moved < dist) {
 			moved++;
 			moveRobot(2);
 			if (obstacleInFront()) {
 				writeLog("Obstacle found at " + getMyPosition());
+				moveRobot(5); //move near to wall
+				moveRobot(3);
+				turnRobot(90, 'r');
+				moveRobot(5);
 				roundObstacle(x, y);
 				break;
 			}
@@ -650,6 +654,16 @@ public class MainActivity extends Activity {
 			moveToGoalNaive(x, y);
 		}
 	}
+	//TODO comment
+	public Boolean turnAndCheckObstacle(){
+		boolean detected = false;
+		turnRobot(90, 'l');
+		if (obstacleInFront()) {
+			detected = true;
+		}
+		turnRobot(90, 'r');
+		return detected;
+	}
 
 	// TODO: add comment; choose better name
 	public void roundObstacle(int goalX, int goalY) {
@@ -672,12 +686,13 @@ public class MainActivity extends Activity {
 
 		while (!startPositionReached) {
 			// Drive around obstacle and find closest position to goal
-			while (obstacleLeft()) {
+			while (turnAndCheckObstacle()) {
 				// If there is an obstacle in front, turn right and continue
-				if (obstacleInFront()) {
-					turnRobot(90, 'r');
-				}
-				moveRobot(5);
+//				if (obstacleInFront()) {
+//					turnRobot(90, 'r');
+//				}
+				moveRobot(8);
+				moveRobot(2);
 				movedTotalDistance = movedTotalDistance + 5;
 				curGoalDist = (int) Math.sqrt(Math.pow(Xg - goalX, 2)
 						+ Math.pow(Yg - goalY, 2)); // distance form current
@@ -692,41 +707,45 @@ public class MainActivity extends Activity {
 							+ getMyPosition().x + "," + getMyPosition().y
 							+ ") - distance to goal: " + closestDistance + "cm");
 				}
-			}
-			if ((startPosition.minus(getMyPosition()) < TOL)
-					&& movedTotalDistance >= 5) { // Check if start position
-													// is reached again
-				startPositionReached = true;
-				writeLog("Back at starting position");
-			}
-			if (!obstacleInFront()) {
-				moveRobot(DistToPassObstacleL);
-			}
-			turnRobot(90, 'l');
-		}
-
-		writeLog("Navigating to the closest point (" + closestPosition.x + ","
-				+ closestPosition.y + ")");
-		while (!closestPositionReached) {
-			// Drive around obstacle and find closest position to goal
-			while (obstacleLeft()) {
-				// If there is an obstacle in front turn right and continue
-				if (obstacleInFront()) {
-					turnRobot(90, 'r');
-				}
-				moveRobot(5);
-				if (closestPosition.minus(getMyPosition()) < TOL) {
-					closestPositionReached = true;
-					writeLog("Closest Point reached");
+				if ((startPosition.minus(getMyPosition()) < TOL)
+						&& movedTotalDistance >= 5) { // Check if start position
+														// is reached again
+					startPositionReached = true;
+					writeLog("Back at starting position");
+					break;
 				}
 			}
-			if (!obstacleInFront()) {
-				moveRobot(DistToPassObstacleL);
-			}
+//			if (!obstacleInFront()) {
+//				moveRobot(DistToPassObstacleL);
+//			}
+			moveRobot(8);
 			turnRobot(90, 'l');
+			moveRobot(8);
+			moveRobot(2);
 		}
-
-		moveToGoal(goalX, goalY);
+//
+//		writeLog("Navigating to the closest point (" + closestPosition.x + ","
+//				+ closestPosition.y + ")");
+//		while (!closestPositionReached) {
+//			// Drive around obstacle and find closest position to goal
+//			while (obstacleLeft()) {
+//				// If there is an obstacle in front turn right and continue
+//				if (obstacleInFront()) {
+//					turnRobot(90, 'r');
+//				}
+//				moveRobot(5);
+//				if (closestPosition.minus(getMyPosition()) < TOL) {
+//					closestPositionReached = true;
+//					writeLog("Closest Point reached");
+//				}
+//			}
+//			if (!obstacleInFront()) {
+//				moveRobot(DistToPassObstacleL);
+//			}
+//			turnRobot(90, 'l');
+//		}
+//
+//		moveToGoal(goalX, goalY);
 	}
 
 	// TODO: Update description; Delete and rename moveToGoal() to bug1?
