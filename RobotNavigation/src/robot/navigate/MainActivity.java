@@ -985,6 +985,7 @@ public class MainActivity extends Activity {
 
 		writeLog("Navigating to the closest point (" + closestPosition.x + ","
 				+ closestPosition.y + ")");
+		robotSetLeds(0, 127);
 		while (!closestPositionReached) {
 			// Drive around obstacle and find closest position to goal
 			while (obstacleLeft()) {
