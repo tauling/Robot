@@ -18,19 +18,20 @@
             android:layout_width="match_parent"
             android:layout_height="120dp"
             android:gravity="left"
-            android:lines="80"
+            android:lines="1000"
             android:scrollbars="vertical" />
+
     </ScrollView>
 
     <ScrollView
         android:id="@+id/myScrollView"
         android:layout_width="match_parent"
-        android:layout_height="398dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="fill_horizontal" >
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="85dp"
+            android:layout_height="wrap_content"
             android:orientation="vertical" >
 
             <Button

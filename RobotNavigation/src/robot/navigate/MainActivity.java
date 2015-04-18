@@ -9,15 +9,47 @@ import jp.ksksue.driver.serial.FTDriver;
 import android.app.Activity;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
+	// TODO: Add button to stop all threads
+	
 	private int balancedAngle = 0;
 
 	private TextView textLog;
 	private FTDriver com;
+	private Handler mhandler = new Handler();
+
+	private class WriteLogRunnable implements Runnable {
+
+		private String text = null;
+
+		public WriteLogRunnable(String text) {
+			this.text = text;
+		}
+
+		public void run() {
+
+			mhandler.post(new Runnable() {
+				public void run() {
+					
+					textLog.append(text);
+//					textLog.scrollBy(0, );
+//				    final int scrollAmount = textLog.getLayout().getLineTop(textLog.getLineCount()) - textLog.getHeight();
+//				    // if there is no need to scroll, scrollAmount will be <=0
+//				    if (scrollAmount > 0)
+//				    	textLog.scrollTo(0, scrollAmount);
+//				    else
+//				    	textLog.scrollTo(0, 0);
+				}
+			});
+		}
+
+	}
 
 	// -> Robot Calibration
 	private Integer ObsDetectBorderLR = 25; // Measurements in front of the
@@ -87,7 +119,8 @@ public class MainActivity extends Activity {
 	private double Xg = 0, Yg = 0; // Position of the robot.
 	private int Tg = 0; // Angle of the robot.
 
-	// TODO: Fix Crash when robot is off
+	// TODO: Allow to stop any command during runtime
+	// TODO: Flush log immediately
 
 	/**
 	 * Connects to the robot when app is started and initializes the position of
@@ -101,18 +134,17 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 
 		textLog = (TextView) findViewById(R.id.textLog);
+		textLog.setMovementMethod(new ScrollingMovementMethod());
 
 		com = new FTDriver((UsbManager) getSystemService(USB_SERVICE));
-
 		connect();
-		writeLog("onCreate!");
 	}
 
 	/**
 	 * Establishes connection to the robot.
 	 */
 	public void connect() {
-		if (com.begin(9600)) {
+		if (com.begin(FTDriver.BAUD9600)) {
 			writeLog("connected");
 		} else {
 			writeLog("could not connect");
@@ -137,7 +169,6 @@ public class MainActivity extends Activity {
 	public void comWrite(byte[] data) {
 		if (com.isConnected()) {
 			com.write(data);
-//			writeLog("comWrite(data)");
 		} else {
 			writeLog("not connected");
 		}
@@ -154,14 +185,10 @@ public class MainActivity extends Activity {
 	public String comRead() {
 		String s = "";
 		if (com.isConnected()) {
-			int i = 0;
-			int n = 0;
-			while (i < 3 || n > 0) {
-				byte[] buffer = new byte[256];
-				n = com.read(buffer);
-				s += new String(buffer, 0, n);
-				i++;
-			}
+			int n;
+			byte[] buffer = new byte[256];
+			n = com.read(buffer);
+			s += new String(buffer, 0, n);
 		} else {
 			writeLog("not connected");
 		}
@@ -205,8 +232,11 @@ public class MainActivity extends Activity {
 	 * @param text
 	 */
 	public void writeLog(String text) {
-		if (text.length() > 0) {
-			textLog.append("[" + text.length() + "] " + text + "\n");
+		if (!(text == null) && text.length() > 0) {
+			new Thread(new WriteLogRunnable("[" + text.length() + "] " + text + "\n"))
+					.start();
+			//mhandler.post(new MyRunnable("[" + text.length() + "] " + text
+			// + "\n"));
 		}
 	}
 
@@ -216,7 +246,7 @@ public class MainActivity extends Activity {
 	 * @param value
 	 */
 	public void writeLog(int value) {
-		textLog.append(value + "\n");
+		new Thread(new WriteLogRunnable(value + "\n")).start();
 	}
 
 	/**
@@ -283,21 +313,58 @@ public class MainActivity extends Activity {
 
 	// TODO: Write description
 	public void buttonDriveAndRead_onClick(View v) {
-		driveAndRead();
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				driveAndRead();
+			};
+		};
+
+		t.start();
 	}
 
 	// TODO: Write description
 	public void buttonBug1_onClick(View v) {
-		bug1(0, 120);
+
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				bug1(0, 120);
+			};
+		};
+
+		t.start();
 	}
 
 	// TODO: Delete once not needed anymore.
 	public void buttonTest_onClick(View v) {
-		moveToGoalNaive3(150,150);
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+						moveToGoalNaive3(150, 150);
+			};
+		};
+
+		t.start();
 	}
+
 	public void buttonTest2_onClick(View v) {
-		turnRobot(180,'l');
-		turnRobot(180,'r');
+		for (int i = 0; i < 10; i++) {
+			runOnUiThread(new Runnable() {
+				public void run() {
+					textLog.append("PAHAHHA");
+				}
+			});
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 	// TODO: Delete once not needed anymore.
@@ -309,15 +376,39 @@ public class MainActivity extends Activity {
 	}
 
 	public void buttonOneMeter_onClick(View v) {
-		moveRobot(100);
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				moveRobot(100);
+			};
+		};
+
+		t.start();
 	}
 
 	public void button360Deg_onClick(View v) {
-		turnRobot(360, 'r');
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				turnRobot(360, 'r');
+			};
+		};
+
+		t.start();
 	}
 
 	public void buttonrotateToWall_onClick(View v) {
-		rotateToWall();
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				rotateToWall();
+			};
+		};
+
+		t.start();
 	}
 
 	/**
@@ -334,18 +425,18 @@ public class MainActivity extends Activity {
 		int waitTimeFact = 100, left = 20, right = 20;
 		comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r', '\n' },
 				waitTimeFact);
-//		while (start <= end) {
-//			start = System.currentTimeMillis() / 1000;
-//		}
+		// while (start <= end) {
+		// start = System.currentTimeMillis() / 1000;
+		// }
 		try {
-			Thread.sleep((int)(dist*0.06)*1000);
+			Thread.sleep((int) (dist * 0.06) * 1000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-//		while (start <= end) {
-//			comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r',
-//					'\n' }, waitTimeFact);
-//			start = System.currentTimeMillis() / 1000;
+			// while (start <= end) {
+			// comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r',
+			// '\n' }, waitTimeFact);
+			// start = System.currentTimeMillis() / 1000;
 		}
 		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' },
 				waitTimeFact);
@@ -359,13 +450,17 @@ public class MainActivity extends Activity {
 		double start = System.currentTimeMillis(); // [ms]
 		double curTime = start;
 		int velocity = 25;
-		double corrFactor = (100.0/390.0)*(2.0/3.0)*(203.0/206.0);
+		double corrFactor = (100.0 / 390.0) * (2.0 / 3.0) * (203.0 / 206.0);
 		writeLog("startTime: " + (int) start);
-		double speed = (100.0/(1000*velocity))/corrFactor; // Coming from a measurement [cm/ms]
+		double speed = (100.0 / (1000 * velocity)) / corrFactor; // Coming from
+																	// a
+																	// measurement
+																	// [cm/ms]
 		double corrTime = dist / speed; // [ms]
 		double end = start + corrTime;
 		boolean freeWay = true;
-		comReadWrite(new byte[] { 'i', (byte) velocity, (byte) velocity, '\r', '\n' });
+		comReadWrite(new byte[] { 'i', (byte) velocity, (byte) velocity, '\r',
+				'\n' });
 		while (curTime <= end && freeWay) {
 			if (obstacleInFront()) {
 				freeWay = false;
@@ -373,9 +468,9 @@ public class MainActivity extends Activity {
 			curTime = System.currentTimeMillis();
 		}
 		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' });
-		double movedTime = curTime-start;
-		
-		updatePosition((int)(movedTime * speed));
+		double movedTime = curTime - start;
+
+		updatePosition((int) (movedTime * speed));
 		return freeWay;
 	}
 
@@ -471,20 +566,22 @@ public class MainActivity extends Activity {
 	public void turnRobotBalanced(int angle, char dir) {
 		angle = reduceAngle(angle);
 		if (dir == 'l') {
-			if (Math.abs(balancedAngle - angle) < Math.abs(balancedAngle + (360-angle))) {
+			if (Math.abs(balancedAngle - angle) < Math.abs(balancedAngle
+					+ (360 - angle))) {
 				balancedAngle -= angle;
-				turnRobot(angle,'l');
+				turnRobot(angle, 'l');
 			} else {
 				balancedAngle += (360 - angle);
-				turnRobot(360-angle,'r');
+				turnRobot(360 - angle, 'r');
 			}
 		} else {
-			if (Math.abs(balancedAngle + angle) < Math.abs(balancedAngle - (360-angle))) {
+			if (Math.abs(balancedAngle + angle) < Math.abs(balancedAngle
+					- (360 - angle))) {
 				balancedAngle += angle;
-				turnRobot(angle,'r');
+				turnRobot(angle, 'r');
 			} else {
 				balancedAngle -= (360 - angle);
-				turnRobot(360-angle,'l');
+				turnRobot(360 - angle, 'l');
 			}
 		}
 	}
@@ -503,17 +600,17 @@ public class MainActivity extends Activity {
 		updateRotation(angle, dir);
 		int degrees = angle;
 
-//		if (toggleLeftRight) {
-//			if (dir == 'r') {
-//				dir = 'l';
-//			} else {
-//				dir = 'r';
-//			}
-//			toggleLeftRight = !toggleLeftRight;
-//			degrees = 360 - degrees;
-//		} else {
-//			toggleLeftRight = !toggleLeftRight;
-//		}
+		// if (toggleLeftRight) {
+		// if (dir == 'r') {
+		// dir = 'l';
+		// } else {
+		// dir = 'r';
+		// }
+		// toggleLeftRight = !toggleLeftRight;
+		// degrees = 360 - degrees;
+		// } else {
+		// toggleLeftRight = !toggleLeftRight;
+		// }
 
 		degrees = (int) (CorrFactAngle * degrees);
 
@@ -607,11 +704,11 @@ public class MainActivity extends Activity {
 				Thread.sleep(50);
 			} catch (Exception e) {
 			}
-			if (getDistance().get("frontMiddle") <= ObsDetectBorderM) { // checks
-																		// if
-																		// robot
-																		// hit
-																		// near
+			if (obstacleInFront()) { // checks
+										// if
+										// robot
+										// hit
+										// near
 				// obstacle
 				comReadWrite(new byte[] { 'i', 0, 0, '\r', '\n' });
 				writeLog(comReadWrite(new byte[] { 'u', (byte) 127, (byte) 0,
@@ -639,12 +736,17 @@ public class MainActivity extends Activity {
 	 */
 	public Boolean obstacleInFront() {
 		Boolean detected = false;
-		Map<String, Integer> measurement = new HashMap<String, Integer>();
-		measurement = getDistance();
-		if (measurement.get("frontLeft") <= ObsDetectBorderLR
-				|| measurement.get("frontRight") <= ObsDetectBorderLR
-				|| measurement.get("frontMiddle") <= ObsDetectBorderM) {
+		if (com.isConnected()) {
+			Map<String, Integer> measurement = new HashMap<String, Integer>();
+			measurement = getDistance();
+			if (measurement.get("frontLeft") <= ObsDetectBorderLR
+					|| measurement.get("frontRight") <= ObsDetectBorderLR
+					|| measurement.get("frontMiddle") <= ObsDetectBorderM) {
+				detected = true;
+			}
+		} else {
 			detected = true;
+			writeLog("No connection to the robot. Sensors can't be read.");
 		}
 		return detected;
 	}
@@ -656,10 +758,15 @@ public class MainActivity extends Activity {
 	 */
 	public Boolean obstacleLeft() {
 		Boolean detected = false;
-		Map<String, Integer> measurement = new HashMap<String, Integer>();
-		measurement = getDistance();
-		if (measurement.get("frontLeft") <= ObsDetectBorderL) {
+		if (com.isConnected()) {
+			Map<String, Integer> measurement = new HashMap<String, Integer>();
+			measurement = getDistance();
+			if (measurement.get("frontLeft") <= ObsDetectBorderL) {
+				detected = true;
+			}
+		} else {
 			detected = true;
+			writeLog("No connection to the robot. Sensors can't be read.");
 		}
 		return detected;
 	}
@@ -672,9 +779,14 @@ public class MainActivity extends Activity {
 	public Boolean obstacleRight() {
 		Boolean detected = false;
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
-		measurement = getDistance();
-		if (measurement.get("frontRight") <= ObsDetectBorderR) {
+		if (com.isConnected()) {
+			measurement = getDistance();
+			if (measurement.get("frontRight") <= ObsDetectBorderR) {
+				detected = true;
+			}
+		} else {
 			detected = true;
+			writeLog("No connection to the robot. Sensors can't be read.");
 		}
 		return detected;
 	}
@@ -819,18 +931,18 @@ public class MainActivity extends Activity {
 					+ "cm distance");
 
 			turnRobotBalanced(angle, 'r');
-			 if (!driveToObstacle(dist)) {
-				 obstacleFound = true;
- 				 writeLog("Obstacle found at " + getMyPosition());
-			 }
-//			while ((moved < dist) && !obstacleFound) {
-//				moved += stepLength;
-//				moveRobot(stepLength);
-//				if (obstacleInFront()) {
-//					writeLog("Obstacle found at " + getMyPosition());
-//					obstacleFound = true;
-//				}
-//			}
+			if (!driveToObstacle(dist)) {
+				obstacleFound = true;
+				writeLog("Obstacle found at " + getMyPosition());
+			}
+			// while ((moved < dist) && !obstacleFound) {
+			// moved += stepLength;
+			// moveRobot(stepLength);
+			// if (obstacleInFront()) {
+			// writeLog("Obstacle found at " + getMyPosition());
+			// obstacleFound = true;
+			// }
+			// }
 
 			if (obstacleFound) {
 				turnRobotBalanced((int) Math.signum((Math.random() - 0.5))
