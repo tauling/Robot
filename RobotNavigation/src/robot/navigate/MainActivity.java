@@ -347,7 +347,29 @@ public class MainActivity extends Activity {
 
 		t.start();
 	}
+	public void buttonMoveToGoalN3_onClick(View v){
+		Thread t = new Thread() {
 
+			@Override
+			public void run() {
+				moveToGoalNaive3(100, 100);
+			};
+		};
+
+		t.start();
+	}
+
+	public void buttonBug2_onClick(View v){
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				bug1(100, 100);
+			};
+		};
+
+		t.start();
+	}
 	public void buttonFindSensorIDs_onClick(View v) {
 		try {
 			findSensorIDs();
@@ -1130,6 +1152,7 @@ public class MainActivity extends Activity {
 	public void bug1(int x, int y) {
 		moveToGoal(x, y);
 	}
+	
 
 	// TODO: Add method for setMyPosition
 
