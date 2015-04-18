@@ -136,7 +136,7 @@ public class MainActivity extends Activity {
 		com = new FTDriver((UsbManager) getSystemService(USB_SERVICE));
 		connect();
 		
-		robotSetBar(100);
+		robotSetBar(120);
 	}
 
 
@@ -550,7 +550,7 @@ public class MainActivity extends Activity {
 	 * @param dir
 	 *            ("l" = left; "r" = right)
 	 */
-	private void turnRobot(int angle, char dir) {
+	public void turnRobot(int angle, char dir) {
 		int waitTimeFact = 17;
 		angle = reduceAngle(angle);
 		updateRotation(angle, dir);
