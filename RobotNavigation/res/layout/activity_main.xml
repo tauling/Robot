@@ -10,15 +10,14 @@
         android:id="@+id/scrollMe"
         android:layout_width="match_parent"
         android:layout_height="174dp"
-        android:layout_gravity="fill_horizontal" >
-        android:scrollbars="vertical"
+        android:layout_gravity="fill_horizontal"
+        android:scrollbars="vertical" >
 
         <TextView
             android:id="@+id/textLog"
             android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:gravity="left"
-            android:lines="1000"
+            android:layout_height="wrap_content"
+            android:gravity="start"
             android:scrollbars="vertical" />
 
     </ScrollView>

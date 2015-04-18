@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
@@ -21,6 +22,7 @@ public class MainActivity extends Activity {
 	private int balancedAngle = 0;
 
 	private TextView textLog;
+	private ScrollView svLog;
 	private FTDriver com;
 	private Handler mhandler = new Handler();
 
@@ -38,13 +40,8 @@ public class MainActivity extends Activity {
 				public void run() {
 					
 					textLog.append(text);
-//					textLog.scrollBy(0, );
-//				    final int scrollAmount = textLog.getLayout().getLineTop(textLog.getLineCount()) - textLog.getHeight();
-//				    // if there is no need to scroll, scrollAmount will be <=0
-//				    if (scrollAmount > 0)
-//				    	textLog.scrollTo(0, scrollAmount);
-//				    else
-//				    	textLog.scrollTo(0, 0);
+					svLog.fullScroll(ScrollView.FOCUS_DOWN);
+//			        svLog.scrollTo(0, textLog.getHeight());
 				}
 			});
 		}
@@ -119,8 +116,6 @@ public class MainActivity extends Activity {
 	private double Xg = 0, Yg = 0; // Position of the robot.
 	private int Tg = 0; // Angle of the robot.
 
-	// TODO: Allow to stop any command during runtime
-	// TODO: Flush log immediately
 
 	/**
 	 * Connects to the robot when app is started and initializes the position of
@@ -132,13 +127,28 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		
+		svLog = (ScrollView) findViewById(R.id.scrollMe);
 
 		textLog = (TextView) findViewById(R.id.textLog);
 		textLog.setMovementMethod(new ScrollingMovementMethod());
 
 		com = new FTDriver((UsbManager) getSystemService(USB_SERVICE));
 		connect();
+		
+		robotSetBar(100);
 	}
+
+
+	public void robotSetBar(int value) {
+	if (Math.abs(value) > 127) {
+		value = (int) (Math.signum(value)*127);
+	}
+	comReadWrite(
+		new byte[] { 'o', (byte) value, '\r', '\n' }
+	);
+}
+
 
 	/**
 	 * Establishes connection to the robot.
@@ -255,7 +265,7 @@ public class MainActivity extends Activity {
 	 * @param value
 	 */
 	public void writeLog(long value) {
-		textLog.append(value + "\n");
+		new Thread(new WriteLogRunnable(value + "\n")).start();
 	}
 
 	/**
@@ -274,36 +284,18 @@ public class MainActivity extends Activity {
 				(byte) Math.max(Math.min(blue, 127), 0), '\r', '\n' }));
 	}
 
-	// TODO: Check if needed
-	// TODO: Add Comment
-	public void moveRobotByVelocity(int left, int right, int time) {
-		writeLog(comReadWrite(new byte[] { 'i', (byte) left, (byte) right,
-				'\r', '\n' }));
-		try {
-			Thread.sleep(time);
-		} catch (Exception e) {
-		} finally {
-			writeLog(comReadWrite(new byte[] { 's', '\r', '\n' }));
-		}
-	}
-
-	// TODO: Delete, once it is not needed anymore
-	// lower bar a few degrees
+	
 	public void buttonMinus_onClick(View v) {
 		writeLog("Called by Minus");
 		writeLog(comReadWrite(new byte[] { '-', '\r', '\n' }));
 	}
 
-	// TODO: Delete, once it is not needed anymore
-	// rise bar a few degrees
 	public void buttonPlus_onClick(View v) {
 		writeLog("Called by Plus");
 		writeLog(comReadWrite(new byte[] { '+', '\r', '\n' }));
 	}
 
-	// TODO: Write description
 	public void buttonSensor_onClick(View v) {
-		// TODO: Fix: Crashes when not connected.
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
 		measurement = getDistance();
 		for (Map.Entry<String, Integer> entry : measurement.entrySet()) {
@@ -311,7 +303,7 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	// TODO: Write description
+
 	public void buttonDriveAndRead_onClick(View v) {
 		Thread t = new Thread() {
 
@@ -324,7 +316,7 @@ public class MainActivity extends Activity {
 		t.start();
 	}
 
-	// TODO: Write description
+
 	public void buttonBug1_onClick(View v) {
 
 		Thread t = new Thread() {
@@ -358,7 +350,7 @@ public class MainActivity extends Activity {
 		turnRobot(180, 'r');
 	}
 
-	// TODO: Delete once not needed anymore.
+	
 	public void buttonFindSensorIDs_onClick(View v) {
 		try {
 			findSensorIDs();
@@ -402,38 +394,7 @@ public class MainActivity extends Activity {
 		t.start();
 	}
 
-	/**
-	 * drive distance by velocity and update robot position knowledge
-	 * 
-	 * @param dist
-	 */
-	public void driveByVelocity(int dist) {
-		double start = System.currentTimeMillis() / 1000;
-		writeLog("startTime: " + (int) start);
-		double corrDistFact = 0.05; // Coming from a measurement
-		double corrDist = dist * corrDistFact;
-		double end = start + corrDist;
-		int waitTimeFact = 100, left = 20, right = 20;
-		comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r', '\n' },
-				waitTimeFact);
-		// while (start <= end) {
-		// start = System.currentTimeMillis() / 1000;
-		// }
-		try {
-			Thread.sleep((int) (dist * 0.06) * 1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			// while (start <= end) {
-			// comReadWrite(new byte[] { 'i', (byte) left, (byte) right, '\r',
-			// '\n' }, waitTimeFact);
-			// start = System.currentTimeMillis() / 1000;
-		}
-		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' },
-				waitTimeFact);
-		updatePosition(dist);
-	}
-
+	
 	/*
 	 * drive to obstacle by velocity, update position based on droven way
 	 */
@@ -465,6 +426,7 @@ public class MainActivity extends Activity {
 		return freeWay;
 	}
 
+	
 	/**
 	 * updates global Position parameters after Robot moved one stepLength
 	 * 
@@ -530,6 +492,7 @@ public class MainActivity extends Activity {
 		updatePosition(dist);
 	}
 
+	
 	// TODO: Add Button to demonstrate
 	/**
 	 * tells the robot to move along a square
@@ -588,23 +551,11 @@ public class MainActivity extends Activity {
 	 * @param dir
 	 *            ("l" = left; "r" = right)
 	 */
-	public void turnRobot(int angle, char dir) {
+	private void turnRobot(int angle, char dir) {
 		int waitTimeFact = 17;
 		angle = reduceAngle(angle);
 		updateRotation(angle, dir);
 		int degrees = angle;
-
-		// if (toggleLeftRight) {
-		// if (dir == 'r') {
-		// dir = 'l';
-		// } else {
-		// dir = 'r';
-		// }
-		// toggleLeftRight = !toggleLeftRight;
-		// degrees = 360 - degrees;
-		// } else {
-		// toggleLeftRight = !toggleLeftRight;
-		// }
 
 		degrees = (int) (CorrFactAngle * degrees);
 
