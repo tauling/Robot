@@ -351,20 +351,11 @@ public class MainActivity extends Activity {
 		t.start();
 	}
 
+
+	// TODO: Delete once not needed anymore.
 	public void buttonTest2_onClick(View v) {
-		for (int i = 0; i < 10; i++) {
-			runOnUiThread(new Runnable() {
-				public void run() {
-					textLog.append("PAHAHHA");
-				}
-			});
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		turnRobot(180, 'l');
+		turnRobot(180, 'r');
 	}
 
 	// TODO: Delete once not needed anymore.
@@ -565,7 +556,8 @@ public class MainActivity extends Activity {
 	 */
 	public void turnRobotBalanced(int angle, char dir) {
 		angle = reduceAngle(angle);
-		if (dir == 'l') {
+		switch (dir) {
+		case 'l':
 			if (Math.abs(balancedAngle - angle) < Math.abs(balancedAngle
 					+ (360 - angle))) {
 				balancedAngle -= angle;
@@ -574,7 +566,8 @@ public class MainActivity extends Activity {
 				balancedAngle += (360 - angle);
 				turnRobot(360 - angle, 'r');
 			}
-		} else {
+			break;
+		case 'r':
 			if (Math.abs(balancedAngle + angle) < Math.abs(balancedAngle
 					- (360 - angle))) {
 				balancedAngle += angle;
@@ -583,6 +576,7 @@ public class MainActivity extends Activity {
 				balancedAngle -= (360 - angle);
 				turnRobot(360 - angle, 'l');
 			}
+
 		}
 	}
 
@@ -614,8 +608,10 @@ public class MainActivity extends Activity {
 
 		degrees = (int) (CorrFactAngle * degrees);
 
-		if (dir == 'r') {
+		switch (dir) {
+		case 'r':
 			degrees = -degrees;
+			break;
 		}
 
 		while (Math.abs(degrees) > 127) { // Byte stores values from -128 to
