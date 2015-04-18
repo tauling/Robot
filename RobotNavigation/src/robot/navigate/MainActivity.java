@@ -20,6 +20,7 @@ public class MainActivity extends Activity {
 	// TODO: Add button to stop all threads
 
 	private int balancedAngle = 0;
+	private int balancedDist = 0;
 
 	private TextView textLog;
 	private ScrollView svLog;
@@ -41,7 +42,7 @@ public class MainActivity extends Activity {
 
 					textLog.append(text);
 					svLog.fullScroll(ScrollView.FOCUS_DOWN);
-//			        svLog.scrollTo(0, textLog.getHeight());
+					// svLog.scrollTo(0, textLog.getHeight());
 				}
 			});
 		}
@@ -116,7 +117,6 @@ public class MainActivity extends Activity {
 	private double Xg = 0, Yg = 0; // Position of the robot.
 	private int Tg = 0; // Angle of the robot.
 
-
 	/**
 	 * Connects to the robot when app is started and initializes the position of
 	 * the robot's bar.
@@ -127,7 +127,7 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
+
 		svLog = (ScrollView) findViewById(R.id.scrollMe);
 
 		textLog = (TextView) findViewById(R.id.textLog);
@@ -135,20 +135,16 @@ public class MainActivity extends Activity {
 
 		com = new FTDriver((UsbManager) getSystemService(USB_SERVICE));
 		connect();
-		
+
 		robotSetBar(105);
 	}
 
-
 	public void robotSetBar(int value) {
-	if (Math.abs(value) > 127) {
-		value = (int) (Math.signum(value)*127);
+		if (Math.abs(value) > 127) {
+			value = (int) (Math.signum(value) * 127);
+		}
+		comReadWrite(new byte[] { 'o', (byte) value, '\r', '\n' });
 	}
-	comReadWrite(
-		new byte[] { 'o', (byte) value, '\r', '\n' }
-	);
-}
-
 
 	/**
 	 * Establishes connection to the robot.
@@ -284,7 +280,6 @@ public class MainActivity extends Activity {
 				(byte) Math.max(Math.min(blue, 127), 0), '\r', '\n' }));
 	}
 
-	
 	public void buttonMinus_onClick(View v) {
 		writeLog("Called by Minus");
 		writeLog(comReadWrite(new byte[] { '-', '\r', '\n' }));
@@ -303,7 +298,6 @@ public class MainActivity extends Activity {
 		}
 	}
 
-
 	public void buttonDriveAndRead_onClick(View v) {
 		Thread t = new Thread() {
 
@@ -316,14 +310,13 @@ public class MainActivity extends Activity {
 		t.start();
 	}
 
-
 	public void buttonBug1_onClick(View v) {
 
 		Thread t = new Thread() {
 
 			@Override
 			public void run() {
-				bug1(0, 120);
+				bug1(200, 200);
 			};
 		};
 
@@ -337,7 +330,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				moveToGoalNaive3(300,200);
+				moveToGoalNaive3(300, 200);
 			};
 		};
 
@@ -351,14 +344,31 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				moveToGoalNaive2(300,200);
+				turnRobotBalanced(90, 'r');
+				moveRobot(100);
+				turnRobotBalanced(135, 'l');
+				if (driveToIntersectionMLine(10, 200, 200)) {
+					writeLog("MLINE ! 1");
+					robotSetLeds(0, 127);
+				} else {
+					writeLog("NOT MLINE ! 1");
+					robotSetLeds(127, 0);
+				}
+				if (driveToIntersectionMLine(150, 200, 200)) {
+					writeLog("MLINE ! 2");
+					robotSetLeds(0, 127);
+				} else {
+					writeLog("MLINE ! 2");
+					robotSetLeds(127, 0);
+				}
+				turnRobotBalanced(90, 'r');
+				moveToGoalNaive3(200, 200);
 			};
 		};
 
 		t.start();
 	}
 
-	
 	public void buttonFindSensorIDs_onClick(View v) {
 		try {
 			findSensorIDs();
@@ -403,11 +413,11 @@ public class MainActivity extends Activity {
 		t.start();
 	}
 
-	
+	// TODO Update description
 	/*
 	 * drive to obstacle by velocity, update position based on droven way
 	 */
-	public Boolean driveToObstacle(int dist) {
+	public Boolean driveToObstacle(double dist) {
 		double start = System.currentTimeMillis(); // [ms]
 		double curTime = start;
 		int velocity = 25;
@@ -435,7 +445,6 @@ public class MainActivity extends Activity {
 		return freeWay;
 	}
 
-	
 	/**
 	 * updates global Position parameters after Robot moved one stepLength
 	 * 
@@ -501,7 +510,35 @@ public class MainActivity extends Activity {
 		updatePosition(dist);
 	}
 
-	
+	// TODO add description; check if needed
+	public void moveRobotBalanced(int dist) {
+		if (Math.abs(balancedDist - dist) < Math.abs(balancedDist + dist)) {
+			balancedDist = balancedDist - dist;
+			turnRobotBalanced(180, 'r');
+			moveRobot(-dist);
+			turnRobotBalanced(180, 'r');
+		} else {
+			balancedDist = balancedDist + dist;
+			moveRobot(dist);
+		}
+	}
+
+	// TODO Write description
+	public Boolean driveToIntersectionMLine(int max_dist, int goal_x, int goal_y) {
+		double x_ofIntersection = (Yg - (Xg * Math.tan(Math.toRadians(Tg))))
+				/ ((((double) goal_y) / goal_x) - (Math.tan(Math.toRadians(Tg))));
+		double y_ofIntersection = x_ofIntersection * ((double) goal_y) / goal_x;
+		double dist = Math.min(
+				Math.sqrt(Math.pow(x_ofIntersection - Xg, 2)
+						+ Math.pow(y_ofIntersection - Yg, 2)), max_dist);
+
+		if (driveToObstacle(dist) && (dist < max_dist)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	// TODO: Add Button to demonstrate
 	/**
 	 * tells the robot to move along a square
@@ -827,7 +864,6 @@ public class MainActivity extends Activity {
 		return detected;
 	}
 
-	
 	/**
 	 * turn Robot a bit to obstacle and measure distance with left sensor before
 	 * and after rotation if the distance gets smaller the robot should rotate
@@ -876,7 +912,9 @@ public class MainActivity extends Activity {
 			obstacleFound = false;
 
 			angle = getAngleToGoal(x, y);
-			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)); // TODO write function
+			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)); // TODO
+																				// write
+																				// function
 
 			writeLog("Moving to goal at angle " + angle + " in " + dist
 					+ "cm distance");
@@ -918,7 +956,9 @@ public class MainActivity extends Activity {
 			obstacleFound = false;
 
 			angle = getAngleToGoal(x, y);
-			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)); // TODO write function
+			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)); // TODO
+																				// write
+																				// function
 
 			writeLog("Moving to goal at angle " + angle + " in " + dist
 					+ "cm distance");
@@ -1059,44 +1099,43 @@ public class MainActivity extends Activity {
 		turnRobot(90, 'l');
 	}
 
-	//
-	// writeLog("Navigating to the closest point (" + closestPosition.x + ","
-	// + closestPosition.y + ")");
-	// while (!closestPositionReached) {
-	// // Drive around obstacle and find closest position to goal
-	// while (obstacleLeft()) {
-	// // If there is an obstacle in front turn right and continue
-	// if (obstacleInFront()) {
-	// turnRobot(90, 'r');
-	// }
-	// moveRobot(5);
-	// if (closestPosition.minus(getMyPosition()) < TOL) {
-	// closestPositionReached = true;
-	// writeLog("Closest Point reached");
-	// }
-	// }
-	// if (!obstacleInFront()) {
-	// moveRobot(DistToPassObstacleL);
-	// }
-	// turnRobot(90, 'l');
-	//
-	// moveToGoal(goalX, goalY);
-
-	
-	// TODO: Update description; Delete and rename moveToGoal() to bug1?; add theta
+	// TODO: Update description; Delete and rename moveToGoal() to bug1?; add
+	// theta
 	/**
 	 * Bug1 algorithm 1) head toward goal 2) if an obstacle is encountered
 	 * circumnavigate it and remember how close you get to the goal 3) return to
 	 * that closest point(by wall-following) and continue
 	 */
 	public void bug1(int x, int y) {
-		moveToGoal(x, y);
+		double dist;
+		int angle;
+		int TOL = 8;
+		angle = getAngleToGoal(x, y);
+		dist = Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+		writeLog("Moving to goal at angle " + angle + " in " + dist
+				+ "cm distance");
+
+		turnRobotBalanced(angle, 'r');
+
+		if (!driveToObstacle(dist)) {
+			writeLog("Going around obstacle");
+			turnRobotBalanced(90,'r');
+			while (!driveToIntersectionMLine(20, x, y)) {
+				if (!turnAndCheckObstacle()) {
+					driveToIntersectionMLine(DistToPassObstacleL, x, y);
+					turnRobotBalanced(90, 'l');
+				}
+			}
+		}
+
+		dist = Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+		if (dist > TOL) {
+			bug1(x, y);
+		}
 	}
 
-	
 	// TODO: Add method for setMyPosition
-	
-	
+
 	// TODO: Update description
 	public Position getMyPosition() {
 		Position myPos = new Position(Xg, Yg, Tg);
