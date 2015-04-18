@@ -293,15 +293,15 @@ public class MainActivity extends Activity {
 
 	// TODO: Delete once not needed anymore.
 	public void buttonTest_onClick(View v) {
-		Xg = 0;
-		Yg = 0;
-		Tg = 0;
-		moveToGoalNaive3(200, 400);
+//		Xg = 0;
+//		Yg = 0;
+//		Tg = 0;
+//		moveToGoalNaive3(200, 400);
+		turnAndCheckRightSide();
 	}
 
 	public void buttonTest2_onClick(View v) {
-		turnRobot(180, 'l');
-		turnRobot(180, 'r');
+		moveToGoal(100,100);
 	}
 
 	// TODO: Delete once not needed anymore.
@@ -711,13 +711,13 @@ public class MainActivity extends Activity {
 
 		while (moved < dist) {
 			moved++;
-			moveRobot(2);
+			driveByVelocity(2);
 			if (obstacleInFront()) {
 				writeLog("Obstacle found at " + getMyPosition());
-				moveRobot(5); // move near to wall
-				moveRobot(3);
-				turnRobot(90, 'r');
-				moveRobot(5);
+				driveByVelocity(5);
+				driveByVelocity(5);
+				//turnRobot(90, 'r');
+				driveByVelocity(5);
 				roundObstacle(x, y);
 				break;
 			}
@@ -761,7 +761,12 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	// TODO comment
+	/**
+	 * turn 90 deg left 
+	 * check for obstacle
+	 * turn 90 deg right 
+	 * @return  whether an obstacle is on the left side 
+	 */
 	public Boolean turnAndCheckObstacle() {
 		boolean detected = false;
 		turnRobot(90, 'l');
@@ -769,6 +774,38 @@ public class MainActivity extends Activity {
 			detected = true;
 		}
 		turnRobot(90, 'r');
+		return detected;
+	}
+
+	/**
+	 * turn Robot a bit to obstacle and measure distance with left sensor before and after rotation
+	 * if the distance gets smaller the robot should rotate back more than he turn in, otherwise (the distance increases) 
+	 * the robot needs to turn a lot more to the right
+	 * @return whether an obstacle is on the left side 
+	 */
+	public Boolean turnAndCheckRightSide() {
+		boolean detected = false;
+		Map<String, Integer> measurement = new HashMap<String, Integer>();
+		measurement = getDistance();
+		int startDistLeft = measurement.get("frontLeft");
+		writeLog("distance left: " + startDistLeft);
+		int deg = 20;
+		
+		turnRobot(deg, 'l');
+		measurement = getDistance();
+		int currDistLeft = measurement.get("frontLeft");
+		writeLog("distance left: " + currDistLeft);
+		int diff = currDistLeft - startDistLeft;
+		writeLog("difference start and current measurment: " + diff);
+		int TOL = 0;
+		if (Math.abs(diff) > TOL && diff < 0) {
+			turnRobot(deg + 15, 'r');
+		}else if(Math.abs(diff) > TOL && diff > 0){
+			turnRobot(45, 'r');
+		}
+		if (obstacleInFront()) {
+			detected = true;
+		}
 		return detected;
 	}
 
@@ -912,12 +949,12 @@ public class MainActivity extends Activity {
 
 		while (!startPositionReached) {
 			// Drive around obstacle and find closest position to goal
-			while (turnAndCheckObstacle()) {
+			while (turnAndCheckRightSide()) {
 				// If there is an obstacle in front, turn right and continue
 				// if (obstacleInFront()) {
 				// turnRobot(90, 'r');
 				// }
-				moveRobot(8);
+				driveByVelocity(3);
 				movedTotalDistance = movedTotalDistance + 5;
 				curGoalDist = (int) Math.sqrt(Math.pow(Xg - goalX, 2)
 						+ Math.pow(Yg - goalY, 2)); // distance form current
@@ -941,7 +978,7 @@ public class MainActivity extends Activity {
 				}
 			}
 			if (!obstacleInFront()) {
-				moveRobot(DistToPassObstacleL);
+				driveByVelocity(DistToPassObstacleL);
 			}
 			turnRobot(90, 'l');
 		}
