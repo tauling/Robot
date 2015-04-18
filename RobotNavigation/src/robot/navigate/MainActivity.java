@@ -18,7 +18,7 @@ import android.widget.TextView;
 public class MainActivity extends Activity {
 
 	// TODO: Add button to stop all threads
-	
+
 	private int balancedAngle = 0;
 
 	private TextView textLog;
@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
 
 			mhandler.post(new Runnable() {
 				public void run() {
-					
+
 					textLog.append(text);
 					svLog.fullScroll(ScrollView.FOCUS_DOWN);
 //			        svLog.scrollTo(0, textLog.getHeight());
@@ -243,9 +243,9 @@ public class MainActivity extends Activity {
 	 */
 	public void writeLog(String text) {
 		if (!(text == null) && text.length() > 0) {
-			new Thread(new WriteLogRunnable("[" + text.length() + "] " + text + "\n"))
-					.start();
-			//mhandler.post(new MyRunnable("[" + text.length() + "] " + text
+			new Thread(new WriteLogRunnable("[" + text.length() + "] " + text
+					+ "\n")).start();
+			// mhandler.post(new MyRunnable("[" + text.length() + "] " + text
 			// + "\n"));
 		}
 	}
@@ -332,22 +332,21 @@ public class MainActivity extends Activity {
 
 	// TODO: Delete once not needed anymore.
 	public void buttonTest_onClick(View v) {
+
 		Thread t = new Thread() {
 
 			@Override
 			public void run() {
-						moveToGoalNaive3(150, 150);
+				turnAndCheckRightSide();
 			};
 		};
 
 		t.start();
 	}
 
-
 	// TODO: Delete once not needed anymore.
 	public void buttonTest2_onClick(View v) {
-		turnRobot(180, 'l');
-		turnRobot(180, 'r');
+		moveToGoal(100, 100);
 	}
 
 	
@@ -738,7 +737,7 @@ public class MainActivity extends Activity {
 		return detected;
 	}
 
-	// TODO: Fix this method; Add description.
+	// TODO: Fix this method; Add description. add theta
 	public void moveToGoal(int x, int y) {
 		int dist;
 		int angle;
@@ -755,13 +754,10 @@ public class MainActivity extends Activity {
 
 		while (moved < dist) {
 			moved++;
-			moveRobot(2);
+			driveToObstacle(2);
 			if (obstacleInFront()) {
 				writeLog("Obstacle found at " + getMyPosition());
-				moveRobot(5); // move near to wall
-				moveRobot(3);
-				turnRobot(90, 'r');
-				moveRobot(5);
+				driveToObstacle(15);
 				roundObstacle(x, y);
 				break;
 			}
@@ -805,7 +801,12 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	// TODO comment
+	// TODO: Check if needed
+	/**
+	 * turn 90 deg left check for obstacle turn 90 deg right
+	 * 
+	 * @return whether an obstacle is on the left side
+	 */
 	public Boolean turnAndCheckObstacle() {
 		boolean detected = false;
 		turnRobot(90, 'l');
@@ -816,7 +817,42 @@ public class MainActivity extends Activity {
 		return detected;
 	}
 
-	// TODO: Check if needed; Fix this function; Add description
+	
+	/**
+	 * turn Robot a bit to obstacle and measure distance with left sensor before
+	 * and after rotation if the distance gets smaller the robot should rotate
+	 * back more than he turn in, otherwise (the distance increases) the robot
+	 * needs to turn a lot more to the right
+	 * 
+	 * @return whether an obstacle is on the left side
+	 */
+	public Boolean turnAndCheckRightSide() {
+		boolean detected = false;
+		Map<String, Integer> measurement = new HashMap<String, Integer>();
+		measurement = getDistance();
+		int startDistLeft = measurement.get("frontLeft");
+		writeLog("distance left: " + startDistLeft);
+		int deg = 20;
+
+		turnRobot(deg, 'l');
+		measurement = getDistance();
+		int currDistLeft = measurement.get("frontLeft");
+		writeLog("distance left: " + currDistLeft);
+		int diff = currDistLeft - startDistLeft;
+		writeLog("difference start and current measurment: " + diff);
+		int TOL = 0;
+		if (Math.abs(diff) > TOL && diff < 0) {
+			turnRobot(deg + 15, 'r');
+		} else if (Math.abs(diff) > TOL && diff > 0) {
+			turnRobot(45, 'r');
+		}
+		if (obstacleInFront()) {
+			detected = true;
+		}
+		return detected;
+	}
+
+	// TODO: Check if needed; Fix this function; Add description; add theta
 	public void moveToGoalNaive2(double x, double y) {
 		int dist;
 		int angle;
@@ -830,7 +866,7 @@ public class MainActivity extends Activity {
 			obstacleFound = false;
 
 			angle = getAngleToGoal(x, y);
-			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)); // TODO write function
 
 			writeLog("Moving to goal at angle " + angle + " in " + dist
 					+ "cm distance");
@@ -860,7 +896,7 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	// TODO: Check if needed; Fix this function; Add description
+	// TODO: Add description; add theta
 	public void moveToGoalNaive3(double x, double y) {
 		int dist;
 		int angle;
@@ -872,7 +908,7 @@ public class MainActivity extends Activity {
 			obstacleFound = false;
 
 			angle = getAngleToGoal(x, y);
-			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)); // TODO write function
 
 			writeLog("Moving to goal at angle " + angle + " in " + dist
 					+ "cm distance");
@@ -882,14 +918,6 @@ public class MainActivity extends Activity {
 				obstacleFound = true;
 				writeLog("Obstacle found at " + getMyPosition());
 			}
-			// while ((moved < dist) && !obstacleFound) {
-			// moved += stepLength;
-			// moveRobot(stepLength);
-			// if (obstacleInFront()) {
-			// writeLog("Obstacle found at " + getMyPosition());
-			// obstacleFound = true;
-			// }
-			// }
 
 			if (obstacleFound) {
 				turnRobotBalanced((int) Math.signum((Math.random() - 0.5))
@@ -902,7 +930,7 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	// TODO: choose better name; comment
+	// TODO: choose better name; comment; check if needed
 	public void rotateToWall() {
 		Map<String, Integer> measurement = getDistance();
 		double TOL = 10;
@@ -956,12 +984,12 @@ public class MainActivity extends Activity {
 
 		while (!startPositionReached) {
 			// Drive around obstacle and find closest position to goal
-			while (turnAndCheckObstacle()) {
+			while (turnAndCheckRightSide()) {
 				// If there is an obstacle in front, turn right and continue
 				// if (obstacleInFront()) {
 				// turnRobot(90, 'r');
 				// }
-				moveRobot(8);
+				driveToObstacle(3);
 				movedTotalDistance = movedTotalDistance + 5;
 				curGoalDist = (int) Math.sqrt(Math.pow(Xg - goalX, 2)
 						+ Math.pow(Yg - goalY, 2)); // distance form current
@@ -985,13 +1013,14 @@ public class MainActivity extends Activity {
 				}
 			}
 			if (!obstacleInFront()) {
-				moveRobot(DistToPassObstacleL);
+				driveToObstacle(DistToPassObstacleL);
 			}
 			turnRobot(90, 'l');
 		}
 
 		writeLog("Navigating to the closest point (" + closestPosition.x + ","
 				+ closestPosition.y + ")");
+		robotSetLeds(0, 127);
 		while (!closestPositionReached) {
 			// Drive around obstacle and find closest position to goal
 			while (obstacleLeft()) {
@@ -1043,7 +1072,8 @@ public class MainActivity extends Activity {
 	//
 	// moveToGoal(goalX, goalY);
 
-	// TODO: Update description; Delete and rename moveToGoal() to bug1?
+	
+	// TODO: Update description; Delete and rename moveToGoal() to bug1?; add theta
 	/**
 	 * Bug1 algorithm 1) head toward goal 2) if an obstacle is encountered
 	 * circumnavigate it and remember how close you get to the goal 3) return to
@@ -1053,6 +1083,10 @@ public class MainActivity extends Activity {
 		moveToGoal(x, y);
 	}
 
+	
+	// TODO: Add method for setMyPosition
+	
+	
 	// TODO: Update description
 	public Position getMyPosition() {
 		Position myPos = new Position(Xg, Yg, Tg);
