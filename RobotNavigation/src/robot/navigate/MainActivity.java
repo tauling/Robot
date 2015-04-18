@@ -135,7 +135,7 @@ public class MainActivity extends Activity {
 
 		com = new FTDriver((UsbManager) getSystemService(USB_SERVICE));
 		connect();
-		
+
 		robotSetBar(120);
 	}
 
@@ -337,7 +337,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				turnAndCheckRightSide();
+				moveToGoalNaive3(300,200);
 			};
 		};
 
@@ -346,7 +346,16 @@ public class MainActivity extends Activity {
 
 	// TODO: Delete once not needed anymore.
 	public void buttonTest2_onClick(View v) {
-		moveToGoal(100, 100);
+
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				moveToGoalNaive2(300,200);
+			};
+		};
+
+		t.start();
 	}
 
 	
@@ -374,7 +383,8 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				turnRobot(360, 'r');
+				turnRobot(180, 'r');
+				turnRobot(180, 'r');
 			};
 		};
 
