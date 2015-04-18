@@ -19,7 +19,6 @@
             android:layout_height="wrap_content"
             android:gravity="start"
             android:scrollbars="vertical" />
-
     </ScrollView>
 
     <ScrollView
@@ -133,25 +132,20 @@
                     android:layout_row="2"
                     android:onClick="buttonBug2_onClick"
                     android:text="Bug2" />
-
-                <Button
-                    android:id="@+id/button3"
-                    android:layout_gravity="left"
-                    android:layout_weight="0.38"
-                    android:onClick="buttonrotateToWall_onClick"
-                    android:text="rotateToWall" />
-
             </GridLayout>
 
             <GridLayout
                 android:layout_width="match_parent"
-                android:layout_weight="0.04"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.04"
                 android:columnCount="2" >
 
                 <TextView
                     android:id="@+id/textView2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="top|center_horizontal"
+                    android:layout_weight="0.38"
                     android:text="Kalibrierung"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -197,6 +191,32 @@
 
             </GridLayout>
 
+            <GridLayout
+                android:id="@+id/Test"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.38" >
+
+                <TextView
+                    android:id="@+id/TextView01"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_weight="0.38"
+                    android:text="Development"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                <Button
+                    android:id="@+id/button3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_column="0"
+                    android:layout_gravity="left|top"
+                    android:layout_row="1"
+                    android:onClick="buttonrotateToWall_onClick"
+                    android:text="rotateToWall" />
+            </GridLayout>
         </LinearLayout>
     </ScrollView>
+
 </LinearLayout>
