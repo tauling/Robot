@@ -1030,7 +1030,7 @@ public class MainActivity extends Activity {
 		Position closestPosition = startPosition;
 		boolean startPositionReached = false;
 		boolean closestPositionReached = false;
-		final double TOL = 3.0; // Tolerated distance for comparison of current
+		final double TOL = 4.0; // Tolerated distance for comparison of current
 								// and start position
 		int movedTotalDistance = 0; // minimum distance needs to exceed a
 									// certain value before current and start
