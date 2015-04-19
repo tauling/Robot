@@ -120,8 +120,24 @@
                 <Button
                     android:id="@+id/button10"
                     android:layout_gravity="left"
-                    android:onClick="buttonEight_onClick"
-                    android:text="8" />
+                    android:onClick="buttonEightZero_onClick"
+                    android:text="8_0" />
+
+                <Button
+                    android:id="@+id/button11"
+                    android:layout_column="1"
+                    android:layout_gravity="center"
+                    android:layout_row="1"
+                    android:onClick="buttonEightOne_onClick"
+                    android:text="8_1" />
+
+                <Button
+                    android:id="@+id/button12"
+                    android:layout_column="1"
+                    android:layout_gravity="right|center_vertical"
+                    android:layout_row="1"
+                    android:onClick="buttonEightTwo_onClick"
+                    android:text="8_2" />
 
             </GridLayout>
 

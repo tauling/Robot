@@ -326,10 +326,22 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	public void buttonEight_onClick(View v) {
+	public void buttonEightZero_onClick(View v) {
 		moveSquare(50, 'r', 0);
 		turnRobot(90, 'l');
 		moveSquare(50, 'l', 0);
+	}
+
+	public void buttonEightOne_onClick(View v) {
+		moveSquare(50, 'r', 1);
+		turnRobot(90, 'l');
+		moveSquare(50, 'l', 1);
+	}
+
+	public void buttonEightTwo_onClick(View v) {
+		moveSquare(50, 'r', 2);
+		turnRobot(90, 'l');
+		moveSquare(50, 'l', 2);
 	}
 
 	public void buttonDriveAndRead_onClick(View v) {
@@ -390,7 +402,7 @@ public class MainActivity extends Activity {
 			public void run() {
 				moveToGoalNaive3(200, 200, 45);
 			};
-		};	
+		};
 
 		t.start();
 	}
@@ -529,8 +541,10 @@ public class MainActivity extends Activity {
 
 	/**
 	 * update the robots own position information (only angle)
+	 * 
 	 * @param angle
-	 * @param turn direction
+	 * @param turn
+	 *            direction
 	 */
 	public void updateRotation(int angle, char dir) {
 		switch (dir) {
@@ -550,6 +564,7 @@ public class MainActivity extends Activity {
 
 	/**
 	 * move robot specific distance
+	 * 
 	 * @param dist
 	 */
 	public void moveRobot(int dist) {
@@ -916,8 +931,10 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * robot drives to goal, if obstacle occurs he turn randomly between 90 and 45 degrees
-	 * now he drives 50cm away from the obstacle and rotates and drives again in the direction of the goal
+	 * robot drives to goal, if obstacle occurs he turn randomly between 90 and
+	 * 45 degrees now he drives 50cm away from the obstacle and rotates and
+	 * drives again in the direction of the goal
+	 * 
 	 * @param x
 	 * @param y
 	 */
@@ -1112,7 +1129,8 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * robot tries to rotate parallel to any wall or obstacle, from every angle he drives to it
+	 * robot tries to rotate parallel to any wall or obstacle, from every angle
+	 * he drives to it
 	 */
 	public void rotateToWall() {
 		Map<String, Integer> measurement = getDistance();
@@ -1147,9 +1165,10 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * robot drives completely around obstacle and measures distance to goal after each step
-	 * after he made his round, he drives back to nearest position to goal (on his way around the obstacle) 
-	 * and heads to it
+	 * robot drives completely around obstacle and measures distance to goal
+	 * after each step after he made his round, he drives back to nearest
+	 * position to goal (on his way around the obstacle) and heads to it
+	 * 
 	 * @param goalX
 	 * @param goalY
 	 */
@@ -1258,10 +1277,10 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * bug 2 algorithm
-	 * 1) head toward goal on the m-line
-	 * 2) if an obstacle is in the way, follow it until you encounter the m-line again closer to the goal.
-	 * 3) Leave the obstacle and continue toward the goal
+	 * bug 2 algorithm 1) head toward goal on the m-line 2) if an obstacle is in
+	 * the way, follow it until you encounter the m-line again closer to the
+	 * goal. 3) Leave the obstacle and continue toward the goal
+	 * 
 	 * @param x
 	 * @param y
 	 */
