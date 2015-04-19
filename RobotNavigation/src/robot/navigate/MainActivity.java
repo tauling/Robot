@@ -19,6 +19,33 @@ public class MainActivity extends Activity {
 
 	// TODO: Add button to stop all threads
 
+	// TODO: Fix functions which are listed under "on Development" (see GUI)
+
+	// TODO: Allow the user to enter values in the app.
+
+	// TODO: Add a function that allows to drive curves (and updates odometry)
+
+	// TODO: Add a function that allows to drive an eight using curves.
+
+	// TODO: Add a button, that demonstrates that the robot stops when there is
+	// an obstacle on
+	// the way while performing the eight test
+
+	// TODO: Add a button, that demonstrates that the robot is performing the
+	// eight test including
+	// obstacle avoidance.
+
+	// TODO: Detect green and red blobs
+
+	// TODO: Detect a ball and calculate it's lowest position (where it touches
+	// the surface)
+
+	// TODO: Move to the ball and use the robot's cage to catch it.
+
+	// TODO: Detect multiple balls at the same time
+
+	// TODO: Also detect blue, yellow, black and white blobs
+
 	private int balancedAngle = 0;
 	private int balancedDist = 0;
 
@@ -42,7 +69,6 @@ public class MainActivity extends Activity {
 
 					textLog.append(text);
 					svLog.fullScroll(ScrollView.FOCUS_DOWN);
-					// svLog.scrollTo(0, textLog.getHeight());
 				}
 			});
 		}
@@ -50,13 +76,13 @@ public class MainActivity extends Activity {
 	}
 
 	// -> Robot Calibration
-	private Integer ObsDetectBorderLR = 15; // Measurements in front of the
+	private Integer ObsDetectBorderLR = 20; // Measurements in front of the
 											// robot
 											// below this value are treated as
 											// obstacle (Working range of
 											// left/right
 											// sensor is 10 to 80cm)
-	private Integer ObsDetectBorderM = 15; // Measurements below this value are
+	private Integer ObsDetectBorderM = 20; // Measurements below this value are
 											// treated as obstacle (Working
 											// range of middle sensor is 20 to
 											// 80cm)
@@ -70,7 +96,8 @@ public class MainActivity extends Activity {
 	// below this value are treated as
 	// obstacle (Working range of right
 	// sensor is 10 to 80cm)
-	private double CorrFactMoveForwardByDist = 470.0 / 139.0; // Should be set,
+	private double CorrFactMoveForwardByDist = 5875.0 / 4309.0; // Should be
+																// set,
 																// such that
 	// MoveRobot(100) moves
 	// the
@@ -298,11 +325,11 @@ public class MainActivity extends Activity {
 			writeLog(entry.getKey() + entry.getValue());
 		}
 	}
-	
-	public void buttonEight_onClick(View v){
-		moveSquare(50, 'r');
+
+	public void buttonEight_onClick(View v) {
+		moveSquare(50, 'r', 0);
 		turnRobot(90, 'l');
-		moveSquare(50, 'l');
+		moveSquare(50, 'l', 0);
 	}
 
 	public void buttonDriveAndRead_onClick(View v) {
@@ -361,9 +388,9 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				moveToGoalNaive3(200, 200);
+				moveToGoalNaive3(200, 200, 45);
 			};
-		};
+		};	
 
 		t.start();
 	}
@@ -404,7 +431,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				driveByVelocity(100, false);
+				moveByVelocity(100, false);
 			};
 		};
 
@@ -445,7 +472,7 @@ public class MainActivity extends Activity {
 	 *            when true, stop before hitting obstacle
 	 * @return true when there is no obstacle in front, false otherwise
 	 */
-	public Boolean driveByVelocity(double dist, boolean stopOnObstacle) {
+	public Boolean moveByVelocity(double dist, boolean stopOnObstacle) {
 		double start = System.currentTimeMillis(); // [ms]
 		double curTime = start;
 		int velocity = 15;
@@ -534,10 +561,12 @@ public class MainActivity extends Activity {
 			writeLog(comReadWrite(
 					new byte[] { 'k',
 							(byte) ((int) (Math.signum(corrDist)) * 127), '\r',
-							'\n' }, 127 * waitTimeFact));
+							'\n' }, (int) (127 / CorrFactMoveForwardByDist)
+							* waitTimeFact));
 		}
 		writeLog(comReadWrite(new byte[] { 'k', (byte) corrDist, '\r', '\n' },
-				Math.abs(dist) * waitTimeFact));
+				(int) Math.abs(corrDist / CorrFactMoveForwardByDist)
+						* waitTimeFact));
 		updatePosition(dist);
 	}
 
@@ -566,7 +595,7 @@ public class MainActivity extends Activity {
 
 		Boolean[] ret = new Boolean[2];
 
-		ret[1] = driveByVelocity(dist, true);
+		ret[1] = moveByVelocity(dist, true);
 
 		if (ret[1] && (dist < max_dist)) {
 			ret[0] = true;
@@ -577,6 +606,7 @@ public class MainActivity extends Activity {
 		return ret;
 	}
 
+	// TODO: Add Buttons to demonstrate
 	/**
 	 * tells the robot to move along a square
 	 * 
@@ -584,11 +614,44 @@ public class MainActivity extends Activity {
 	 *            ("l" = left; "r" = right)
 	 * @param dist
 	 *            in cm
+	 * @param obstacleTreatment
+	 *            0 = ignore obstacle; 1 = stop before obstacle; 2 = navigate
+	 *            around obstacle
 	 */
-	public void moveSquare(int dist, char dir) {
-		for (int i = 0; i < 4; i++) {
-			turnRobot(90, dir);
-			moveRobot(dist);
+	public void moveSquare(int dist, char dir, int obstacleTreatment) {
+		switch (obstacleTreatment) {
+		case 0:
+
+			for (int i = 0; i < 4; i++) {
+				turnRobotBalanced(90, dir);
+				moveByVelocity(dist, false);
+			}
+			moveToGoalNaive3(0, 0, 0);
+			break;
+		case 1:
+			turnRobotBalanced(90, dir);
+			for (int i = 0; i < 4; i++) {
+				if (moveByVelocity(dist, true)) {
+					turnRobotBalanced(90, dir);
+				}
+			}
+			moveToGoalNaive3(0, 0, 0);
+			break;
+		case 2:
+			switch (dir) {
+			case 'r':
+				moveToGoalNaive3(dist, 0, 90);
+				moveToGoalNaive3(dist, dist, 0);
+				moveToGoalNaive3(0, dist, 270);
+				moveToGoalNaive(0, 180);
+				break;
+			case 'l':
+				moveToGoalNaive3(-dist, 0, 270);
+				moveToGoalNaive3(-dist, -dist, 180);
+				moveToGoalNaive3(0, -dist, 90);
+				moveToGoalNaive3(0, 0, 0);
+				break;
+			}
 		}
 	}
 
@@ -841,10 +904,10 @@ public class MainActivity extends Activity {
 
 		while (moved < dist) {
 			moved++;
-			driveByVelocity(2, false);
+			moveByVelocity(2, false);
 			if (obstacleInFront()) {
 				writeLog("Obstacle found at " + getMyPosition());
-				driveByVelocity(15, false);
+				moveByVelocity(15, false);
 				roundObstacle(x, y);
 				break;
 			}
@@ -947,17 +1010,17 @@ public class MainActivity extends Activity {
 		writeLog("difference start and current measurment(Left): " + diffL);
 		writeLog("difference start and current measurment(Right): " + diffR);
 		int TOL = 0;
-		int turnAngle = deg+15;
-		if (Math.abs(diffL) > TOL && diffL < 0) { 
-			writeLog("turn "+ turnAngle +"°");
+		int turnAngle = deg + 15;
+		if (Math.abs(diffL) > TOL && diffL < 0) {
+			writeLog("turn " + turnAngle + "°");
 			turnRobot(turnAngle, 'r');
 		} else if (Math.abs(diffR) > TOL && diffR > 0 && currDistRight < 80) {
-			writeLog("turn " +90+ "°");
+			writeLog("turn " + 90 + "°");
 			turnRobot(90, 'r');
-		} else if(Math.abs(diffR) > TOL && diffR < 0 && currDistLeft > 100){
-			writeLog("turn "+ turnAngle +"°");
+		} else if (Math.abs(diffR) > TOL && diffR < 0 && currDistLeft > 100) {
+			writeLog("turn " + turnAngle + "°");
 			turnRobot(turnAngle, 'r');
-		} else if(Math.abs(diffR) - Math.abs(diffL) < TOL){
+		} else if (Math.abs(diffR) - Math.abs(diffL) < TOL) {
 			turnRobot(45, 'r');
 		}
 		if (obstacleInFront()) {
@@ -1011,9 +1074,9 @@ public class MainActivity extends Activity {
 	}
 
 	// TODO: Add description; add theta
-	public void moveToGoalNaive3(double x, double y) {
+	public void moveToGoalNaive3(double x, double y, int theta) {
 		int dist;
-		int angle;
+		int angle = 0;
 		int TOL = 8;
 		boolean obstacleFound;
 		boolean goalReached = false;
@@ -1030,7 +1093,7 @@ public class MainActivity extends Activity {
 					+ "cm distance");
 
 			turnRobotBalanced(angle, 'r');
-			if (!driveByVelocity(dist, true)) {
+			if (!moveByVelocity(dist, true)) {
 				obstacleFound = true;
 				writeLog("Obstacle found at " + getMyPosition());
 			}
@@ -1038,12 +1101,14 @@ public class MainActivity extends Activity {
 			if (obstacleFound) {
 				turnRobotBalanced((int) Math.signum((Math.random() - 0.5))
 						* (90 + (int) (Math.random() * 20)), 'r');
-				driveByVelocity(50, true);
+				moveByVelocity(50, true);
 			}
 			if (Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)) < TOL) {
 				goalReached = true;
 			}
 		}
+
+		turnRobotBalanced(theta - angle, 'r');
 	}
 
 	/**
@@ -1113,7 +1178,7 @@ public class MainActivity extends Activity {
 				// if (obstacleInFront()) {
 				// turnRobot(90, 'r');
 				// }
-				driveByVelocity(3, false);
+				moveByVelocity(3, false);
 
 				// boolean breakCond = driveToIntersectionMLine(3, goalX,
 				// goalY);
@@ -1147,7 +1212,7 @@ public class MainActivity extends Activity {
 				// driveByVelocity(DistToPassObstacleL);
 				turnRobot(10, 'r'); // make sure robot cannot hit obstacle with
 									// bar
-				driveByVelocity(RobotLength + RobotLength / 2, false);
+				moveByVelocity(RobotLength + RobotLength / 2, false);
 			}
 			turnRobot(90, 'l');
 		}
@@ -1166,24 +1231,24 @@ public class MainActivity extends Activity {
 				e.printStackTrace();
 			}
 			robotSetLeds(0, 127);
-//			while (obstacleLeft()) {
-//				// If there is an obstacle in front turn right and continue
-//				if (obstacleInFront()) {
-//					turnRobot(90, 'r');
-//				}
-//				moveRobot(5);
-//				if (closestPosition.minus(getMyPosition()) < TOL) {
-//					closestPositionReached = true;
-//					writeLog("Closest Point reached");
-//				}
-//			}
-//			// if (!obstacleInFront()) {
-//			// moveRobot(DistToPassObstacleL);
-//			// }
-//			moveRobot(8);
-//			turnRobot(90, 'l');
-//			moveRobot(8);
-//			moveRobot(2);
+			// while (obstacleLeft()) {
+			// // If there is an obstacle in front turn right and continue
+			// if (obstacleInFront()) {
+			// turnRobot(90, 'r');
+			// }
+			// moveRobot(5);
+			// if (closestPosition.minus(getMyPosition()) < TOL) {
+			// closestPositionReached = true;
+			// writeLog("Closest Point reached");
+			// }
+			// }
+			// // if (!obstacleInFront()) {
+			// // moveRobot(DistToPassObstacleL);
+			// // }
+			// moveRobot(8);
+			// turnRobot(90, 'l');
+			// moveRobot(8);
+			// moveRobot(2);
 		}
 		// if (!obstacleInFront()) {
 		// moveRobot(DistToPassObstacleL);
@@ -1212,7 +1277,7 @@ public class MainActivity extends Activity {
 
 		turnRobotBalanced(angle, 'r');
 
-		if (!driveByVelocity(dist, true)) {
+		if (!moveByVelocity(dist, true)) {
 			writeLog("Going around obstacle");
 			turnRobotBalanced(90, 'r');
 
