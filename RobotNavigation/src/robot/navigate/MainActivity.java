@@ -390,7 +390,7 @@ public class MainActivity extends Activity {
 			public void run() {
 				moveToGoalNaive3(200, 200, 45);
 			};
-		};	
+		};
 
 		t.start();
 	}
@@ -515,6 +515,10 @@ public class MainActivity extends Activity {
 
 		return reduceAngle(angle - Tg);
 	}
+	
+	public int getDistanceToGoal(double x, double y) {
+		return (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+	}
 
 	public int reduceAngle(int angle) {
 		if (angle < 0) {
@@ -529,8 +533,10 @@ public class MainActivity extends Activity {
 
 	/**
 	 * update the robots own position information (only angle)
+	 * 
 	 * @param angle
-	 * @param turn direction
+	 * @param turn
+	 *            direction
 	 */
 	public void updateRotation(int angle, char dir) {
 		switch (dir) {
@@ -550,6 +556,7 @@ public class MainActivity extends Activity {
 
 	/**
 	 * move robot specific distance
+	 * 
 	 * @param dist
 	 */
 	public void moveRobot(int dist) {
@@ -570,28 +577,26 @@ public class MainActivity extends Activity {
 		updatePosition(dist);
 	}
 
-	// TODO add description; check if needed
-	public void moveRobotBalanced(int dist) {
-		if (Math.abs(balancedDist - dist) < Math.abs(balancedDist + dist)) {
-			balancedDist = balancedDist - dist;
-			turnRobotBalanced(180, 'r');
-			moveRobot(-dist);
-			turnRobotBalanced(180, 'r');
-		} else {
-			balancedDist = balancedDist + dist;
-			moveRobot(dist);
-		}
-	}
-
-	// TODO Write description
+	/**
+	 * Moves forward until a) max_dist is reached; b) an obstacle is found; c)
+	 * robot is on m-line again
+	 * 
+	 * @param max_dist
+	 *            maximum distance [cm] to drive
+	 * @param goal_x
+	 *            final goal (x-coordinate) of the robot
+	 * @param goal_y
+	 *            final goal (y-coordinate) of the robot
+	 * @return two booleans; the first is true when the robot is placed on the
+	 *         m-line, the second one is true, when there was an obstacle on the
+	 *         way
+	 */
 	public Boolean[] driveToIntersectionMLine(int max_dist, int goal_x,
 			int goal_y) {
 		double x_ofIntersection = (Yg - (Xg * Math.tan(Math.toRadians(Tg))))
 				/ ((((double) goal_y) / goal_x) - (Math.tan(Math.toRadians(Tg))));
 		double y_ofIntersection = x_ofIntersection * ((double) goal_y) / goal_x;
-		double dist = Math.min(
-				Math.sqrt(Math.pow(x_ofIntersection - Xg, 2)
-						+ Math.pow(y_ofIntersection - Yg, 2)), max_dist);
+		double dist = Math.min(getDistanceToGoal(x_ofIntersection,y_ofIntersection), max_dist);
 
 		Boolean[] ret = new Boolean[2];
 
@@ -643,7 +648,7 @@ public class MainActivity extends Activity {
 				moveToGoalNaive3(dist, 0, 90);
 				moveToGoalNaive3(dist, dist, 0);
 				moveToGoalNaive3(0, dist, 270);
-				moveToGoalNaive(0, 180);
+				moveToGoalNaive3(0, 180, 0);
 				break;
 			case 'l':
 				moveToGoalNaive3(-dist, 0, 270);
@@ -893,8 +898,8 @@ public class MainActivity extends Activity {
 		int angle;
 		int moved = 0;
 
-		angle = (int) (360 * Math.atan(((double) (x - Xg)) / (y - Yg)) / (2 * Math.PI));
-		dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+		angle = getAngleToGoal(x,y);
+		dist = getDistanceToGoal(x,y);
 
 		writeLog("Moving to goal at angle " + angle + " in " + dist
 				+ "cm distance");
@@ -912,47 +917,6 @@ public class MainActivity extends Activity {
 				break;
 			}
 
-		}
-	}
-
-	/**
-	 * robot drives to goal, if obstacle occurs he turn randomly between 90 and 45 degrees
-	 * now he drives 50cm away from the obstacle and rotates and drives again in the direction of the goal
-	 * @param x
-	 * @param y
-	 */
-	public void moveToGoalNaive(double x, double y) {
-		int dist;
-		int angle;
-		int moved = 0;
-		boolean obstacleFound = false;
-
-		angle = (int) (360 * Math.atan(((double) (x - Xg)) / (y - Yg)) / (2 * Math.PI));
-		dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
-
-		writeLog("Moving to goal at angle " + angle + " in " + dist
-				+ "cm distance");
-
-		// we need to update the robots own position information
-		turnRobot(angle, 'r');
-
-		Map<String, Integer> measurement = new HashMap<String, Integer>();
-		while ((moved < dist) && !obstacleFound) {
-			moved++;
-			int stepLength = 2;
-			moveRobot(stepLength);
-			measurement = getDistance();
-			if (obstacleInFront()) {
-				writeLog("Obstacle found at " + getMyPosition());
-				obstacleFound = true;
-			}
-		}
-
-		if (obstacleFound) {
-			turnRobot((int) Math.signum((Math.random() - 0.5))
-					* (90 + (int) (Math.random() * 45)), 'r');
-			moveRobot(Math.min(measurement.get("frontMiddle") - 10, 50));
-			moveToGoalNaive(x, y);
 		}
 	}
 
@@ -1029,10 +993,16 @@ public class MainActivity extends Activity {
 		return detected;
 	}
 
-	// TODO: Check if needed; Fix this function; Add description; add theta
-	public void moveToGoalNaive2(double x, double y) {
+	/**
+	 * Uses move robot by distance to drive to a given goal destination while circumventing obstacles
+	 * by rotating by a random angle and moving a couple of centimeters everytime an obstacle is found
+	 * @param x the goal's x-coordinate
+	 * @param y the goal's y-coordinate
+	 * @param theta once the robot reaches the goal destination it should rotate to be in this angle
+	 */
+	public void moveToGoalNaive2(double x, double y, int theta) {
 		int dist;
-		int angle;
+		int angle = 0;
 		int moved;
 		int stepLength = 5;
 		boolean obstacleFound;
@@ -1048,7 +1018,7 @@ public class MainActivity extends Activity {
 			writeLog("Moving to goal at angle " + angle + " in " + dist
 					+ "cm distance");
 
-			turnRobot(angle, 'r');
+			turnRobotBalanced(angle, 'r');
 			moved = 0;
 			while ((moved < dist) && !obstacleFound) {
 				moved += stepLength;
@@ -1060,7 +1030,7 @@ public class MainActivity extends Activity {
 			}
 
 			if (obstacleFound) {
-				turnRobot((int) Math.signum((Math.random() - 0.5))
+				turnRobotBalanced((int) Math.signum((Math.random() - 0.5))
 						* (90 + (int) (Math.random() * 45)), 'r');
 				measurement = getDistance();
 				moveRobot(Math.min(measurement.get("frontRight") - 5, Math.min(
@@ -1071,9 +1041,17 @@ public class MainActivity extends Activity {
 				goalReached = true;
 			}
 		}
+		
+		turnRobotBalanced(theta - angle,'r');
 	}
 
-	// TODO: Add description; add theta
+	/**
+	 * Uses move robot by velocity to drive to a given goal destination while circumventing obstacles
+	 * by rotating by a random angle and moving a couple of centimeters everytime an obstacle is found
+	 * @param x the goal's x-coordinate
+	 * @param y the goal's y-coordinate
+	 * @param theta once the robot reaches the goal destination it should rotate to be in this angle
+	 */
 	public void moveToGoalNaive3(double x, double y, int theta) {
 		int dist;
 		int angle = 0;
@@ -1085,9 +1063,7 @@ public class MainActivity extends Activity {
 			obstacleFound = false;
 
 			angle = getAngleToGoal(x, y);
-			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)); // TODO
-																				// write
-																				// function
+			dist = getDistanceToGoal(x,y);
 
 			writeLog("Moving to goal at angle " + angle + " in " + dist
 					+ "cm distance");
@@ -1112,7 +1088,8 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * robot tries to rotate parallel to any wall or obstacle, from every angle he drives to it
+	 * robot tries to rotate parallel to any wall or obstacle, from every angle
+	 * he drives to it
 	 */
 	public void rotateToWall() {
 		Map<String, Integer> measurement = getDistance();
@@ -1147,9 +1124,10 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * robot drives completely around obstacle and measures distance to goal after each step
-	 * after he made his round, he drives back to nearest position to goal (on his way around the obstacle) 
-	 * and heads to it
+	 * robot drives completely around obstacle and measures distance to goal
+	 * after each step after he made his round, he drives back to nearest
+	 * position to goal (on his way around the obstacle) and heads to it
+	 * 
 	 * @param goalX
 	 * @param goalY
 	 */
@@ -1164,8 +1142,7 @@ public class MainActivity extends Activity {
 									// certain value before current and start
 									// position get compared
 
-		int curGoalDist = (int) Math.sqrt(Math.pow(Xg - goalX, 2)
-				+ Math.pow(Yg - goalY, 2)); // distance form current position to
+		int curGoalDist = getDistanceToGoal(goalX,goalY); // distance form current position to
 											// goal
 		int closestDistance = curGoalDist;
 
@@ -1186,10 +1163,7 @@ public class MainActivity extends Activity {
 				// moveToGoal(goalX, goalY);
 
 				movedTotalDistance = movedTotalDistance + 3;
-				curGoalDist = (int) Math.sqrt(Math.pow(Xg - goalX, 2)
-						+ Math.pow(Yg - goalY, 2)); // distance form current
-													// position to goal // TODO:
-													// Implement function
+				curGoalDist = getDistanceToGoal(goalX,goalY);
 				if (curGoalDist < closestDistance) { // Check whether current
 														// point is closer to
 														// goal or not
@@ -1258,10 +1232,10 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * bug 2 algorithm
-	 * 1) head toward goal on the m-line
-	 * 2) if an obstacle is in the way, follow it until you encounter the m-line again closer to the goal.
-	 * 3) Leave the obstacle and continue toward the goal
+	 * bug 2 algorithm 1) head toward goal on the m-line 2) if an obstacle is in
+	 * the way, follow it until you encounter the m-line again closer to the
+	 * goal. 3) Leave the obstacle and continue toward the goal
+	 * 
 	 * @param x
 	 * @param y
 	 */
@@ -1302,7 +1276,6 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	// TODO: Add method for setMyPosition
 
 	/**
 	 * 
