@@ -70,7 +70,7 @@ public class MainActivity extends Activity {
 	// below this value are treated as
 	// obstacle (Working range of right
 	// sensor is 10 to 80cm)
-	private double CorrFactMoveForwardByDist = 470.0 / 139.0; // Should be set,
+	private double CorrFactMoveForwardByDist = 5875.0 / 4309.0; // Should be set,
 																// such that
 	// MoveRobot(100) moves
 	// the
