@@ -345,9 +345,15 @@ public class MainActivity extends Activity {
 	}
 	
 	public void buttonMLineDemo_onClick(View v){
-		
+		turnRobot(45, 'r');
+		moveByVelocity(100, true);
+		turnRobot(135, 'l');
+		driveToIntersectionMLine(150, 200, 200);
 	}
 
+	public void buttonmoveToGoalN2_onClick(View v){
+		moveToGoalNaive2(200, 200);
+	}
 	public void buttonDriveAndRead_onClick(View v) {
 		Thread t = new Thread() {
 
