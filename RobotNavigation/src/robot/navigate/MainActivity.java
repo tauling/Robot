@@ -349,7 +349,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				moveToGoal(100, 100);
+				bug1(100, 100);
 			};
 		};
 
@@ -500,7 +500,11 @@ public class MainActivity extends Activity {
 		return angle;
 	}
 
-	// TODO: Write description
+	/**
+	 * update the robots own position information (only angle)
+	 * @param angle
+	 * @param turn direction
+	 */
 	public void updateRotation(int angle, char dir) {
 		switch (dir) {
 		case 'l':
@@ -517,7 +521,10 @@ public class MainActivity extends Activity {
 		writeLog("my Position: (" + Xg + "," + Yg + "," + Tg + ")");
 	}
 
-	// TODO: Write description
+	/**
+	 * move robot specific distance
+	 * @param dist
+	 */
 	public void moveRobot(int dist) {
 		int corrDist = (int) (dist * CorrFactMoveForwardByDist);
 		int waitTimeFact = 100;
@@ -570,7 +577,6 @@ public class MainActivity extends Activity {
 		return ret;
 	}
 
-	// TODO: Add Button to demonstrate
 	/**
 	 * tells the robot to move along a square
 	 * 
@@ -714,7 +720,6 @@ public class MainActivity extends Activity {
 		return readSensor;
 	}
 
-	// TODO: UpdateDescription; Choose better function name
 	/**
 	 * Obstacle avoidance
 	 * 
@@ -815,8 +820,12 @@ public class MainActivity extends Activity {
 		return detected;
 	}
 
-	// TODO: Fix this method; Add description. add theta
-	public void moveToGoal(int x, int y) {
+	/**
+	 * Bug1 algorithm 1) head toward goal 2) if an obstacle is encountered
+	 * circumnavigate it and remember how close you get to the goal 3) return to
+	 * that closest point(by wall-following) and continue
+	 */
+	public void bug1(int x, int y) {
 		int dist;
 		int angle;
 		int moved = 0;
@@ -843,7 +852,12 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	// TODO: Check if needed; Fix this function; Add description
+	/**
+	 * robot drives to goal, if obstacle occurs he turn randomly between 90 and 45 degrees
+	 * now he drives 50cm away from the obstacle and rotates and drives again in the direction of the goal
+	 * @param x
+	 * @param y
+	 */
 	public void moveToGoalNaive(double x, double y) {
 		int dist;
 		int angle;
@@ -879,7 +893,6 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	// TODO: Check if needed
 	/**
 	 * turn 90 deg left check for obstacle turn 90 deg right
 	 * 
@@ -967,9 +980,7 @@ public class MainActivity extends Activity {
 			obstacleFound = false;
 
 			angle = getAngleToGoal(x, y);
-			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)); // TODO
-																				// write
-																				// function
+			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
 
 			writeLog("Moving to goal at angle " + angle + " in " + dist
 					+ "cm distance");
@@ -1035,7 +1046,9 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	// TODO: choose better name; comment; check if needed
+	/**
+	 * robot tries to rotate parallel to any wall or obstacle, from every angle he drives to it
+	 */
 	public void rotateToWall() {
 		Map<String, Integer> measurement = getDistance();
 		double TOL = 10;
@@ -1068,7 +1081,13 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	// TODO: add comment; choose better name
+	/**
+	 * robot drives completely around obstacle and measures distance to goal after each step
+	 * after he made his round, he drives back to nearest position to goal (on his way around the obstacle) 
+	 * and heads to it
+	 * @param goalX
+	 * @param goalY
+	 */
 	public void roundObstacle(int goalX, int goalY) {
 		Position startPosition = getMyPosition();
 		Position closestPosition = startPosition;
@@ -1144,7 +1163,6 @@ public class MainActivity extends Activity {
 			try {
 				Thread.sleep(30);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			robotSetLeds(0, 127);
@@ -1174,18 +1192,14 @@ public class MainActivity extends Activity {
 		turnRobot(90, 'l');
 	}
 
-	// TODO: Update description; Delete and rename moveToGoal() to bug1?; add
-	// theta
 	/**
-	 * Bug1 algorithm 1) head toward goal 2) if an obstacle is encountered
-	 * circumnavigate it and remember how close you get to the goal 3) return to
-	 * that closest point(by wall-following) and continue
+	 * bug 2 algorithm
+	 * 1) head toward goal on the m-line
+	 * 2) if an obstacle is in the way, follow it until you encounter the m-line again closer to the goal.
+	 * 3) Leave the obstacle and continue toward the goal
+	 * @param x
+	 * @param y
 	 */
-	public void bug1(int x, int y) {
-		moveToGoal(x, y);
-	}
-
-	// TODO: add comment
 	public void bug2(int x, int y) {
 		double dist;
 		int angle;
@@ -1225,7 +1239,10 @@ public class MainActivity extends Activity {
 
 	// TODO: Add method for setMyPosition
 
-	// TODO: Update description
+	/**
+	 * 
+	 * @return Position object based on current position
+	 */
 	public Position getMyPosition() {
 		Position myPos = new Position(Xg, Yg, Tg);
 		return myPos;
