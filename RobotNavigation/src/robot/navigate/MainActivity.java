@@ -17,23 +17,16 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
-	// TODO: Add button to stop all threads
-
 	// TODO: Fix functions which are listed under "on Development" (see GUI)
 
 	// TODO: Allow the user to enter values in the app.
+	
+	
+	// TODO: Add button to stop all threads
 
 	// TODO: Add a function that allows to drive curves (and updates odometry)
 
 	// TODO: Add a function that allows to drive an eight using curves.
-
-	// TODO: Add a button, that demonstrates that the robot stops when there is
-	// an obstacle on
-	// the way while performing the eight test
-
-	// TODO: Add a button, that demonstrates that the robot is performing the
-	// eight test including
-	// obstacle avoidance.
 
 	// TODO: Detect green and red blobs
 
@@ -46,6 +39,7 @@ public class MainActivity extends Activity {
 
 	// TODO: Also detect blue, yellow, black and white blobs
 
+	
 	private int balancedAngle = 0;
 	private int balancedDist = 0;
 
@@ -634,7 +628,7 @@ public class MainActivity extends Activity {
 		return ret;
 	}
 
-	// TODO: Add Buttons to demonstrate
+	
 	/**
 	 * tells the robot to move along a square
 	 * 
