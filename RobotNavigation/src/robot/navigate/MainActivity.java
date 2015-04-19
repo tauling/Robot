@@ -326,12 +326,35 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	public void buttonEight_onClick(View v) {
+	public void buttonEightZero_onClick(View v) {
 		moveSquare(50, 'r', 0);
 		turnRobot(90, 'l');
 		moveSquare(50, 'l', 0);
 	}
 
+	public void buttonEightOne_onClick(View v) {
+		moveSquare(50, 'r', 1);
+		turnRobot(90, 'l');
+		moveSquare(50, 'l', 1);
+	}
+
+	public void buttonEightTwo_onClick(View v) {
+		moveSquare(50, 'r', 2);
+		turnRobot(90, 'l');
+		moveSquare(50, 'l', 2);
+	}
+	
+	public void buttonMLineDemo_onClick(View v){
+		turnRobot(45, 'r');
+		moveByVelocity(100, true);
+		turnRobot(135, 'l');
+		driveToIntersectionMLine(150, 200, 200);
+	}
+
+	public void buttonmoveToGoalN2_onClick(View v){
+		moveToGoalNaive2(200, 200, 45);
+	}
+	
 	public void buttonDriveAndRead_onClick(View v) {
 		Thread t = new Thread() {
 
@@ -921,6 +944,52 @@ public class MainActivity extends Activity {
 	}
 
 	/**
+<<<<<<< HEAD
+=======
+	 * robot drives to goal, if obstacle occurs he turn randomly between 90 and
+	 * 45 degrees now he drives 50cm away from the obstacle and rotates and
+	 * drives again in the direction of the goal
+	 * 
+	 * @param x
+	 * @param y
+	 */
+	public void moveToGoalNaive(double x, double y) {
+		int dist;
+		int angle;
+		int moved = 0;
+		boolean obstacleFound = false;
+
+		angle = (int) (360 * Math.atan(((double) (x - Xg)) / (y - Yg)) / (2 * Math.PI));
+		dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+
+		writeLog("Moving to goal at angle " + angle + " in " + dist
+				+ "cm distance");
+
+		// we need to update the robots own position information
+		turnRobot(angle, 'r');
+
+		Map<String, Integer> measurement = new HashMap<String, Integer>();
+		while ((moved < dist) && !obstacleFound) {
+			moved++;
+			int stepLength = 2;
+			moveRobot(stepLength);
+			measurement = getDistance();
+			if (obstacleInFront()) {
+				writeLog("Obstacle found at " + getMyPosition());
+				obstacleFound = true;
+			}
+		}
+
+		if (obstacleFound) {
+			turnRobot((int) Math.signum((Math.random() - 0.5))
+					* (90 + (int) (Math.random() * 45)), 'r');
+			moveRobot(Math.min(measurement.get("frontMiddle") - 10, 50));
+			moveToGoalNaive(x, y);
+		}
+	}
+
+	/**
+>>>>>>> 3da3259e62773978da97ef47dec4d43c7382c1b4
 	 * turn 90 deg left check for obstacle turn 90 deg right
 	 * 
 	 * @return whether an obstacle is on the left side
