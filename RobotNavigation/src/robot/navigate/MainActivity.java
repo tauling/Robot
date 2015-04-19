@@ -41,7 +41,6 @@ public class MainActivity extends Activity {
 
 	
 	private int balancedAngle = 0;
-	private int balancedDist = 0;
 
 	private TextView textLog;
 	private ScrollView svLog;
