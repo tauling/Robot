@@ -343,6 +343,10 @@ public class MainActivity extends Activity {
 		turnRobot(90, 'l');
 		moveSquare(50, 'l', 2);
 	}
+	
+	public void buttonMLineDemo_onClick(View v){
+		
+	}
 
 	public void buttonDriveAndRead_onClick(View v) {
 		Thread t = new Thread() {
