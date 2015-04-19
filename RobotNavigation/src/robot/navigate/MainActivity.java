@@ -919,7 +919,7 @@ public class MainActivity extends Activity {
 		writeLog("distance left: " + startDistLeft+ "; right: " + startDistRight);
 		int deg = 20;
 		writeLog("turn robot 20° to obstacle");
-		turnRobot(deg, 'l');
+		turnRobotBalanced(deg, 'l');
 		measurement = getDistance();
 		int currDistLeft = measurement.get("frontLeft");
 		int currDistRight = measurement.get("frontRight");
@@ -943,13 +943,15 @@ public class MainActivity extends Activity {
 		int turnAngle = deg+15;
 		if (Math.abs(diffL) > TOL && diffL < 0) { 
 			writeLog("turn "+ turnAngle +"°");
-			turnRobot(turnAngle, 'r');
+			turnRobotBalanced(turnAngle, 'r');
 		} else if (Math.abs(diffR) > TOL && diffR > 0 && currDistRight < 80) {
 			writeLog("turn " +90+ "°");
-			turnRobot(90, 'r');
-		} else if(Math.abs(diffR) > TOL && diffR < 0){
+			turnRobotBalanced(90, 'r');
+		} else if(Math.abs(diffR) > TOL && diffR < 0 && currDistLeft > 100){
 			writeLog("turn "+ turnAngle +"°");
 			turnRobot(turnAngle, 'r');
+		} else if(Math.abs(diffR) - Math.abs(diffL) < TOL){
+			turnRobotBalanced(45, 'r');
 		}
 		if (obstacleInFront()) {
 			detected = true;
