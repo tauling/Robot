@@ -27,10 +27,12 @@ public class MainActivity extends Activity {
 
 	// TODO: Add a function that allows to drive an eight using curves.
 
-	// TODO: Add a button, that demonstrates that the robot stops when there is an obstacle on
+	// TODO: Add a button, that demonstrates that the robot stops when there is
+	// an obstacle on
 	// the way while performing the eight test
 
-	// TODO: Add a button, that demonstrates that the robot is performing the eight test including
+	// TODO: Add a button, that demonstrates that the robot is performing the
+	// eight test including
 	// obstacle avoidance.
 
 	// TODO: Detect green and red blobs
@@ -324,6 +326,12 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	public void buttonEight_onClick(View v) {
+		moveSquare(50, 'r', 0);
+		turnRobot(90, 'l');
+		moveSquare(50, 'l', 0);
+	}
+
 	public void buttonDriveAndRead_onClick(View v) {
 		Thread t = new Thread() {
 
@@ -382,7 +390,7 @@ public class MainActivity extends Activity {
 			public void run() {
 				moveToGoalNaive3(200, 200, 45);
 			};
-		};
+		};	
 
 		t.start();
 	}
@@ -995,9 +1003,11 @@ public class MainActivity extends Activity {
 		} else if (Math.abs(diffR) > TOL && diffR > 0 && currDistRight < 80) {
 			writeLog("turn " + 90 + "°");
 			turnRobot(90, 'r');
-		} else if (Math.abs(diffR) > TOL && diffR < 0) {
+		} else if (Math.abs(diffR) > TOL && diffR < 0 && currDistLeft > 100) {
 			writeLog("turn " + turnAngle + "°");
 			turnRobot(turnAngle, 'r');
+		} else if (Math.abs(diffR) - Math.abs(diffL) < TOL) {
+			turnRobot(45, 'r');
 		}
 		if (obstacleInFront()) {
 			detected = true;
@@ -1194,24 +1204,32 @@ public class MainActivity extends Activity {
 		// critical code
 		while (!closestPositionReached) {
 			// Drive around obstacle and find closest position to goal
-			while (obstacleLeft()) {
-				// If there is an obstacle in front turn right and continue
-				if (obstacleInFront()) {
-					turnRobot(90, 'r');
-				}
-				moveRobot(5);
-				if (closestPosition.minus(getMyPosition()) < TOL) {
-					closestPositionReached = true;
-					writeLog("Closest Point reached");
-				}
+			robotSetLeds(127, 0);
+			try {
+				Thread.sleep(30);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			// if (!obstacleInFront()) {
-			// moveRobot(DistToPassObstacleL);
+			robotSetLeds(0, 127);
+			// while (obstacleLeft()) {
+			// // If there is an obstacle in front turn right and continue
+			// if (obstacleInFront()) {
+			// turnRobot(90, 'r');
 			// }
-			moveRobot(8);
-			turnRobot(90, 'l');
-			moveRobot(8);
-			moveRobot(2);
+			// moveRobot(5);
+			// if (closestPosition.minus(getMyPosition()) < TOL) {
+			// closestPositionReached = true;
+			// writeLog("Closest Point reached");
+			// }
+			// }
+			// // if (!obstacleInFront()) {
+			// // moveRobot(DistToPassObstacleL);
+			// // }
+			// moveRobot(8);
+			// turnRobot(90, 'l');
+			// moveRobot(8);
+			// moveRobot(2);
 		}
 		// if (!obstacleInFront()) {
 		// moveRobot(DistToPassObstacleL);
