@@ -365,7 +365,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				bug1(100, 100);
+				bug2(100, 100);
 			};
 		};
 
@@ -931,6 +931,8 @@ public class MainActivity extends Activity {
 			moveRobot(-10);
 			writeLog("drive back + rotate 45° right");
 			turnRobot(45, 'r');
+			currDistLeft = measurement.get("frontLeft");
+			currDistRight = measurement.get("frontRight");
 		}
 		writeLog("distance left: " + currDistLeft + "; right: " + currDistRight);
 		int diffL = currDistLeft - startDistLeft;
@@ -938,13 +940,16 @@ public class MainActivity extends Activity {
 		writeLog("difference start and current measurment(Left): " + diffL);
 		writeLog("difference start and current measurment(Right): " + diffR);
 		int TOL = 0;
+		int turnAngle = deg+15;
 		if (Math.abs(diffL) > TOL && diffL < 0) { 
-			int turnAngle = deg+15;
 			writeLog("turn "+ turnAngle +"°");
 			turnRobot(turnAngle, 'r');
 		} else if (Math.abs(diffR) > TOL && diffR > 0 && currDistRight < 80) {
 			writeLog("turn " +90+ "°");
 			turnRobot(90, 'r');
+		} else if(Math.abs(diffR) > TOL && diffR < 0){
+			writeLog("turn "+ turnAngle +"°");
+			turnRobot(turnAngle, 'r');
 		}
 		if (obstacleInFront()) {
 			detected = true;
@@ -1093,7 +1098,12 @@ public class MainActivity extends Activity {
 				// if (obstacleInFront()) {
 				// turnRobot(90, 'r');
 				// }
-				driveByVelocity(3);
+				
+//				boolean breakCond = driveToIntersectionMLine(3, goalX, goalY);
+//				if(breakCond == true)
+//					moveToGoal(goalX, goalY);
+				
+				moveRobot(3);
 				movedTotalDistance = movedTotalDistance + 3;
 				curGoalDist = (int) Math.sqrt(Math.pow(Xg - goalX, 2)
 						+ Math.pow(Yg - goalY, 2)); // distance form current
@@ -1118,6 +1128,7 @@ public class MainActivity extends Activity {
 			}
 			if (!obstacleInFront()) {
 				//driveByVelocity(DistToPassObstacleL);
+				turnRobot(10, 'r'); //make sure robot cannot hit obstacle with bar
 				driveByVelocity(RobotLength+RobotLength/2);
 			}
 			turnRobot(90, 'l');
@@ -1126,6 +1137,8 @@ public class MainActivity extends Activity {
 		writeLog("Navigating to the closest point (" + closestPosition.x + ","
 				+ closestPosition.y + ")");
 		robotSetLeds(0, 127);
+		
+		//critical code
 		while (!closestPositionReached) {
 			// Drive around obstacle and find closest position to goal
 			while (obstacleLeft()) {
@@ -1161,7 +1174,12 @@ public class MainActivity extends Activity {
 	 * circumnavigate it and remember how close you get to the goal 3) return to
 	 * that closest point(by wall-following) and continue
 	 */
-	public void bug1(int x, int y) {
+	public void bug1(int x, int y){
+		moveToGoal(x, y);
+	}
+	
+	//TODO: add comment
+	public void bug2(int x, int y) {
 		double dist;
 		int angle;
 		int TOL = 8;
