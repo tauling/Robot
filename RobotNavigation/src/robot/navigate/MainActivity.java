@@ -17,15 +17,17 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
-	// TODO: Fix functions which are listed under "on Development" (see GUI)
+	// TODO: Working Demos -> rename to Examination Task 1
+	
+	// TODO: Fix: (x,y) are switched in move to goal methods
+	
+	// TODO: Change orientation; (0,0,0) means, that the robot is facing to the right
 
 	// TODO: Allow the user to enter values in the app.
 
 	// TODO: Add button to stop all threads
 
 	// TODO: Add a function that allows to drive curves (and updates odometry)
-
-	// TODO: Add a function that allows to drive an eight using curves.
 
 	// TODO: Detect green and red blobs
 
@@ -37,7 +39,13 @@ public class MainActivity extends Activity {
 	// TODO: Detect multiple balls at the same time
 
 	// TODO: Also detect blue, yellow, black and white blobs
+	
+	// TODO: implement MoveToTarget(x,y,theta) (ignoring obstacles)
 
+	// TODO: explore workspace 
+
+	// TODO: catch ball -> drive to target corner
+	
 	private int balancedAngle = 0;
 
 	private TextView textLog;
@@ -260,8 +268,6 @@ public class MainActivity extends Activity {
 		if (!(text == null) && text.length() > 0) {
 			new Thread(new WriteLogRunnable("[" + text.length() + "] " + text
 					+ "\n")).start();
-			// mhandler.post(new MyRunnable("[" + text.length() + "] " + text
-			// + "\n"));
 		}
 	}
 
@@ -271,7 +277,7 @@ public class MainActivity extends Activity {
 	 * @param value
 	 */
 	public void writeLog(int value) {
-		new Thread(new WriteLogRunnable(value + "\n")).start();
+		writeLog((long) value);
 	}
 
 	/**
@@ -405,6 +411,7 @@ public class MainActivity extends Activity {
 		t.start();
 	}
 
+	// TODO: Delete Button
 	public void buttonBug1_onClick(View v) {
 
 		Thread t = new Thread() {
@@ -466,6 +473,8 @@ public class MainActivity extends Activity {
 		t.start();
 	}
 
+
+	// TODO: Delete Button
 	public void buttonBug2_onClick(View v) {
 		Thread t = new Thread() {
 
@@ -522,6 +531,7 @@ public class MainActivity extends Activity {
 		t.start();
 	}
 
+	// TODO: Delete Button
 	public void buttonrotateToWall_onClick(View v) {
 		Thread t = new Thread() {
 
@@ -915,6 +925,7 @@ public class MainActivity extends Activity {
 		comReadWrite(new byte[] { 'i', 0, 0, '\r', '\n' });
 	}
 
+	// TODO: Merge with obstacleLeft and obstacleRight
 	/**
 	 * methods tests whether an obstacle is in the range of the 3 front sensors
 	 * or not
@@ -978,10 +989,14 @@ public class MainActivity extends Activity {
 		return detected;
 	}
 
+	// TODO: Check if needed
 	/**
 	 * Bug1 algorithm 1) head toward goal 2) if an obstacle is encountered
 	 * circumnavigate it and remember how close you get to the goal 3) return to
 	 * that closest point(by wall-following) and continue
+	 * 
+	 * @param x goal coordinate in x-direction
+	 * @param y goal coordinate in y-direction
 	 */
 	public void bug1(int x, int y) {
 		int dist;
@@ -1010,51 +1025,10 @@ public class MainActivity extends Activity {
 		}
 	}
 
+
+	// TODO: Check if needed
 	/**
-	 * <<<<<<< HEAD ======= robot drives to goal, if obstacle occurs he turn
-	 * randomly between 90 and 45 degrees now he drives 50cm away from the
-	 * obstacle and rotates and drives again in the direction of the goal
-	 * 
-	 * @param x
-	 * @param y
-	 */
-	public void moveToGoalNaive(double x, double y) {
-		int dist;
-		int angle;
-		int moved = 0;
-		boolean obstacleFound = false;
-
-		angle = (int) (360 * Math.atan(((double) (x - Xg)) / (y - Yg)) / (2 * Math.PI));
-		dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
-
-		writeLog("Moving to goal at angle " + angle + " in " + dist
-				+ "cm distance");
-
-		// we need to update the robots own position information
-		turnRobot(angle, 'r');
-
-		Map<String, Integer> measurement = new HashMap<String, Integer>();
-		while ((moved < dist) && !obstacleFound) {
-			moved++;
-			int stepLength = 2;
-			moveRobot(stepLength);
-			measurement = getDistance();
-			if (obstacleInFront()) {
-				writeLog("Obstacle found at " + getMyPosition());
-				obstacleFound = true;
-			}
-		}
-
-		if (obstacleFound) {
-			turnRobot((int) Math.signum((Math.random() - 0.5))
-					* (90 + (int) (Math.random() * 45)), 'r');
-			moveRobot(Math.min(measurement.get("frontMiddle") - 10, 50));
-			moveToGoalNaive(x, y);
-		}
-	}
-
-	/**
-	 * >>>>>>> 3da3259e62773978da97ef47dec4d43c7382c1b4 turn 90 deg left check
+	 * turn 90 deg left check
 	 * for obstacle turn 90 deg right
 	 * 
 	 * @return whether an obstacle is on the left side
@@ -1069,6 +1043,8 @@ public class MainActivity extends Activity {
 		return detected;
 	}
 
+
+	// TODO: Check if needed
 	/**
 	 * turn Robot a bit to obstacle and measure distance with left sensor before
 	 * and after rotation if the distance gets smaller the robot should rotate
@@ -1239,6 +1215,8 @@ public class MainActivity extends Activity {
 		robotSetLeds(127, 127);
 	}
 
+
+	// TODO: Check if needed
 	/**
 	 * robot tries to rotate parallel to any wall or obstacle, from every angle
 	 * he drives to it
@@ -1275,6 +1253,7 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	// TODO: Check if needed
 	/**
 	 * robot drives completely around obstacle and measures distance to goal
 	 * after each step after he made his round, he drives back to nearest
@@ -1385,6 +1364,7 @@ public class MainActivity extends Activity {
 		turnRobot(90, 'l');
 	}
 
+	// TODO: Check if needed
 	/**
 	 * bug 2 algorithm 1) head toward goal on the m-line 2) if an obstacle is in
 	 * the way, follow it until you encounter the m-line again closer to the
