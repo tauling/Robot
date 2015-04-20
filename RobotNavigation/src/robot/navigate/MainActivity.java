@@ -67,7 +67,7 @@ public class MainActivity extends Activity {
 	}
 
 	// -> Robot Calibration
-	private Integer ObsDetectBorderLR = 20; // Measurements in front of the
+	private Integer ObsDetectBorderLR = 25; // Measurements in front of the
 											// robot
 											// below this value are treated as
 											// obstacle (Working range of
@@ -77,25 +77,25 @@ public class MainActivity extends Activity {
 											// treated as obstacle (Working
 											// range of middle sensor is 20 to
 											// 80cm)
-	private Integer ObsDetectBorderL = 20; // Measurements to the left of the
+	private Integer ObsDetectBorderL = 25; // Measurements to the left of the
 											// robot
 	// below this value are treated as
 	// obstacle (Working range of left
 	// sensor is 10 to 80cm)
-	private Integer ObsDetectBorderR = 20; // Measurements to the right of the
+	private Integer ObsDetectBorderR = 25; // Measurements to the right of the
 											// robot
 	// below this value are treated as
 	// obstacle (Working range of right
 	// sensor is 10 to 80cm)
-	private double CorrFactMoveForwardByDist = 5875.0 / 4309.0; // Should be
+	private double CorrFactMoveForwardByDist = (5875.0 / 4309.0)*(100.0/98.0); // Should be
 																// set,
 																// such that
 	// MoveRobot(100) moves
 	// the
 	// the robot for 100cm.
 
-	private double CorrFactMoveForwardByVel = 303.0 / 650.0;
-	private double CorrFactAngle = 8.0 / 7; // Should be set, such that
+	private double CorrFactMoveForwardByVel = (303.0 / 650.0)*(100.0/98.0)*(101.0/98.0)*(103.0/102.0);
+	private double CorrFactAngle = (8.0 / 7.0)*(360.0/365.0); // Should be set, such that
 											// turnRobot(360)
 											// rotates for exactly 360 degrees.
 	private final int IdSensorLeft = 7; // Call findSensorIDs() to determine the
@@ -386,7 +386,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				moveToGoalNaive2(200, 200, 45);
+				moveToGoalNaive2(250, 130, 45);
 			};
 		};
 		t.start();
@@ -411,7 +411,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				bug1(200, 200);
+				bug1(250, 130);
 			};
 		};
 
@@ -437,7 +437,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				bug1(100, 100);
+				bug1(250, 130);
 			};
 		};
 
@@ -459,7 +459,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				moveToGoalNaive3(200, 200, 45);
+				moveToGoalNaive3(150, 150, 45);
 			};
 		};
 
@@ -471,7 +471,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				bug2(100, 100);
+				bug2(250, 130);
 			};
 		};
 
@@ -1144,7 +1144,7 @@ public class MainActivity extends Activity {
 		int dist;
 		int angle = 0;
 		int moved;
-		int stepLength = 8;
+		int stepLength = 5;
 		boolean obstacleFound;
 		boolean goalReached = false;
 		Map<String, Integer> measurement = new HashMap<String, Integer>();
