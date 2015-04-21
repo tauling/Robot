@@ -1,5 +1,6 @@
 package org.opencv.samples.colorblobdetect;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -179,6 +180,27 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
     	Point ptCenter = new Point(avgX/count,avgY/count);
     	return ptCenter;
     }
+    
+    public int distPointToPoint(Point p1, Point p2){
+    	return (int) Math.sqrt(Math.pow(p2.x - p1.x, 2)+Math.pow(p2.y-p1.y,2));
+    }
+    
+    //TODO: add comment
+    public int computeRadius(List<MatOfPoint> contours, Point center){
+    	if(contours.isEmpty()){
+    		return 0;
+    	}
+    	int distToCenter = 0;
+    	for(int i=0;i<contours.size();i++){
+    		List<Point> pts = contours.get(i).toList();
+    		for(Point p : pts ){
+    			if(distPointToPoint(p, center) > distToCenter){
+    				distToCenter = distPointToPoint(p, center);
+    			}
+    		}
+    	}
+    	return distToCenter;
+    }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
@@ -187,13 +209,14 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
             mDetector.process(mRgba);
             List<MatOfPoint> contours = mDetector.getContours();
             Point center = computeCenterPt(contours);
+            int rad = computeRadius(contours,center);
             Log.e(TAG, "centerPoint:"+center.toString());
             Log.e(TAG, "Contours count: " + contours.size());
             Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
             int radius = Math.min(mRgba.cols() / 4, mRgba.rows() / 4);
             Scalar color = new Scalar(128);
             Core.circle(mRgba, center, 10, new Scalar(20),-1);
-            Core.circle(mRgba, center, radius, color,5);
+            Core.circle(mRgba, center, rad, color,5);
 
             Mat colorLabel = mRgba.submat(4, 68, 4, 68);
             colorLabel.setTo(mBlobColorRgba);
