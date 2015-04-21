@@ -164,6 +164,9 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
     
     //TODO: add comment
     public Point computeCenterPt(List<MatOfPoint> contours){
+    	if(contours.isEmpty()){
+    		return (new Point(-200.0,-200.0));
+    	}
     	int avgX = 0, avgY = 0,count = 0;
     	for(int i=0;i<contours.size();i++){
     		List<Point> pts = contours.get(i).toList();
