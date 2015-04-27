@@ -1,4 +1,4 @@
-package org.opencv.samples.colorblobdetect;
+package robot.opencv;
 
 import java.util.ArrayList;
 import java.util.Iterator;
