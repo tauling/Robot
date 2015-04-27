@@ -1,5 +1,6 @@
 package robot;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import robot.opencv.ColorBlobDetector;
 
 import jp.ksksue.driver.serial.FTDriver;
 import android.app.Activity;
+import android.graphics.Camera;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -77,6 +79,11 @@ public class MainActivity extends Activity implements OnTouchListener, CvCameraV
 	
 	// TODO: Detect multiple objects (of identical or distinct colors) and find their bottom points using the homography matrix.
 
+	// TODO: Cage ball and move it to a given position
+	
+	// TODO: Explore workspace and remember positions of all balls
+	
+	
 	private TextView textLog;
 	
 	protected Robot robot;
@@ -105,15 +112,14 @@ public class MainActivity extends Activity implements OnTouchListener, CvCameraV
         
         // TODO: The commented code right below belongs to the former ColorBlobDetectionActivity
 
-        Log.i(TAG, "called onCreate");
-//        requestWindowFeature(Window.FEATURE_NO_TITLE);
-//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+//        Log.i(TAG, "called onCreate");
+  //      requestWindowFeature(Window.FEATURE_NO_TITLE);
+   //     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-//        setContentView(R.layout.color_blob_detection_surface_view);
 
-//        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
-//        mOpenCvCameraView.setCvCameraViewListener(this);
-		Log.i(TAG, "Instantiated new " + this.getClass());
+        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
+        mOpenCvCameraView.setCvCameraViewListener(this);
+//		Log.i(TAG, "Instantiated new " + this.getClass());
 	}
 
 
@@ -307,6 +313,9 @@ public class MainActivity extends Activity implements OnTouchListener, CvCameraV
 		t.start();
 	}
 
+	public void button3_onClick(View v) {
+		// TODO: Launch get Homography
+	}
 	
 	
 	// TODO: All the things below belong to the former ColorBlobDetectorActivity. Clean up and migrate.
@@ -329,7 +338,7 @@ public class MainActivity extends Activity implements OnTouchListener, CvCameraV
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS:
                 {
-                    Log.i(TAG, "OpenCV loaded successfully");
+ //                   Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
                     mOpenCvCameraView.setOnTouchListener(MainActivity.this);
                 } break;
@@ -479,6 +488,7 @@ public class MainActivity extends Activity implements OnTouchListener, CvCameraV
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
+        //Mat mRgbaT = inputFrame.rgba();
 
         if (mIsColorSelected) {
             mDetector.process(mRgba);
@@ -492,12 +502,15 @@ public class MainActivity extends Activity implements OnTouchListener, CvCameraV
             Scalar color = new Scalar(128);
             Core.circle(mRgba, center, 10, new Scalar(20),-1);
             Core.circle(mRgba, center, rad, color,5);
-
             Mat colorLabel = mRgba.submat(4, 68, 4, 68);
             colorLabel.setTo(mBlobColorRgba);
 
             Mat spectrumLabel = mRgba.submat(4, 4 + mSpectrum.rows(), 70, 70 + mSpectrum.cols());
             mSpectrum.copyTo(spectrumLabel);
+//            mRgbaT = mRgba.t();
+            
+//            Core.flip(mRgba.t(),mRgbaT,1);
+//            Imgproc.resize(mRgbaT, mRgbaT, mRgba.size());
         }
 
         return mRgba;
@@ -509,6 +522,19 @@ public class MainActivity extends Activity implements OnTouchListener, CvCameraV
         Imgproc.cvtColor(pointMatHsv, pointMatRgba, Imgproc.COLOR_HSV2RGB_FULL, 4);
 
         return new Scalar(pointMatRgba.get(0, 0));
+    }
+    
+    protected void setDisplayOrientation(Camera camera, int angle){
+        Method downPolymorphic;
+        try
+        {
+            downPolymorphic = camera.getClass().getMethod("setDisplayOrientation", new Class[] { int.class });
+            if (downPolymorphic != null)
+                downPolymorphic.invoke(camera, new Object[] { angle });
+        }
+        catch (Exception e1)
+        {
+        }
     }
     
 }

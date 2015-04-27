@@ -1,6 +1,6 @@
 package robot.navigate;
 
-public class Position implements Comparable{
+public class Position implements Comparable<Object>{
 	double x;
 	double y;
 	int theta;

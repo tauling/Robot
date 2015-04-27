@@ -9,7 +9,7 @@
     <ScrollView
         android:id="@+id/scrollMe"
         android:layout_width="match_parent"
-        android:layout_height="174dp"
+        android:layout_height="80dp"
         android:layout_gravity="fill_horizontal"
         android:scrollbars="vertical" >
 
@@ -170,6 +170,16 @@
                     android:layout_weight="0.38"
                     android:text="Development"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                <Button
+                    android:id="@+id/button3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_weight="0.38"
+               		 android:onClick="button3_onClick"
+                    android:text="Homography" />
+
             </GridLayout>
 
             <GridLayout
@@ -242,8 +252,9 @@
             
 
     <org.opencv.android.JavaCameraView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="300dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center|top"
         android:id="@+id/color_blob_detection_activity_surface_view" />
 
         </LinearLayout>
