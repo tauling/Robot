@@ -93,7 +93,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private TextView textLog;
 
 	private Robot robot;
-	
+
 	private Mat homographyMatrix;
 
 	/**
@@ -543,20 +543,35 @@ public class MainActivity extends Activity implements OnTouchListener,
 	/**
 	 * robot explores workspace and rotates to ball
 	 */
-	public void exploreWorkspace(List<MatOfPoint> contour, Point ctPoint) {
-		if (contour.isEmpty()) {
-			// explore workspace
-			// drive
+	public void rotate360searchObstacles(CvCameraViewFrame inputFrame) {
+		int turn = 0;
+		while (turn < 360) {
+			robot.turnRobot(5, 'r');
+			mRgba = inputFrame.rgba();
+			if (mIsColorSelected) {
+				mDetector.process(mRgba);
+				List<MatOfPoint> contours = mDetector.getContours();
+				Point center = computeCenterPt(contours);
+
+				// add detected balls to robots ball list!
+			}
 		}
-		// rotate to obstacle
-		double TOL = 5;
-		Point curCenterPt = computeCenterPt(contour);
-		double diffXAxis = curCenterPt.x - ctPoint.x;
-		if (Math.abs(diffXAxis) > 5 && diffXAxis < 0) {
-			// rotate right
-		} else if (Math.abs(diffXAxis) > 5 && diffXAxis > 0) {
-			// rotate right
+	}
+	
+	public Point lowestPt (Mat mRgba){
+		Point lowPt = null;
+		if (mIsColorSelected) {
+			mDetector.process(mRgba);
+			List<MatOfPoint> contours = mDetector.getContours();
+			Point center = computeCenterPt(contours);
+			int rad = computeRadius(contours, center);
+
+			Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
+			int radius = Math.min(mRgba.cols() / 4, mRgba.rows() / 4);
+
+			lowPt = new Point(center.x, center.y + rad);
 		}
+		return lowPt;
 	}
 
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
@@ -579,12 +594,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 			Scalar color = new Scalar(128);
 			Core.circle(mRgba, center, 10, new Scalar(20), -1);
 			Core.circle(mRgba, center, rad, color, 5);
+			Point lowestPoint = new Point(center.x, center.y + rad);
 
-			if (contours.isEmpty() == true) {
-				exploreWorkspace(contours, center);
-			} else if (catchObstacle(rad, ballSurface, camSurface) == false) {
-				// drive robot more in the direction of the obstalce
-			}
+			Core.circle(mRgba, lowestPoint, 10, color, 5);
 
 			Mat colorLabel = mRgba.submat(4, 68, 4, 68);
 			colorLabel.setTo(mBlobColorRgba);
@@ -608,17 +620,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 				4);
 
 		return new Scalar(pointMatRgba.get(0, 0));
-	}
-
-	protected void setDisplayOrientation(Camera camera, int angle) {
-		Method downPolymorphic;
-		try {
-			downPolymorphic = camera.getClass().getMethod(
-					"setDisplayOrientation", new Class[] { int.class });
-			if (downPolymorphic != null)
-				downPolymorphic.invoke(camera, new Object[] { angle });
-		} catch (Exception e1) {
-		}
 	}
 
 }
