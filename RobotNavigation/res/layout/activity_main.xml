@@ -171,15 +171,6 @@
                     android:text="Development"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
 
-                <Button
-                    android:id="@+id/button3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="left"
-                    android:layout_weight="0.38"
-               		 android:onClick="button3_onClick"
-                    android:text="Homography" />
-
             </GridLayout>
 
             <GridLayout
@@ -248,6 +239,15 @@
                     android:onClick="buttonOneMeter_onClick"
                     android:text="1m by dist" />
 
+                <Button
+                    android:id="@+id/button3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_weight="0.38"
+               		 android:onClick="button3_onClick"
+                    android:text="Homography" />
+                
             </GridLayout>
             
 

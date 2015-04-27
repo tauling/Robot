@@ -214,7 +214,7 @@ public class Robot {
 	 * 
 	 * @param text
 	 */
-	private void writeLog(String text) {
+	public void writeLog(String text) {
 		if (!(text == null) && text.length() > 0) {
 			new Thread(new WriteLogRunnable("[" + text.length() + "] " + text
 					+ "\n")).start();
@@ -226,7 +226,7 @@ public class Robot {
 	 * 
 	 * @param value
 	 */
-	private void writeLog(int value) {
+	public void writeLog(int value) {
 		writeLog((long) value);
 	}
 
