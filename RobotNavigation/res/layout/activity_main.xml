@@ -239,6 +239,12 @@
                     android:text="1m by dist" />
 
             </GridLayout>
+            
+
+    <org.opencv.android.JavaCameraView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/color_blob_detection_activity_surface_view" />
 
         </LinearLayout>
     </ScrollView>

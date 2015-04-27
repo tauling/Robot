@@ -1,12 +1,15 @@
-package org.opencv.samples.colorblobdetect;
+package robot;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
+import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -15,20 +18,298 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.imgproc.Imgproc;
 
+import robot.generated.R;
+import robot.navigate.Robot;
+import robot.opencv.ColorBlobDetector;
+
+import jp.ksksue.driver.serial.FTDriver;
 import android.app.Activity;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.View.OnTouchListener;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
-public class ColorBlobDetectionActivity extends Activity implements OnTouchListener, CvCameraViewListener2 {
+public class MainActivity extends Activity implements OnTouchListener, CvCameraViewListener2  {
+
+	// TODO: Create a class "Robot" with public and private methods
+	
+	// TODO: Working Demos -> rename to Examination Task 1
+	
+	// TODO: Fix: (x,y) are switched in move to goal methods
+	
+	// TODO: Change orientation; (0,0,0) means, that the robot is facing to the right
+
+	// TODO: Allow the user to enter values in the app.
+
+	// TODO: Add button to stop all threads
+
+	// TODO: Add a function that allows to drive curves (and updates odometry)
+
+	// TODO: Detect green and red blobs
+
+	// TODO: Detect a ball and calculate it's lowest position (where it touches
+	// the surface)
+
+	// TODO: Move to the ball and use the robot's cage to catch it.
+
+	// TODO: Detect multiple balls at the same time
+
+	// TODO: Also detect blue, yellow, black and white blobs
+	
+	// TODO: implement MoveToTarget(x,y,theta) (ignoring obstacles)
+
+	// TODO: explore workspace 
+
+	// TODO: catch ball -> drive to target corner
+	
+	// TODO: Calculate the homography matrix using the function Mat getHomographyMatrix(Mat mRgba) (see below). It uses a chessboard pattern as shown in the picture. Add a new button to the menu for performing this action. (You will receive sheets with the correct chessboard pattern.)
+	
+	// TODO: Calculate distance and angle from the robot to the bottom point of a detected blob using your homography matrix. Display it in a live feed.
+	
+	// TODO: Detect multiple objects (of identical or distinct colors) and find their bottom points using the homography matrix.
+
+	private TextView textLog;
+	
+	protected Robot robot;
+	
+	
+	/**
+	 * Connects to the robot when app is started and initializes the position of
+	 * the robot's bar.
+	 * 
+	 * @param savedInstanceState
+	 */
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+
+		textLog = (TextView) findViewById(R.id.textLog);
+		textLog.setMovementMethod(new ScrollingMovementMethod());
+		ScrollView svLog = (ScrollView) findViewById(R.id.scrollMe);
+
+		FTDriver com = new FTDriver((UsbManager) getSystemService(USB_SERVICE));
+		
+		robot = new Robot(textLog, svLog, com);
+		robot.connect();
+
+        
+        // TODO: The commented code right below belongs to the former ColorBlobDetectionActivity
+
+        Log.i(TAG, "called onCreate");
+//        requestWindowFeature(Window.FEATURE_NO_TITLE);
+//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+//        setContentView(R.layout.color_blob_detection_surface_view);
+
+//        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
+//        mOpenCvCameraView.setCvCameraViewListener(this);
+		Log.i(TAG, "Instantiated new " + this.getClass());
+	}
+
+
+	public void buttonMoveToGoalN3_onClick(View v) {
+		robot.resetPosition();
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				robot.moveToGoalNaive3(150, 150, 45);
+			};
+		};
+
+		t.start();
+	}
+
+
+
+	public void buttonFindSensorIDs_onClick(View v) {
+		try {
+			robot.findSensorIDs();
+		} catch (Exception e) {
+		}
+	}
+
+	public void buttonOneMeter_onClick(View v) {
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				robot.moveRobot(100);
+			};
+		};
+
+		t.start();
+	}
+
+	public void buttonOneMeterDriveByVel_onClick(View v) {
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				robot.moveByVelocity(100, false);
+			};
+		};
+
+		t.start();
+	}
+
+	public void button360Deg_onClick(View v) {
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				robot.turnRobot(180, 'r');
+				robot.turnRobot(180, 'r');
+			};
+		};
+
+		t.start();
+	}
+	
+	public void buttonMinus_onClick(View v) {
+		robot.moveBar('-');
+	}
+
+	public void buttonPlus_onClick(View v) {
+		robot.moveBar('+');
+	}
+
+	public void buttonSensor_onClick(View v) {
+		Map<String, Integer> measurement = new HashMap<String, Integer>();
+		measurement = robot.getDistance();
+		for (Map.Entry<String, Integer> entry : measurement.entrySet()) {
+			textLog.append((entry.getKey() + entry.getValue() + "\n"));
+		}
+	}
+
+	public void buttonEightZero_onClick(View v) {
+		robot.resetPosition();
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				robot.moveSquare(50, 'r', 0);
+				robot.moveSquare(50, 'l', 0);
+			};
+		};
+		t.start();
+	}
+
+	public void buttonEightOne_onClick(View v) {
+		robot.resetPosition();
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				if (robot.moveSquare(50, 'r', 1)) {
+					robot.moveSquare(50, 'l', 1);
+				}
+			};
+		};
+		t.start();
+	}
+
+	public void buttonEightTwo_onClick(View v) {
+		robot.resetPosition();
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				robot.moveSquare(50, 'r', 2);
+				robot.moveSquare(50, 'l', 2);
+			};
+		};
+		t.start();
+	}
+
+	public void buttonMLineDemo_onClick(View v) {
+		robot.resetPosition();
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				int x = 200;
+				int y = 200;
+				int theta = 45;
+				robot.turnRobotBalanced(90, 'r');
+				robot.moveByVelocity(100, true);
+				robot.turnRobotBalanced(135, 'l');
+				robot.driveToIntersectionMLine(150, x, y);
+				robot.robotSetLeds(0,0);
+				robot.robotSetLeds(127,127);
+				robot.robotSetLeds(0,0);
+				robot.robotSetLeds(127,127);
+				robot.robotSetLeds(0,0);
+				robot.moveToGoalNaive2(x, y, theta);
+			};
+		};
+		t.start();
+	}
+
+	public void buttonmoveToGoalN2_onClick(View v) {
+		robot.resetPosition();
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				robot.moveToGoalNaive2(250, 130, 45);
+			};
+		};
+		t.start();
+	}
+
+	public void buttonDriveAndRead_onClick(View v) {
+		robot.resetPosition();
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				robot.driveAndRead();
+			};
+		};
+
+		t.start();
+	}
+
+	public void buttonTest_onClick(View v) {
+
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				
+			};
+		};
+
+		t.start();
+	}
+
+	public void buttonTest2_onClick(View v) {
+
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				
+			};
+		};
+
+		t.start();
+	}
+
+	
+	
+	// TODO: All the things below belong to the former ColorBlobDetectorActivity. Clean up and migrate.
     private static final String  TAG              = "OCVSample::Activity";
 
     private boolean              mIsColorSelected = false;
@@ -50,7 +331,7 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
-                    mOpenCvCameraView.setOnTouchListener(ColorBlobDetectionActivity.this);
+                    mOpenCvCameraView.setOnTouchListener(MainActivity.this);
                 } break;
                 default:
                 {
@@ -59,24 +340,6 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
             }
         }
     };
-
-    public ColorBlobDetectionActivity() {
-        Log.i(TAG, "Instantiated new " + this.getClass());
-    }
-
-    /** Called when the activity is first created. */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        Log.i(TAG, "called onCreate");
-        super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        setContentView(R.layout.color_blob_detection_surface_view);
-
-        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
-        mOpenCvCameraView.setCvCameraViewListener(this);
-    }
 
     @Override
     public void onPause()
@@ -191,8 +454,8 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
      */
     public void catchObstacle(int radius){
     	int handySurface = 1920*1080;
-    	int ballSurface = Math.pow(radius, 2)*Math.pi;
-    	if(ballsurface/handySurface >= 70){
+    	double ballSurface = Math.pow(radius, 2)*Math.PI;
+    	if(ballSurface/handySurface >= 70){
     		//lower bar
     	}
     }
@@ -247,4 +510,5 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
 
         return new Scalar(pointMatRgba.get(0, 0));
     }
+    
 }
