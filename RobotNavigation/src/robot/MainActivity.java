@@ -548,6 +548,22 @@ public class MainActivity extends Activity implements OnTouchListener,
 			}
 		}
 	}
+	
+	public Point lowestPt (Mat mRgba){
+		Point lowPt = null;
+		if (mIsColorSelected) {
+			mDetector.process(mRgba);
+			List<MatOfPoint> contours = mDetector.getContours();
+			Point center = computeCenterPt(contours);
+			int rad = computeRadius(contours, center);
+
+			Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
+			int radius = Math.min(mRgba.cols() / 4, mRgba.rows() / 4);
+
+			lowPt = new Point(center.x, center.y + rad);
+		}
+		return lowPt;
+	}
 
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		mRgba = inputFrame.rgba();
@@ -569,9 +585,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 			Scalar color = new Scalar(128);
 			Core.circle(mRgba, center, 10, new Scalar(20), -1);
 			Core.circle(mRgba, center, rad, color, 5);
-			Point lowestPoint = new Point(center.x, center.y - rad);
+			Point lowestPoint = new Point(center.x, center.y + rad);
 
-			Core.circle(mRgba, lowestPoint, rad, color, 5);
+			Core.circle(mRgba, lowestPoint, 10, color, 5);
 
 			Mat colorLabel = mRgba.submat(4, 68, 4, 68);
 			colorLabel.setTo(mBlobColorRgba);
