@@ -171,6 +171,12 @@
                     android:text="Development"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
 
+                <Button
+                    android:id="@+id/button4"
+                    android:layout_gravity="left"
+                    android:text="getBlob"
+                    android:onClick="buttonGetBlob_onClick" />
+
             </GridLayout>
 
             <GridLayout

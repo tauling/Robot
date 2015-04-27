@@ -147,6 +147,15 @@ public class MainActivity extends Activity implements OnTouchListener,
 		} catch (Exception e) {
 		}
 	}
+	
+	public void buttonGetBlob_onClick(View v) {
+		  Mat src =  new Mat(1, 1, CvType.CV_32FC2);
+		  Mat dest = new Mat(1, 1, CvType.CV_32FC2);
+		  src.put(0, 0, new double[] { ps.x, ps.y }); // ps is a point in image coordinates
+		  Core.perspectiveTransform(src, dest, homographyMatrix);
+		  Point dest_point = new Point(dest.get(0, 0)[0], dest.get(0, 0)[1]);
+		  robot.writeLog("Found Blob at x = " + dest_point.x + " and y = " + dest_point.y);
+	}
 
 	public void buttonOneMeter_onClick(View v) {
 		Thread t = new Thread() {
