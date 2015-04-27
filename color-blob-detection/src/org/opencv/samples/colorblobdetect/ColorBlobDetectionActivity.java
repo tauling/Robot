@@ -189,12 +189,13 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
     /**
      * should maybe return a boolean...
      */
-    public void catchObstacle(int radius){
-    	int handySurface = 1920*1080;
-    	int ballSurface = (int) (Math.pow(radius, 2)*Math.PI);
-    	if(ballSurface/handySurface >= 70){
+    public Boolean catchObstacle(int radius,int ballSurface, int camSurface){
+    	Boolean closeEnough = false;
+    	if(ballSurface/camSurface >= 70){
     		Log.e(TAG, "lower bar NOW!");
+    		closeEnough = true;
     	}
+    	return closeEnough;
     }
     
     //TODO: add comment
@@ -213,22 +214,68 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
     	}
     	return distToCenter;
     }
+    
+    //TODO: add comment
+    public int computeContourArea(List<MatOfPoint> contours){
+    	if(contours.isEmpty()){
+    		return 0;
+    	}
+    	int area = 0;
+    	for(int i=0;i<contours.size();i++){
+    		List<Point> pts = contours.get(i).toList();
+    		for(Point p : pts ){
+    			area++;
+    		}
+    	}
+    	return area;
+    }
+    
+    //TODO: add comment
+    /**
+     * robot explores workspace and rotates to ball
+     */
+    public void exploreWorkspace(List<MatOfPoint> contour,Point ctPoint){
+    	if(contour.isEmpty()){
+    		//explore workspace
+    		//drive
+    	}
+    	//rotate to obstacle
+    	double TOL = 5;
+    	Point curCenterPt = computeCenterPt(contour);
+    	double diffXAxis = curCenterPt.x - ctPoint.x;
+    	if(Math.abs(diffXAxis) > 5 && diffXAxis < 0){
+    		//rotate right
+    	}else if(Math.abs(diffXAxis) > 5 && diffXAxis > 0){
+    		//rotate right
+    	}
+    }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
 
         if (mIsColorSelected) {
             mDetector.process(mRgba);
+            int camSurface = mRgba.height()*mRgba.width();
             List<MatOfPoint> contours = mDetector.getContours();
             Point center = computeCenterPt(contours);
             int rad = computeRadius(contours,center);
+            int ballSurface = computeContourArea(contours);
             Log.e(TAG, "centerPoint:"+center.toString());
             Log.e(TAG, "Contours count: " + contours.size());
+            Log.e(TAG, "Contour area size: "+ ballSurface);
             Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
             int radius = Math.min(mRgba.cols() / 4, mRgba.rows() / 4);
+            int radius2 = (int) Math.sqrt(ballSurface/Math.PI);
             Scalar color = new Scalar(128);
             Core.circle(mRgba, center, 10, new Scalar(20),-1);
-            Core.circle(mRgba, center, rad, color,5);
+            Core.circle(mRgba, center, radius2*40, color,5);
+            Core.transpose(mRgba, mRgba);
+            
+            if(contours.isEmpty() == true){
+            	exploreWorkspace(contours,center);
+            }else if(catchObstacle(rad, ballSurface, camSurface) == false){
+            	//drive robot more in the direction of the obstalce 
+            }
 
             Mat colorLabel = mRgba.submat(4, 68, 4, 68);
             colorLabel.setTo(mBlobColorRgba);

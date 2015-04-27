@@ -32,7 +32,7 @@ public final class R {
             </td></tr>
 </table>
          */
-        public static final int alignmentMode=0x7f010006;
+        public static final int alignmentMode=0x7f010004;
         /** <p>May be an integer value, such as "<code>100</code>".
 <p>This may also be a reference to a resource (in the form
 "<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
@@ -50,7 +50,7 @@ containing a value of this type.
 <tr><td><code>front</code></td><td>98</td><td></td></tr>
 </table>
          */
-        public static final int camera_id=0x7f010001;
+        public static final int camera_id=0x7f01000f;
         /**  The maximum number of columns to create when automatically positioning children. 
          <p>Must be an integer value, such as "<code>100</code>".
 <p>This may also be a reference to a resource (in the form
@@ -59,7 +59,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int columnCount=0x7f010004;
+        public static final int columnCount=0x7f010002;
         /** 
         When set to true, forces column boundaries to appear in the same order
         as column indices.
@@ -73,7 +73,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int columnOrderPreserved=0x7f010008;
+        public static final int columnOrderPreserved=0x7f010006;
         /** 
         The column boundary delimiting the left of the group of cells
         occupied by this view.
@@ -85,7 +85,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int layout_column=0x7f01000c;
+        public static final int layout_column=0x7f01000a;
         /** 
         The column span: the difference between the right and left
         boundaries delimiting the group of cells occupied by this view.
@@ -99,7 +99,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int layout_columnSpan=0x7f01000d;
+        public static final int layout_columnSpan=0x7f01000b;
         /**  The relative proportion of horizontal space that should be allocated to this view
         during excess space distribution. 
          <p>Must be a floating point value, such as "<code>1.2</code>".
@@ -109,7 +109,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int layout_columnWeight=0x7f01000e;
+        public static final int layout_columnWeight=0x7f01000c;
         /** 
         Gravity specifies how a component should be placed in its group of cells.
         The default is LEFT | BASELINE.
@@ -147,7 +147,7 @@ containing a value of this type.
 <tr><td><code>end</code></td><td>0x00800005</td><td> Push object to the end of its container, not changing its size. </td></tr>
 </table>
          */
-        public static final int layout_gravity=0x7f01000f;
+        public static final int layout_gravity=0x7f01000d;
         /**  END MarginLayout layoutparams 
 
         The row boundary delimiting the top of the group of cells
@@ -160,7 +160,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int layout_row=0x7f010009;
+        public static final int layout_row=0x7f010007;
         /** 
         The row span: the difference between the top and bottom
         boundaries delimiting the group of cells occupied by this view.
@@ -174,7 +174,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int layout_rowSpan=0x7f01000a;
+        public static final int layout_rowSpan=0x7f010008;
         /**  The relative proportion of vertical space that should be allocated to this view
         during excess space distribution. 
          <p>Must be a floating point value, such as "<code>1.2</code>".
@@ -184,7 +184,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int layout_rowWeight=0x7f01000b;
+        public static final int layout_rowWeight=0x7f010009;
         /** 
               support versions. All attributes not present in ViewGroup/View are
               redefined in the support library namespace.
@@ -209,7 +209,7 @@ containing a value of this type.
 <tr><td><code>vertical</code></td><td>1</td><td> Defines a vertical widget. </td></tr>
 </table>
          */
-        public static final int orientation=0x7f010002;
+        public static final int orientation=0x7f010000;
         /**  The maximum number of rows to create when automatically positioning children. 
          <p>Must be an integer value, such as "<code>100</code>".
 <p>This may also be a reference to a resource (in the form
@@ -218,7 +218,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int rowCount=0x7f010003;
+        public static final int rowCount=0x7f010001;
         /** 
         When set to true, forces row boundaries to appear in the same order
         as row indices.
@@ -232,7 +232,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int rowOrderPreserved=0x7f010007;
+        public static final int rowOrderPreserved=0x7f010005;
         /** <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
 <p>This may also be a reference to a resource (in the form
 "<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
@@ -240,7 +240,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int show_fps=0x7f010000;
+        public static final int show_fps=0x7f01000e;
         /** 
         When set to true, tells GridLayout to use default margins when none are specified
         in a view's layout parameters.
@@ -254,7 +254,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int useDefaultMargins=0x7f010005;
+        public static final int useDefaultMargins=0x7f010003;
     }
     public static final class dimen {
         /**  The default gap between components in a layout. 
@@ -265,28 +265,28 @@ containing a value of this type.
         public static final int icon=0x7f020000;
     }
     public static final class id {
-        public static final int alignBounds=0x7f060005;
-        public static final int alignMargins=0x7f060006;
-        public static final int any=0x7f060000;
-        public static final int back=0x7f060001;
-        public static final int bottom=0x7f060007;
-        public static final int center=0x7f060008;
-        public static final int center_horizontal=0x7f060009;
-        public static final int center_vertical=0x7f06000a;
-        public static final int clip_horizontal=0x7f06000b;
-        public static final int clip_vertical=0x7f06000c;
+        public static final int alignBounds=0x7f060002;
+        public static final int alignMargins=0x7f060003;
+        public static final int any=0x7f060012;
+        public static final int back=0x7f060013;
+        public static final int bottom=0x7f060004;
+        public static final int center=0x7f060005;
+        public static final int center_horizontal=0x7f060006;
+        public static final int center_vertical=0x7f060007;
+        public static final int clip_horizontal=0x7f060008;
+        public static final int clip_vertical=0x7f060009;
         public static final int color_blob_detection_activity_surface_view=0x7f060015;
-        public static final int end=0x7f06000d;
-        public static final int fill=0x7f06000e;
-        public static final int fill_horizontal=0x7f06000f;
-        public static final int fill_vertical=0x7f060010;
-        public static final int front=0x7f060002;
-        public static final int horizontal=0x7f060003;
-        public static final int left=0x7f060011;
-        public static final int right=0x7f060012;
-        public static final int start=0x7f060013;
-        public static final int top=0x7f060014;
-        public static final int vertical=0x7f060004;
+        public static final int end=0x7f06000a;
+        public static final int fill=0x7f06000b;
+        public static final int fill_horizontal=0x7f06000c;
+        public static final int fill_vertical=0x7f06000d;
+        public static final int front=0x7f060014;
+        public static final int horizontal=0x7f060000;
+        public static final int left=0x7f06000e;
+        public static final int right=0x7f06000f;
+        public static final int start=0x7f060010;
+        public static final int top=0x7f060011;
+        public static final int vertical=0x7f060001;
     }
     public static final class layout {
         public static final int color_blob_detection_surface_view=0x7f030000;
@@ -308,7 +308,7 @@ containing a value of this type.
            @see #CameraBridgeViewBase_show_fps
          */
         public static final int[] CameraBridgeViewBase = {
-            0x7f010000, 0x7f010001
+            0x7f01000e, 0x7f01000f
         };
         /**
           <p>This symbol is the offset where the {@link org.opencv.samples.colorblobdetect.R.attr#camera_id}
@@ -380,8 +380,8 @@ containing a value of this type.
            @see #GridLayout_useDefaultMargins
          */
         public static final int[] GridLayout = {
-            0x7f010002, 0x7f010003, 0x7f010004, 0x7f010005,
-            0x7f010006, 0x7f010007, 0x7f010008
+            0x7f010000, 0x7f010001, 0x7f010002, 0x7f010003,
+            0x7f010004, 0x7f010005, 0x7f010006
         };
         /**
           <p>
@@ -598,9 +598,9 @@ containing a value of this type.
          */
         public static final int[] GridLayout_Layout = {
             0x010100f4, 0x010100f5, 0x010100f6, 0x010100f7,
-            0x010100f8, 0x010100f9, 0x010100fa, 0x7f010009,
-            0x7f01000a, 0x7f01000b, 0x7f01000c, 0x7f01000d,
-            0x7f01000e, 0x7f01000f
+            0x010100f8, 0x010100f9, 0x010100fa, 0x7f010007,
+            0x7f010008, 0x7f010009, 0x7f01000a, 0x7f01000b,
+            0x7f01000c, 0x7f01000d
         };
         /**
           <p>This symbol is the offset where the {@link android.R.attr#layout_height}
