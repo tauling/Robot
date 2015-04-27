@@ -505,19 +505,18 @@ public class MainActivity extends Activity implements OnTouchListener, CvCameraV
     /**
      * robot explores workspace and rotates to ball
      */
-    public void exploreWorkspace(List<MatOfPoint> contour,Point ctPoint){
-    	if(contour.isEmpty()){
-    		//explore workspace
-    		//drive
-    	}
-    	//rotate to obstacle
-    	double TOL = 5;
-    	Point curCenterPt = computeCenterPt(contour);
-    	double diffXAxis = curCenterPt.x - ctPoint.x;
-    	if(Math.abs(diffXAxis) > 5 && diffXAxis < 0){
-    		//rotate right
-    	}else if(Math.abs(diffXAxis) > 5 && diffXAxis > 0){
-    		//rotate right
+    public void rotate360searchObstacles(CvCameraViewFrame inputFrame){
+    	int turn = 0;
+    	while(turn < 360){
+    		robot.turnRobot(5,'r');
+    		mRgba = inputFrame.rgba();
+    		if(mIsColorSelected){
+    			mDetector.process(mRgba);
+    			List<MatOfPoint> contours = mDetector.getContours();
+                Point center = computeCenterPt(contours);
+                
+                //add detected balls to robots ball list!
+    		}
     	}
     }
 
@@ -542,14 +541,10 @@ public class MainActivity extends Activity implements OnTouchListener, CvCameraV
             Scalar color = new Scalar(128);
             Core.circle(mRgba, center, 10, new Scalar(20),-1);
             Core.circle(mRgba, center, rad, color,5);
-
-
-			if(contours.isEmpty() == true){
-				exploreWorkspace(contours,center);
-			}else if(catchObstacle(rad, ballSurface, camSurface) == false){
-				//drive robot more in the direction of the obstalce 
-			}
-			
+            Point lowestPoint = new Point(center.x, center.y-rad);
+            
+            Core.circle(mRgba, lowestPoint, rad, color,5);
+            
             Mat colorLabel = mRgba.submat(4, 68, 4, 68);
             colorLabel.setTo(mBlobColorRgba);
 

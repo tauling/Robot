@@ -1,7 +1,11 @@
 package robot.navigate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import org.opencv.core.Point;
 
 import jp.ksksue.driver.serial.FTDriver;
 import android.os.Handler;
@@ -9,10 +13,10 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class Robot {
-	
+
 	private TextView textLog;
 	private ScrollView svLog;
-	
+
 	public Robot(TextView textLog, ScrollView svLog, FTDriver com) {
 		this.Xg = 0;
 		this.Yg = 0;
@@ -21,7 +25,6 @@ public class Robot {
 		this.svLog = svLog;
 		this.com = com;
 	}
-
 
 	// -> Robot Calibration
 	private Integer ObsDetectBorderLR = 25; // Measurements in front of the
@@ -44,17 +47,21 @@ public class Robot {
 	// below this value are treated as
 	// obstacle (Working range of right
 	// sensor is 10 to 80cm)
-	private double CorrFactMoveForwardByDist = (5875.0 / 4309.0)*(100.0/98.0); // Should be
-																// set,
-																// such that
+	private double CorrFactMoveForwardByDist = (5875.0 / 4309.0)
+			* (100.0 / 98.0); // Should be
+	// set,
+	// such that
 	// MoveRobot(100) moves
 	// the
 	// the robot for 100cm.
 
-	private double CorrFactMoveForwardByVel = (303.0 / 650.0)*(100.0/98.0)*(101.0/98.0)*(103.0/102.0);
-	private double CorrFactAngle = (8.0 / 7.0)*(360.0/365.0); // Should be set, such that
-											// turnRobot(360)
-											// rotates for exactly 360 degrees.
+	private double CorrFactMoveForwardByVel = (303.0 / 650.0) * (100.0 / 98.0)
+			* (101.0 / 98.0) * (103.0 / 102.0);
+	private double CorrFactAngle = (8.0 / 7.0) * (360.0 / 365.0); // Should be
+																	// set, such
+																	// that
+	// turnRobot(360)
+	// rotates for exactly 360 degrees.
 	private final int IdSensorLeft = 7; // Call findSensorIDs() to determine the
 										// corresponding ID
 	private final int IdSensorRight = 8; // Call findSensorIDs() to determine
@@ -75,16 +82,25 @@ public class Robot {
 										// sensor
 	// measures distances correctly in its working
 	// range.
-	
 
 	// <- Robot Calibration
+	
+	private List<Point> balls = new ArrayList<Point>();
 
 	private double Xg = 0, Yg = 0; // Position of the robot.
 	private int Tg = 0; // Angle of the robot.
 	private int balancedAngle = 0;
-	
+
 	private FTDriver com;
 	private Handler mhandler = new Handler();
+	
+	public void addBall(Point p){
+		this.balls.add(p);
+	}
+	
+	public List<Point> getBalls(){
+		return balls;
+	}
 
 	private class WriteLogRunnable implements Runnable {
 
@@ -105,8 +121,6 @@ public class Robot {
 			});
 		}
 	}
-		
-		
 
 	/**
 	 * Sets the blue and red LED of the robot.
@@ -143,7 +157,6 @@ public class Robot {
 		}
 	}
 
-	
 	/**
 	 * transfers given bytes via the serial connection.
 	 * 
@@ -311,7 +324,7 @@ public class Robot {
 
 	// TODO Add description
 	public void moveBar(char d) {
-	
+
 		switch (d) {
 		case '+':
 			writeLog("Rising bar");
@@ -320,8 +333,9 @@ public class Robot {
 			writeLog("Lowering bar");
 			comReadWrite(new byte[] { '-', '\r', '\n' });
 		}
-	
-}
+
+	}
+
 	// TODO Add description
 	private int reduceAngle(int angle) {
 		if (angle < 0) {
@@ -426,7 +440,8 @@ public class Robot {
 	 * @param obstacleTreatment
 	 *            0 = ignore obstacle; 1 = stop before obstacle; 2 = navigate
 	 *            around obstacle
-	 * @return false if it found an obstacle, true if way was free (if obstacletreatment = 1) 
+	 * @return false if it found an obstacle, true if way was free (if
+	 *         obstacletreatment = 1)
 	 */
 	public Boolean moveSquare(int dist, char dir, int obstacleTreatment) {
 		Boolean ret = true;
@@ -476,7 +491,7 @@ public class Robot {
 			}
 			robotSetLeds(127, 127);
 		}
-		
+
 		return ret;
 	}
 
@@ -711,7 +726,6 @@ public class Robot {
 		return detected;
 	}
 
-
 	/**
 	 * Uses move robot by distance to drive to a given goal destination while
 	 * circumventing obstacles by rotating by a random angle and moving a couple
@@ -832,5 +846,29 @@ public class Robot {
 		Position myPos = new Position(Xg, Yg, Tg);
 		return myPos;
 	}
-	
+
+	public void MoveToTarget(double x, double y, double theta) {
+		int angle = 0, dist, moved, stepLength = 5;
+		Boolean goalReached = false;
+
+		while (!goalReached) {
+
+			angle = getAngleToGoal(x, y);
+			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+
+			writeLog("Moving to goal at angle " + angle + " in " + dist
+					+ "cm distance");
+
+			turnRobotBalanced(angle, 'r');
+			robotSetLeds(127, 0);
+			moved = 0;
+			while (moved < dist) {
+				moved += stepLength;
+				moveRobot(stepLength);
+			}
+			if (Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)) < stepLength + 1) {
+				goalReached = true;
+			}
+		}
+	}
 }
