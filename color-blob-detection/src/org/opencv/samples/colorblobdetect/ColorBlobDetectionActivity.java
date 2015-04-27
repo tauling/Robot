@@ -191,9 +191,9 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
      */
     public void catchObstacle(int radius){
     	int handySurface = 1920*1080;
-    	int ballSurface = Math.pow(radius, 2)*Math.pi;
-    	if(ballsurface/handySurface >= 70){
-    		//lower bar
+    	int ballSurface = (int) (Math.pow(radius, 2)*Math.PI);
+    	if(ballSurface/handySurface >= 70){
+    		Log.e(TAG, "lower bar NOW!");
     	}
     }
     
