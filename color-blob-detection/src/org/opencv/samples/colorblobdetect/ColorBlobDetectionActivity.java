@@ -186,6 +186,18 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
     }
     
     //TODO: add comment
+    /**
+     * should maybe return a boolean...
+     */
+    public void catchObstacle(int radius){
+    	int handySurface = 1920*1080;
+    	int ballSurface = Math.pow(radius, 2)*Math.pi;
+    	if(ballsurface/handySurface >= 70){
+    		//lower bar
+    	}
+    }
+    
+    //TODO: add comment
     public int computeRadius(List<MatOfPoint> contours, Point center){
     	if(contours.isEmpty()){
     		return 0;
