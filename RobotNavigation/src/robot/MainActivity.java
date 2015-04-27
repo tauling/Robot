@@ -549,6 +549,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 	}
 	
+	//TODO: add comment; use this method in onCameraFrame
 	public Point lowestPt (Mat mRgba){
 		Point lowPt = null;
 		if (mIsColorSelected) {
