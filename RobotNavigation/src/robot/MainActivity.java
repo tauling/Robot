@@ -147,6 +147,17 @@ public class MainActivity extends Activity implements OnTouchListener,
 		} catch (Exception e) {
 		}
 	}
+	
+	public void buttonGetBlob_onClick(View v) {
+		  Mat src =  new Mat(1, 1, CvType.CV_32FC2);
+		  Mat dest = new Mat(1, 1, CvType.CV_32FC2);
+		  Point lowestPoint = lowestPt();
+		  robot.writeLog("Found ball on cam at x = " + lowestPoint.x + " and y = " + lowestPoint.y);
+		  src.put(0, 0, new double[] { lowestPoint.x, lowestPoint.y }); // ps is a point in image coordinates
+		  Core.perspectiveTransform(src, dest, homographyMatrix);
+		  Point dest_point = new Point(dest.get(0, 0)[0], dest.get(0, 0)[1]);
+		  robot.writeLog("Found Blob at x = " + dest_point.x + " and y = " + dest_point.y);
+	}
 
 	public void buttonOneMeter_onClick(View v) {
 		Thread t = new Thread() {
@@ -499,6 +510,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	// TODO: add comment
+	// TODO: Unstable method; improve
 	public int computeRadius(List<MatOfPoint> contours, Point center) {
 		if (contours.isEmpty()) {
 			return 0;
@@ -550,16 +562,17 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 	
 	//TODO: add comment; use this method in onCameraFrame
-	public Point lowestPt (Mat mRgba){
+	public Point lowestPt (){
 		Point lowPt = null;
 		if (mIsColorSelected) {
 			mDetector.process(mRgba);
 			List<MatOfPoint> contours = mDetector.getContours();
 			Point center = computeCenterPt(contours);
 			int rad = computeRadius(contours, center);
+			robot.writeLog("Radius: " + rad);
 
-			Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
-			int radius = Math.min(mRgba.cols() / 4, mRgba.rows() / 4);
+//			Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
+//			int radius = Math.min(mRgba.cols() / 4, mRgba.rows() / 4);
 
 			lowPt = new Point(center.x, center.y + rad);
 		}
