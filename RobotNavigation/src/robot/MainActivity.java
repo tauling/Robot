@@ -370,6 +370,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private Mat mSpectrum;
 	private Size SPECTRUM_SIZE;
 	private Scalar CONTOUR_COLOR;
+	
+	private List<Scalar> myColors = new ArrayList<Scalar>(); //TODO: find better name
 
 	private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -463,15 +465,18 @@ public class MainActivity extends Activity implements OnTouchListener,
 			mBlobColorHsv.val[i] /= pointCount;
 
 		mBlobColorRgba = converScalarHsv2Rgba(mBlobColorHsv);
+		//add mBlobColorHsv in myColors-list; ignores Rgba color
+		myColors.add(mBlobColorHsv);
 
 		Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", "
 				+ mBlobColorRgba.val[1] + ", " + mBlobColorRgba.val[2] + ", "
 				+ mBlobColorRgba.val[3] + ")");
 
-		mDetector.setHsvColor(mBlobColorHsv);
+		Log.i(TAG, "saved colors: "+myColors.size());
+		mDetector.setHsvColor(myColors);
 
-		Imgproc.resize(mDetector.getSpectrum(), mSpectrum, SPECTRUM_SIZE);
-
+		Log.i(TAG,"spectrum for img resize: "+ mDetector.getSpectrum().get(mDetector.getSpectrum().size()-1).toString());
+		Imgproc.resize(mDetector.getSpectrum().get(mDetector.getSpectrum().size()-1), mSpectrum, SPECTRUM_SIZE);
 		mIsColorSelected = true;
 
 		touchedRegionRgba.release();
