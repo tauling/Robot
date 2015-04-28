@@ -1,6 +1,7 @@
 package robot;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -147,16 +148,22 @@ public class MainActivity extends Activity implements OnTouchListener,
 		} catch (Exception e) {
 		}
 	}
-	
+
 	public void buttonGetBlob_onClick(View v) {
-		  Mat src =  new Mat(1, 1, CvType.CV_32FC2);
-		  Mat dest = new Mat(1, 1, CvType.CV_32FC2);
-		  Point lowestPoint = lowestPt();
-		  robot.writeLog("Found ball on cam at x = " + lowestPoint.x + " and y = " + lowestPoint.y);
-		  src.put(0, 0, new double[] { lowestPoint.x, lowestPoint.y }); // ps is a point in image coordinates
-		  Core.perspectiveTransform(src, dest, homographyMatrix);
-		  Point dest_point = new Point(dest.get(0, 0)[0], dest.get(0, 0)[1]);
-		  robot.writeLog("Found Blob at x = " + dest_point.x + " and y = " + dest_point.y);
+		Mat src = new Mat(1, 1, CvType.CV_32FC2);
+		Mat dest = new Mat(1, 1, CvType.CV_32FC2);
+		Point lowestPoint = lowestPt();
+		robot.writeLog("Found ball on cam at x = " + lowestPoint.x
+				+ " and y = " + lowestPoint.y);
+		src.put(0, 0, new double[] { lowestPoint.x, lowestPoint.y }); // ps is a
+																		// point
+																		// in
+																		// image
+																		// coordinates
+		Core.perspectiveTransform(src, dest, homographyMatrix);
+		Point dest_point = new Point(dest.get(0, 0)[0], dest.get(0, 0)[1]);
+		robot.writeLog("Found Blob at x = " + dest_point.x + " and y = "
+				+ dest_point.y);
 	}
 
 	public void buttonOneMeter_onClick(View v) {
@@ -542,15 +549,21 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return area;
 	}
 
+	public void separateContours() {
+		if (mIsColorSelected) {
+			mDetector.process(mRgba);
+			mDetector.getContours();
+		}
+	}
+
 	// TODO: add comment
 	/**
 	 * robot explores workspace and rotates to ball
 	 */
-	public void rotate360searchObstacles(CvCameraViewFrame inputFrame) {
+	public void rotate360searchObstacles() {
 		int turn = 0;
 		while (turn < 360) {
 			robot.turnRobot(5, 'r');
-			mRgba = inputFrame.rgba();
 			if (mIsColorSelected) {
 				mDetector.process(mRgba);
 				List<MatOfPoint> contours = mDetector.getContours();
@@ -560,9 +573,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 			}
 		}
 	}
-	
-	//TODO: add comment; use this method in onCameraFrame
-	public Point lowestPt (){
+
+	// TODO: add comment; use this method in onCameraFrame
+	public Point lowestPt() {
 		Point lowPt = null;
 		if (mIsColorSelected) {
 			mDetector.process(mRgba);
@@ -571,8 +584,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 			int rad = computeRadius(contours, center);
 			robot.writeLog("Radius: " + rad);
 
-//			Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
-//			int radius = Math.min(mRgba.cols() / 4, mRgba.rows() / 4);
+			// Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
+			// int radius = Math.min(mRgba.cols() / 4, mRgba.rows() / 4);
 
 			lowPt = new Point(center.x, center.y + rad);
 		}
@@ -587,21 +600,31 @@ public class MainActivity extends Activity implements OnTouchListener,
 			mDetector.process(mRgba);
 			int camSurface = mRgba.height() * mRgba.width();
 			List<MatOfPoint> contours = mDetector.getContours();
-			Point center = computeCenterPt(contours);
-			int rad = computeRadius(contours, center);
 			int ballSurface = computeContourArea(contours);
-			Log.e(TAG, "centerPoint:" + center.toString());
-			Log.e(TAG, "Contours count: " + contours.size());
-			Log.e(TAG, "Contour area size: " + ballSurface);
-			Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
-			int radius = Math.min(mRgba.cols() / 4, mRgba.rows() / 4);
-			int radius2 = (int) Math.sqrt(ballSurface / Math.PI);
+			int counter = 0;
+			Log.e(TAG, "found areas: " + contours.size());
+			for (MatOfPoint area : contours) {
+				List<MatOfPoint> area2 = new ArrayList<MatOfPoint>();
+				area2.add(area);
+				Point center = computeCenterPt(area2);
+				int rad = computeRadius(area2, center);
+				Scalar color = null;
+				Scalar red = new Scalar(20);
+				Scalar black = new Scalar(128);
+				if (counter % 2 == 0) {
+					color = red;
+				} else {
+					color = black;
+				}
+				Core.circle(mRgba, center, 10, new Scalar(20), -1);
+				Core.circle(mRgba, center, rad, color, 5);
+				Point lowestPoint = new Point(center.x, center.y + rad);
+				Core.circle(mRgba, lowestPoint, 10, color, 5);
+				Imgproc.drawContours(mRgba, area2, -1, color,-1);
+				counter++;
+			}
+			counter = 0;
 			Scalar color = new Scalar(128);
-			Core.circle(mRgba, center, 10, new Scalar(20), -1);
-			Core.circle(mRgba, center, rad, color, 5);
-			Point lowestPoint = new Point(center.x, center.y + rad);
-
-			Core.circle(mRgba, lowestPoint, 10, color, 5);
 
 			Mat colorLabel = mRgba.submat(4, 68, 4, 68);
 			colorLabel.setTo(mBlobColorRgba);
