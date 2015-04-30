@@ -23,6 +23,7 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import robot.generated.R;
+import robot.navigate.Ball;
 import robot.navigate.Robot;
 import robot.opencv.ColorBlobDetector;
 
@@ -370,8 +371,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private Mat mSpectrum;
 	private Size SPECTRUM_SIZE;
 	private Scalar CONTOUR_COLOR;
-	
-	private List<Scalar> myColors = new ArrayList<Scalar>(); //TODO: find better name
+
+	private List<Scalar> myColors = new ArrayList<Scalar>(); // TODO: find
+																// better name
+
+	private List<Ball> myBalls = new ArrayList<Ball>(); // TODO: find better
+														// name
 
 	private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -465,18 +470,24 @@ public class MainActivity extends Activity implements OnTouchListener,
 			mBlobColorHsv.val[i] /= pointCount;
 
 		mBlobColorRgba = converScalarHsv2Rgba(mBlobColorHsv);
-		//add mBlobColorHsv in myColors-list; ignores Rgba color
+		// add mBlobColorHsv in myColors-list; ignores Rgba color
 		myColors.add(mBlobColorHsv);
 
 		Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", "
 				+ mBlobColorRgba.val[1] + ", " + mBlobColorRgba.val[2] + ", "
 				+ mBlobColorRgba.val[3] + ")");
 
-		Log.i(TAG, "saved colors: "+myColors.size());
+		Log.i(TAG, "saved colors: " + myColors.size());
 		mDetector.setHsvColor(myColors);
 
-		Log.i(TAG,"spectrum for img resize: "+ mDetector.getSpectrum().get(mDetector.getSpectrum().size()-1).toString());
-		Imgproc.resize(mDetector.getSpectrum().get(mDetector.getSpectrum().size()-1), mSpectrum, SPECTRUM_SIZE);
+		Log.i(TAG,
+				"spectrum for img resize: "
+						+ mDetector.getSpectrum()
+								.get(mDetector.getSpectrum().size() - 1)
+								.toString());
+		Imgproc.resize(
+				mDetector.getSpectrum().get(mDetector.getSpectrum().size() - 1),
+				mSpectrum, SPECTRUM_SIZE);
 		mIsColorSelected = true;
 
 		touchedRegionRgba.release();
@@ -597,22 +608,75 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return lowPt;
 	}
 
-	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		mRgba = inputFrame.rgba();
-		// Mat mRgbaT = inputFrame.rgba();
+	public Point computeAvgPt(ArrayList<Point> points) {
+		Point avgPoint = new Point(0.0, 0.0);
+		for (Point p : points) {
+			avgPoint.x += p.x;
+			avgPoint.y += p.y;
+		}
+		avgPoint.x = avgPoint.x / points.size();
+		avgPoint.y = avgPoint.y / points.size();
+		return avgPoint;
+	}
 
+	public Point computeTargetPt() {
+		Point target = new Point();
+		Mat src = new Mat(1, 1, CvType.CV_32FC2);
+		Mat dest = new Mat(1, 1, CvType.CV_32FC2);
+		ArrayList<Point> avgLowPt = new ArrayList<Point>();
+		// do 20 measurements
+		for (int i = 0; i < 20; i++) {
+			avgLowPt.add(lowestPt());
+		}
+		Point avgPt = computeAvgPt(avgLowPt);
+		double TOL = 5.0;
+		for (Point pt : avgLowPt) {
+			if (Math.abs(pt.x - avgPt.x) > TOL
+					|| Math.abs(pt.y - avgPt.y) > TOL) {
+				pt.x = avgPt.x;
+				pt.y = avgPt.y;
+			}
+		}
+		avgPt = computeAvgPt(avgLowPt);
+		robot.writeLog("Found ball on cam at x = " + avgPt.x + " and y = "
+				+ avgPt.y);
+		src.put(0, 0, new double[] { avgPt.x, avgPt.y }); // ps is a
+															// point
+															// in
+															// image
+															// coordinates
+		Core.perspectiveTransform(src, dest, homographyMatrix);
+		Point dest_point = new Point(dest.get(0, 0)[0], dest.get(0, 0)[1]);
+		robot.writeLog("Found Blob at x = " + dest_point.x + " and y = "
+				+ dest_point.y);
+		target.x = dest_point.x;
+		target.y = dest_point.y;
+		return target;
+	}
+
+	public void printBallInfo() {
+		Log.i(TAG, "ball amount" + myBalls.size());
+		for (Ball b : myBalls) {
+			Log.i(TAG, b.getId() + " .ball position:" + b.getPos()
+					+ "lowest point" + b.getLowPt());
+		}
+	}
+
+	// TODO: refactor name
+	public Mat detectBalls() {
 		if (mIsColorSelected) {
 			mDetector.process(mRgba);
-			int camSurface = mRgba.height() * mRgba.width();
 			List<MatOfPoint> contours = mDetector.getContours();
-			int ballSurface = computeContourArea(contours);
-			int counter = 0;
+			int counter = 0; //needed to point different areas with different colors
 			Log.e(TAG, "found areas: " + contours.size());
 			for (MatOfPoint area : contours) {
-				List<MatOfPoint> area2 = new ArrayList<MatOfPoint>();
-				area2.add(area);
-				Point center = computeCenterPt(area2);
-				int rad = computeRadius(area2, center);
+
+				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
+				ballArea.add(area);
+
+				Point target = computeTargetPt();
+				Point center = computeCenterPt(ballArea);
+				int rad = computeRadius(ballArea, center);
 				Scalar color = null;
 				Scalar red = new Scalar(20);
 				Scalar black = new Scalar(128);
@@ -625,23 +689,37 @@ public class MainActivity extends Activity implements OnTouchListener,
 				Core.circle(mRgba, center, rad, color, 5);
 				Point lowestPoint = new Point(center.x, center.y + rad);
 				Core.circle(mRgba, lowestPoint, 10, color, 5);
-				Imgproc.drawContours(mRgba, area2, -1, color,-1);
+				Imgproc.drawContours(mRgba, ballArea, -1, color, -1);
+				Ball detectedBall = new Ball(target, lowestPoint);
+				// add only new balls to myBalls-list
+				double TOL = 5.0;
+				Point detectedBallPos = detectedBall.getPos(); //refactor variable name
+				for (Ball b : myBalls) {
+					Point bPos = b.getPos();
+					if (Math.abs(bPos.x - detectedBallPos.x) > TOL
+							|| Math.abs(bPos.y - detectedBallPos.y) > TOL) {
+						myBalls.add(detectedBall);
+					}
+				}
 				counter++;
 			}
 			counter = 0;
-			Scalar color = new Scalar(128);
-
-			Mat colorLabel = mRgba.submat(4, 68, 4, 68);
-			colorLabel.setTo(mBlobColorRgba);
-
-			Mat spectrumLabel = mRgba.submat(4, 4 + mSpectrum.rows(), 70,
-					70 + mSpectrum.cols());
-			mSpectrum.copyTo(spectrumLabel);
-			// mRgbaT = mRgba.t();
-
-			// Core.flip(mRgba.t(),mRgbaT,1);
-			// Imgproc.resize(mRgbaT, mRgbaT, mRgba.size());
 		}
+		return mRgba;
+	}
+
+	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+		mRgba = inputFrame.rgba();
+
+		mRgba = detectBalls();
+		printBallInfo();
+
+		Mat colorLabel = mRgba.submat(4, 68, 4, 68);
+		colorLabel.setTo(mBlobColorRgba);
+
+		Mat spectrumLabel = mRgba.submat(4, 4 + mSpectrum.rows(), 70,
+				70 + mSpectrum.cols());
+		mSpectrum.copyTo(spectrumLabel);
 
 		return mRgba;
 	}
