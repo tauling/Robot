@@ -934,6 +934,63 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 	}
 
+	/**
+	 * Turns robot for a maximum of 360°, stops when ball is adjusted to the center of the camera frame. 
+	 * 
+	 * @return true if ball is found, false otherwise.
+	 */
+	public boolean turnAndFindABall() {
+		// TODO
+		return false;
+		
+	}
+	
+	/**
+	 * Detects a ball.
+	 * 
+	 * @return Ball object if found, null otherwise.
+	 */
+	public Ball detectOneBall() {
+		if (turnAndFindABall()) {
+			// TODO
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Drives to the ball and cages it.
+	 * 
+	 * @param ball the ball to cage
+	 */
+	public void driveToBallAndCage(Ball ball) {
+		// TODO
+	}
+	
+	/**
+	 * Takes a camera point and calculates its ground plane coordinates.
+	 * 
+	 * @param cameraPoint
+	 * @return ground plane coordinates of camera point
+	 */
+	public Point getGroundPlaneCoordinates(Point cameraPoint) {
+		// TODO
+		return null;
+	}
+	
+	/**
+	 * Moves to target; ignores obstacles.
+	 * 
+	 * @param target target position
+	 */
+	public void moveToGoalWithoutObstAvoidance(Point target) {
+		// TODO: This method probably already exists; otherwise it might be
+		// a good idea to merge this method with some moveToGoal-Method.
+	}
+	
+	
+	// TODO needed?
+	// TODO if so, write comment
 	private Scalar converScalarHsv2Rgba(Scalar hsvColor) {
 		Mat pointMatRgba = new Mat();
 		Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, hsvColor);
