@@ -251,6 +251,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="left"
                     android:layout_weight="0.38"
+                    android:layout_row="1"
                		 android:onClick="button3_onClick"
                     android:text="Homography" />
                 

@@ -673,11 +673,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		inputFrame.rgba().copyTo(mRgbaWork);
 		mRgbaOutput = inputFrame.rgba();
-
-		Mat tempmRgba = new Mat();
-		inputFrame.rgba().copyTo(tempmRgba);
+	//	Mat tempmRgba = new Mat();
+	//	inputFrame.rgba().copyTo(tempmRgba);
 		// Mat mRgbaT = inputFrame.rgba();
 
 		// if (mIsColorSelected) {
@@ -715,9 +713,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 		// the lower this figure the more spurious circles you get
 		// 50 looks good in CANNY, but 100 is better when converting that into
 		// Hough circles
-		for (Scalar hsvColor : myColors) {
+//		for (Scalar hsvColor : myColors) {
 			// int iCannyUpperThreshold = 100;
-			Mat grayImg = mDetector.filter(tempmRgba, hsvColor);
+//			Mat grayImg = mDetector.filter(tempmRgba, hsvColor);
 			// Mat ccircles = new Mat();
 			// Point pt;
 			// int radius;
@@ -744,7 +742,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			// // draw a cross on the centre of the circle
 			// Core.circle(mRgba, pt, 5, new Scalar(128), 1);
 			// }
-			detectBalls(grayImg);
+			//detectBalls(grayImg);
 
 			// List<MatOfPoint> contours = mDetector.findContours(grayImg);
 			// Log.e(TAG, "found areas: " + contours.size());
@@ -783,7 +781,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			// detectBalls(grayImg);
 			// Log.i(TAG,"detected Balls: " + myBalls.size());
 			// mRgba = grayImg;
-		}
+	//	}
 
 		// mRgba = drawBalls(mRgba);
 
@@ -1023,6 +1021,8 @@ public List<Point> findCirclesOnCamera() {
 	 * @return Ball object if found, null otherwise.
 	 */
 	public Ball detectOneBall() {
+		mRgbaWork = new Mat();
+		mRgbaOutput.copyTo(mRgbaWork); 
 		Ball detectedBall = null;
 		if (turnAndFindABall()) {
 			for (Scalar hsvColor : myColors) {
