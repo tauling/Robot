@@ -350,7 +350,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 					try {
 						robot.writeLog(i++
 								+ ". try: searching homography Matrix.");
-						homographyMatrix = mDetector.getHomographyMatrix(mRgba);
+						homographyMatrix = mDetector
+								.getHomographyMatrix(mRgbaOutput);
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						// do nothing
@@ -368,7 +369,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private static final String TAG = "OCVSample::Activity";
 
 	private boolean mIsColorSelected = false;
-	private Mat mRgba;
+	private Mat mRgbaOutput;
+	private Mat mRgbaWork;
 	private Scalar mBlobColorRgba;
 	private Scalar mBlobColorHsv;
 	private ColorBlobDetector mDetector;
@@ -425,7 +427,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	public void onCameraViewStarted(int width, int height) {
-		mRgba = new Mat(height, width, CvType.CV_8UC4);
+		mRgbaOutput = new Mat(height, width, CvType.CV_8UC4);
 		mDetector = new ColorBlobDetector();
 		mSpectrum = new Mat();
 		mBlobColorRgba = new Scalar(255);
@@ -435,12 +437,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	public void onCameraViewStopped() {
-		mRgba.release();
+		mRgbaOutput.release();
 	}
 
 	public boolean onTouch(View v, MotionEvent event) {
-		int cols = mRgba.cols();
-		int rows = mRgba.rows();
+		int cols = mRgbaOutput.cols();
+		int rows = mRgbaOutput.rows();
 		int xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
 		int yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
 		int x = (int) event.getX() - xOffset;
@@ -455,7 +457,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 				- touchedRect.x;
 		touchedRect.height = (y + 4 < rows) ? y + 4 - touchedRect.y : rows
 				- touchedRect.y;
-		Mat touchedRegionRgba = mRgba.submat(touchedRect);
+		Mat touchedRegionRgba = mRgbaOutput.submat(touchedRect);
 		Mat touchedRegionHsv = new Mat();
 		Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv,
 				Imgproc.COLOR_RGB2HSV_FULL);
@@ -610,7 +612,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	public void separateContours() {
 		if (mIsColorSelected) {
-			mDetector.process(mRgba);
+			mDetector.process(mRgbaOutput);
 			mDetector.getContours();
 		}
 	}
@@ -623,7 +625,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		int turn = 0;
 		while (turn < 360) {
 			robot.turnRobot(5, 'r');
-			detectBalls(mRgba);
+			detectBalls(mRgbaOutput);
 		}
 	}
 
@@ -631,7 +633,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	public Point lowestPt() {
 		Point lowPt = null;
 		if (mIsColorSelected) {
-			mDetector.process(mRgba);
+			mDetector.process(mRgbaOutput);
 			List<MatOfPoint> contours = mDetector.getContours();
 			Point center = computeCenterPt(contours);
 			double rad = computeRadius3(contours, center);
@@ -654,7 +656,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public Boolean alignToBall(Ball ball) {
 		Boolean aligned = false;
-		double centerXAxis = mRgba.width() / 2;
+		double centerXAxis = mRgbaOutput.width() / 2;
 		double TOL = 2.0;
 		while (!aligned) {
 			Point ballCenter = ball.getBallCenterCameraFrame();
@@ -671,7 +673,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		mRgba = inputFrame.rgba();
+		inputFrame.rgba().copyTo(mRgbaWork);
+		mRgbaOutput = inputFrame.rgba();
+
 		Mat tempmRgba = new Mat();
 		inputFrame.rgba().copyTo(tempmRgba);
 		// Mat mRgbaT = inputFrame.rgba();
@@ -792,7 +796,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		// 70 + mSpectrum.cols());
 		// mSpectrum.copyTo(spectrumLabel);
 
-		return mRgba;
+		return mRgbaOutput;
 	}
 
 	// TODO Needed?
@@ -908,13 +912,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 			double rad = computeRadius3(ballArea, center);
 
 			Ball detectedBall = new Ball(center, pointGroundPlane, rad);
-			
+
 			alignToBall(detectedBall);
 
-			Core.circle(mRgba, center, 10, new Scalar(20), -1);
-			Core.circle(mRgba, center, (int) rad, new Scalar(50), 5);
+			Core.circle(mRgbaOutput, center, 10, new Scalar(20), -1);
+			Core.circle(mRgbaOutput, center, (int) rad, new Scalar(50), 5);
 			Point lowestPoint = new Point(center.x, center.y + rad);
-			Core.circle(mRgba, lowestPoint, 10, new Scalar(50), 5);
+			Core.circle(mRgbaOutput, lowestPoint, 10, new Scalar(50), 5);
 
 			// add only new balls to myBalls-list
 			double TOL = 30;
@@ -935,38 +939,88 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	/**
-	 * Turns robot for a maximum of 360°, stops when ball is adjusted to the center of the camera frame. 
+	 * Turns robot for a maximum of 360°, stops when ball is adjusted to the
+	 * center of the camera frame.
 	 * 
 	 * @return true if ball is found, false otherwise.
 	 */
 	public boolean turnAndFindABall() {
 		// TODO
 		return false;
-		
+
 	}
-	
+
+	/**
+	 * Finds the centers of all circles on camera.
+	 * 
+	 * @return a list of centers of circles that are currently present on the
+	 *         camera frame
+	 */
+	public List<Point> findCirclesOnCamera() {
+		List<Point> circleCenters = new ArrayList<Point>();
+
+		for (Scalar hsvColor : myColors) {
+			Mat grayImg = new Mat();
+			grayImg = mDetector.filter(mRgbaWork, hsvColor);
+
+			List<MatOfPoint> contours = mDetector.findContours(grayImg);
+
+			Log.e(TAG, "found areas: " + contours.size());
+			for (MatOfPoint area : contours) {
+
+				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
+				ballArea.add(area);
+
+				Point center = computeCenterPt(ballArea);
+
+				circleCenters.add(center);
+			}
+		}
+
+		return circleCenters;
+	}
+
 	/**
 	 * Detects a ball.
 	 * 
 	 * @return Ball object if found, null otherwise.
 	 */
 	public Ball detectOneBall() {
+		Ball detectedBall = null;
 		if (turnAndFindABall()) {
-			// TODO
+			for (Scalar hsvColor : myColors) {
+				Mat grayImg = new Mat();
+				grayImg = mDetector.filter(mRgbaWork, hsvColor);
+				List<MatOfPoint> contours = mDetector.findContours(grayImg);
+				Log.e(TAG, "found areas: " + contours.size());
+				for (MatOfPoint area : contours) {
+
+					List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
+					ballArea.add(area);
+
+					Point center = computeCenterPt(ballArea);
+					double rad = computeRadius3(ballArea, center);
+					Point lowestPoint = new Point(center.x, center.y + rad);
+					Point pointGroundPlane = getGroundPlaneCoordinates(lowestPoint);
+
+					detectedBall = new Ball(center, pointGroundPlane, rad);
+				}
+			}
 		}
-		
-		return null;
+
+		return detectedBall;
 	}
-	
+
 	/**
 	 * Drives to the ball and cages it.
 	 * 
-	 * @param ball the ball to cage
+	 * @param ball
+	 *            the ball to cage
 	 */
 	public void driveToBallAndCage(Ball ball) {
 		// TODO
 	}
-	
+
 	/**
 	 * Takes a camera point and calculates its ground plane coordinates.
 	 * 
@@ -974,21 +1028,32 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * @return ground plane coordinates of camera point
 	 */
 	public Point getGroundPlaneCoordinates(Point cameraPoint) {
-		// TODO
-		return null;
+		Mat src = new Mat(1, 1, CvType.CV_32FC2);
+		Mat dest = new Mat(1, 1, CvType.CV_32FC2);
+		src.put(0, 0, new double[] { cameraPoint.x, cameraPoint.y }); // ps is a
+																		// point
+																		// in
+																		// image
+																		// coordinates
+		Core.perspectiveTransform(src, dest, homographyMatrix); // homography is
+																// your
+																// homography
+																// matrix
+		Point pointGroundCoord = new Point(dest.get(0, 0)[0], dest.get(0, 0)[1]);
+		return pointGroundCoord;
 	}
-	
+
 	/**
 	 * Moves to target; ignores obstacles.
 	 * 
-	 * @param target target position
+	 * @param target
+	 *            target position
 	 */
 	public void moveToGoalWithoutObstAvoidance(Point target) {
 		// TODO: This method probably already exists; otherwise it might be
 		// a good idea to merge this method with some moveToGoal-Method.
 	}
-	
-	
+
 	// TODO needed?
 	// TODO if so, write comment
 	private Scalar converScalarHsv2Rgba(Scalar hsvColor) {
