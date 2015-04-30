@@ -674,8 +674,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		mRgbaOutput = inputFrame.rgba();
-	//	Mat tempmRgba = new Mat();
-	//	inputFrame.rgba().copyTo(tempmRgba);
+		// Mat tempmRgba = new Mat();
+		// inputFrame.rgba().copyTo(tempmRgba);
 		// Mat mRgbaT = inputFrame.rgba();
 
 		// if (mIsColorSelected) {
@@ -713,75 +713,75 @@ public class MainActivity extends Activity implements OnTouchListener,
 		// the lower this figure the more spurious circles you get
 		// 50 looks good in CANNY, but 100 is better when converting that into
 		// Hough circles
-//		for (Scalar hsvColor : myColors) {
-			// int iCannyUpperThreshold = 100;
-//			Mat grayImg = mDetector.filter(tempmRgba, hsvColor);
-			// Mat ccircles = new Mat();
-			// Point pt;
-			// int radius;
-			// Imgproc.cvtColor(grayImg, grayImg, Imgproc.COLOR_RGB2GRAY);
-			// Imgproc.HoughCircles(grayImg, ccircles,
-			// Imgproc.CV_HOUGH_GRADIENT, 4.0, mRgba.rows() / 4,
-			// iCannyUpperThreshold, 70, 20, 400);
+		// for (Scalar hsvColor : myColors) {
+		// int iCannyUpperThreshold = 100;
+		// Mat grayImg = mDetector.filter(tempmRgba, hsvColor);
+		// Mat ccircles = new Mat();
+		// Point pt;
+		// int radius;
+		// Imgproc.cvtColor(grayImg, grayImg, Imgproc.COLOR_RGB2GRAY);
+		// Imgproc.HoughCircles(grayImg, ccircles,
+		// Imgproc.CV_HOUGH_GRADIENT, 4.0, mRgba.rows() / 4,
+		// iCannyUpperThreshold, 70, 20, 400);
 
-			// mRgba = grayImg;
+		// mRgba = grayImg;
 
-			// if (ccircles.cols() > 0)
-			// for (int x = 0; x < Math.min(ccircles.cols(), 10); x++)
-			// {
-			// double vCircle[] = ccircles.get(0,x);
-			//
-			// if (vCircle == null)
-			// break;
-			//
-			// pt = new Point(Math.round(vCircle[0]), Math.round(vCircle[1]));
-			// radius = (int)Math.round(vCircle[2]);
-			// // draw the found circle
-			// Core.circle(mRgba, pt, radius, new Scalar(128), 5);
-			//
-			// // draw a cross on the centre of the circle
-			// Core.circle(mRgba, pt, 5, new Scalar(128), 1);
-			// }
-			//detectBalls(grayImg);
+		// if (ccircles.cols() > 0)
+		// for (int x = 0; x < Math.min(ccircles.cols(), 10); x++)
+		// {
+		// double vCircle[] = ccircles.get(0,x);
+		//
+		// if (vCircle == null)
+		// break;
+		//
+		// pt = new Point(Math.round(vCircle[0]), Math.round(vCircle[1]));
+		// radius = (int)Math.round(vCircle[2]);
+		// // draw the found circle
+		// Core.circle(mRgba, pt, radius, new Scalar(128), 5);
+		//
+		// // draw a cross on the centre of the circle
+		// Core.circle(mRgba, pt, 5, new Scalar(128), 1);
+		// }
+		// detectBalls(grayImg);
 
-			// List<MatOfPoint> contours = mDetector.findContours(grayImg);
-			// Log.e(TAG, "found areas: " + contours.size());
-			// for (MatOfPoint area : contours) {
-			//
-			// List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
-			// ballArea.add(area);
-			//
-			// Point center = computeCenterPt(ballArea);
-			// // Point pointGroundPlane = computePointGroundPlane();
-			// Point pointGroundPlane = null; // TODO implement (don't forget to
-			// // add the robot's pos coordinates)
-			// double rad = computeRadius3(ballArea, center);
-			//
-			// Ball detectedBall = new Ball(center, pointGroundPlane, rad);
-			//
-			// Log.i(TAG, "Found ball at " + center + " with radius " + rad);
-			// Core.circle(mRgba, center, 10, new Scalar(20), -1);
-			// Core.circle(mRgba, center, (int) rad, new Scalar(50), 5);
-			// Point lowestPoint = new Point(center.x, center.y + rad);
-			// Core.circle(mRgba, lowestPoint, 10, new Scalar(50), 5);
+		// List<MatOfPoint> contours = mDetector.findContours(grayImg);
+		// Log.e(TAG, "found areas: " + contours.size());
+		// for (MatOfPoint area : contours) {
+		//
+		// List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
+		// ballArea.add(area);
+		//
+		// Point center = computeCenterPt(ballArea);
+		// // Point pointGroundPlane = computePointGroundPlane();
+		// Point pointGroundPlane = null; // TODO implement (don't forget to
+		// // add the robot's pos coordinates)
+		// double rad = computeRadius3(ballArea, center);
+		//
+		// Ball detectedBall = new Ball(center, pointGroundPlane, rad);
+		//
+		// Log.i(TAG, "Found ball at " + center + " with radius " + rad);
+		// Core.circle(mRgba, center, 10, new Scalar(20), -1);
+		// Core.circle(mRgba, center, (int) rad, new Scalar(50), 5);
+		// Point lowestPoint = new Point(center.x, center.y + rad);
+		// Core.circle(mRgba, lowestPoint, 10, new Scalar(50), 5);
 
-			// for (Ball b : myBalls) {
-			// Point bPos = b.getPosGroundPlane();
-			// if (Math.abs(bPos.x - detectedBallPos.x) > TOL
-			// || Math.abs(bPos.y - detectedBallPos.y) > TOL) {
-			// myBalls.add(detectedBall);
-			// printBallInfo();
-			// } else {
-			// // TODO update radius etc.
-			// }
-			// }
+		// for (Ball b : myBalls) {
+		// Point bPos = b.getPosGroundPlane();
+		// if (Math.abs(bPos.x - detectedBallPos.x) > TOL
+		// || Math.abs(bPos.y - detectedBallPos.y) > TOL) {
+		// myBalls.add(detectedBall);
+		// printBallInfo();
+		// } else {
+		// // TODO update radius etc.
+		// }
+		// }
 
-			// }
+		// }
 
-			// detectBalls(grayImg);
-			// Log.i(TAG,"detected Balls: " + myBalls.size());
-			// mRgba = grayImg;
-	//	}
+		// detectBalls(grayImg);
+		// Log.i(TAG,"detected Balls: " + myBalls.size());
+		// mRgba = grayImg;
+		// }
 
 		// mRgba = drawBalls(mRgba);
 
@@ -936,32 +936,37 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 	}
 
-	public void alignToPoint(Point p){
+	public void alignToPoint(Point p) {
+		Log.i(TAG,"(alignToPoint) p = "+ p.toString());
 		Boolean aligned = false;
 		double centerXAxis = mRgbaOutput.width() / 2;
-		double TOL = 2.0;
+		double TOL = 100.0;
 		while (!aligned) {
 			double ballXAxis = p.x;
 			double diff = centerXAxis - ballXAxis;
 			if (Math.abs(diff) > TOL && diff < 0) {
 				robot.turnRobot(5, 'r');
+				Log.i(TAG,"(alignToPoint) turning right");
 			} else if (Math.abs(diff) > TOL && diff < 0) {
 				robot.turnRobot(2, 'l');
+				Log.i(TAG,"(alignToPoint) turning left");
 			}
 
 		}
+		Log.i(TAG,"(alignToPoint) aligned");
 	}
-	
+
 	/**
-	 * 1) find ball
-	 * 2) cage ball
-	 * 3) move caged ball to target
+	 * 1) find ball 2) cage ball 3) move caged ball to target
 	 */
-	public void findAndDeliverBall(){
+	public void findAndDeliverBall() {
+		Log.i(TAG,"(findAndDeliverPoint) Start");
 		Ball myBall = detectOneBall();
+		Log.i(TAG,"(findAndDeliverPoint) Ready to cage the ball");
 		driveToBallAndCage(myBall);
+		Log.i(TAG,"(findAndDeliverPoint) Ball caged");
 	}
-	
+
 	/**
 	 * Turns robot for a maximum of 360°, stops when ball is adjusted to the
 	 * center of the camera frame.
@@ -973,46 +978,53 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Boolean foundBall = false;
 		int turnedAngle = 0;
 		List<Point> circles = new ArrayList<Point>();
-		while(turnedAngle < 360){
+		Log.i(TAG,"(turnAndFindABall) start");
+		while (turnedAngle < 360 && !foundBall) {
 			circles = findCirclesOnCamera();
-			if(circles.size() > 0){
+			if (circles.size() > 0) {
 				alignToPoint(circles.get(0));
 				foundBall = true;
+				Log.i(TAG,"(turnAndFindABall) found a ball");
 			}
 			robot.turnRobot(5, 'r');
 		}
+		Log.i(TAG,"(turnAndFindABall) Finished");
 		return foundBall;
 
-		}
-
-/**
- * Finds the centers of all circles on camera.
- * 
- * @return a list of centers of circles that are currently present on the
- *         camera frame
- */
-public List<Point> findCirclesOnCamera() {
-	List<Point> circleCenters = new ArrayList<Point>();
-
-	for (Scalar hsvColor : myColors) {
-		Mat grayImg = new Mat();
-		grayImg = mDetector.filter(mRgbaWork, hsvColor);
-
-		List<MatOfPoint> contours = mDetector.findContours(grayImg);
-
-		Log.e(TAG, "found areas: " + contours.size());
-		for (MatOfPoint area : contours) {
-
-			List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
-			ballArea.add(area);
-
-			Point center = computeCenterPt(ballArea);
-
-			circleCenters.add(center);
-		}
 	}
 
-	return circleCenters;
+	/**
+	 * Finds the centers of all circles on camera.
+	 * 
+	 * @return a list of centers of circles that are currently present on the
+	 *         camera frame
+	 */
+	public List<Point> findCirclesOnCamera() {
+		List<Point> circleCenters = new ArrayList<Point>();
+
+		Log.i(TAG,"(findCirclesOnCamera) Searching circles on camera; Number of colors: " + myColors.size());
+		for (Scalar hsvColor : myColors) {
+			Mat grayImg = new Mat();
+			grayImg = mDetector.filter(mRgbaWork, hsvColor);
+
+			List<MatOfPoint> contours = mDetector.findContours(grayImg);
+			Log.i(TAG,"(findCirclesOnCamera) Found following number of contours: " + contours.size());
+
+			for (MatOfPoint area : contours) {
+
+				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
+				ballArea.add(area);
+
+				Point center = computeCenterPt(ballArea);
+
+				circleCenters.add(center);
+			}
+		}
+
+		Log.i(TAG,
+				"(foundCirclesOnCamera) Found circles: " + circleCenters.size());
+
+		return circleCenters;
 	}
 
 	/**
@@ -1020,11 +1032,15 @@ public List<Point> findCirclesOnCamera() {
 	 * 
 	 * @return Ball object if found, null otherwise.
 	 */
-	public Ball detectOneBall() {
+	public Ball detectOneBall() {		
+		Log.i(TAG,
+			"(detectOneBall) start");
 		mRgbaWork = new Mat();
-		mRgbaOutput.copyTo(mRgbaWork); 
+		mRgbaOutput.copyTo(mRgbaWork);
 		Ball detectedBall = null;
 		if (turnAndFindABall()) {
+			Log.i(TAG,
+					"(detectOneBall) Found ball");
 			for (Scalar hsvColor : myColors) {
 				Mat grayImg = new Mat();
 				grayImg = mDetector.filter(mRgbaWork, hsvColor);
@@ -1041,9 +1057,13 @@ public List<Point> findCirclesOnCamera() {
 					Point pointGroundPlane = getGroundPlaneCoordinates(lowestPoint);
 
 					detectedBall = new Ball(center, pointGroundPlane, rad);
+					Log.i(TAG,
+							"(detectOneBall) found ball with following ground coordinates: " + detectedBall.toString());
 				}
 			}
 		}
+		Log.i(TAG,
+				"(detectOneBall) returning ball with following ground coordinates: " + detectedBall.toString());
 
 		return detectedBall;
 	}
@@ -1054,11 +1074,19 @@ public List<Point> findCirclesOnCamera() {
 	 * @param ball
 	 *            the ball to cage
 	 */
-	public void driveToBallAndCage(Ball ball) {
-		Point ballTarget = ball.getPosGroundPlane();
-		robot.MoveToTarget(ballTarget.x, ballTarget.y, 0);
+	public void driveToBallAndCage(Ball ball) {					
+		Log.i(TAG,
+			"(driveToBallAndCage) start");
+		Point ballTarget = ball.getPosGroundPlane();				
+		Log.i(TAG,
+				"(driveToBallAndCage) received groundPlane coordinates of ball: " + ballTarget.toString());			
+		Log.i(TAG,
+				"(driveToBallAndCage) moving to ball: " + ballTarget.toString());
+		robot.MoveToTarget(ballTarget.x, ballTarget.y, 0);			
+		Log.i(TAG,
+				"(driveToBallAndCage) lowering bar");
 		robot.robotSetBar(0);
-		//robot.MoveToTarget(100.0,100.0,0);
+		// robot.MoveToTarget(100.0,100.0,0);
 	}
 
 	/**
@@ -1068,7 +1096,7 @@ public List<Point> findCirclesOnCamera() {
 	 * @return ground plane coordinates of camera point
 	 */
 	public Point getGroundPlaneCoordinates(Point cameraPoint) {
-
+		
 		Mat src = new Mat(1, 1, CvType.CV_32FC2);
 		Mat dest = new Mat(1, 1, CvType.CV_32FC2);
 		src.put(0, 0, new double[] { cameraPoint.x, cameraPoint.y }); // ps is a
@@ -1081,21 +1109,12 @@ public List<Point> findCirclesOnCamera() {
 																// homography
 																// matrix
 		Point pointGroundCoord = new Point(dest.get(0, 0)[0], dest.get(0, 0)[1]);
+		Log.i(TAG,
+				"(getGroundPlaneCoordinates) Found ground plane coordinates: " + pointGroundCoord.toString());
 		return pointGroundCoord;
 	}
+	
 
-	/**
-	 * Moves to target; ignores obstacles.
-	 * 
-	 * @param target
-	 *            target position
-	 */
-	public void moveToGoalWithoutObstAvoidance(Point target) {
-		// TODO: This method probably already exists; otherwise it might be
-		// a good idea to merge this method with some moveToGoal-Method.
-	}
-	
-	
 	// TODO needed?
 	// TODO if so, write comment
 	private Scalar converScalarHsv2Rgba(Scalar hsvColor) {
