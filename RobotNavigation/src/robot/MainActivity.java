@@ -371,6 +371,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private Mat mSpectrum;
 	private Size SPECTRUM_SIZE;
 	private Scalar CONTOUR_COLOR;
+	
+	private int executionInterval = 15; //every 100. frame
 
 	private List<Scalar> myColors = new ArrayList<Scalar>(); // TODO: find
 																// better name
@@ -663,11 +665,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	// TODO: refactor name
-	public Mat detectBalls() {
+	public void detectBalls() {
 		if (mIsColorSelected) {
 			mDetector.process(mRgba);
 			List<MatOfPoint> contours = mDetector.getContours();
-			int counter = 0; //needed to point different areas with different colors
+			int counter = 0; //needed to print different areas with different colors
 			Log.e(TAG, "found areas: " + contours.size());
 			for (MatOfPoint area : contours) {
 
@@ -690,30 +692,35 @@ public class MainActivity extends Activity implements OnTouchListener,
 				Point lowestPoint = new Point(center.x, center.y + rad);
 				Core.circle(mRgba, lowestPoint, 10, color, 5);
 				Imgproc.drawContours(mRgba, ballArea, -1, color, -1);
-				Ball detectedBall = new Ball(target, lowestPoint);
+				//Ball detectedBall = new Ball(target, lowestPoint);
 				// add only new balls to myBalls-list
 				double TOL = 5.0;
-				Point detectedBallPos = detectedBall.getPos(); //refactor variable name
-				for (Ball b : myBalls) {
-					Point bPos = b.getPos();
-					if (Math.abs(bPos.x - detectedBallPos.x) > TOL
-							|| Math.abs(bPos.y - detectedBallPos.y) > TOL) {
-						myBalls.add(detectedBall);
-					}
-				}
+//				Point detectedBallPos = detectedBall.getPos(); //refactor variable name
+//				for (Ball b : myBalls) {
+//					Point bPos = b.getPos();
+//					if (Math.abs(bPos.x - detectedBallPos.x) > TOL
+//							|| Math.abs(bPos.y - detectedBallPos.y) > TOL) {
+//						myBalls.add(detectedBall);
+//					}
+//				}
 				counter++;
 			}
 			counter = 0;
 		}
-		return mRgba;
 	}
 
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		mRgba = inputFrame.rgba();
-
-		mRgba = detectBalls();
-		printBallInfo();
-
+		
+		if(executionInterval > 0){
+			executionInterval--;
+		}else if(executionInterval == 0){
+			detectBalls();
+			//printBallInfo();
+			Log.i(TAG, "detect balls now");
+			robot.writeLog("detect balls now");
+			executionInterval = 15;
+		}
 		Mat colorLabel = mRgba.submat(4, 68, 4, 68);
 		colorLabel.setTo(mBlobColorRgba);
 
