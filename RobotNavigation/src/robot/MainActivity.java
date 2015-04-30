@@ -934,14 +934,50 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 	}
 
+	public void alignToPoint(Point p){
+		Boolean aligned = false;
+		double centerXAxis = mRgba.width() / 2;
+		double TOL = 2.0;
+		while (!aligned) {
+			double ballXAxis = p.x;
+			double diff = centerXAxis - ballXAxis;
+			if (Math.abs(diff) > TOL && diff < 0) {
+				robot.turnRobot(5, 'r');
+			} else if (Math.abs(diff) > TOL && diff < 0) {
+				robot.turnRobot(2, 'l');
+			}
+
+		}
+	}
+	
+	/**
+	 * 1) find ball
+	 * 2) cage ball
+	 * 3) move caged ball to target
+	 */
+	public void findAndDeliverBall(){
+		Ball myBall = detectOneBall();
+		driveToBallAndCage(myBall);
+	}
+	
 	/**
 	 * Turns robot for a maximum of 360°, stops when ball is adjusted to the center of the camera frame. 
 	 * 
 	 * @return true if ball is found, false otherwise.
 	 */
 	public boolean turnAndFindABall() {
-		// TODO
-		return false;
+		Boolean foundBall = false;
+		int turnedAngle = 0;
+		List<Point> circles = new ArrayList<Point>();
+		while(turnedAngle < 360){
+			circles = findCirclesOnCamera();
+			if(circles.size() > 0){
+				alignToPoint(circles.get(0));
+				foundBall = true;
+			}
+			robot.turnRobot(5, 'r');
+		}
+		return foundBall;
 		
 	}
 	
@@ -964,7 +1000,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * @param ball the ball to cage
 	 */
 	public void driveToBallAndCage(Ball ball) {
-		// TODO
+		Point ballTarget = ball.getPosGroundPlane();
+		robot.MoveToTarget(ballTarget.x, ballTarget.y, 0);
+		robot.robotSetBar(0);
+		//robot.MoveToTarget(100.0,100.0,0);
 	}
 	
 	/**
@@ -976,18 +1015,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	public Point getGroundPlaneCoordinates(Point cameraPoint) {
 		// TODO
 		return null;
-	}
-	
-	/**
-	 * Moves to target; ignores obstacles.
-	 * 
-	 * @param target target position
-	 */
-	public void moveToGoalWithoutObstAvoidance(Point target) {
-		// TODO: This method probably already exists; otherwise it might be
-		// a good idea to merge this method with some moveToGoal-Method.
-	}
-	
+	}	
 	
 	// TODO needed?
 	// TODO if so, write comment
