@@ -319,7 +319,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-
+				findAndDeliverBall();
 			};
 		};
 
@@ -938,6 +938,32 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 	}
 
+	public void alignToPoint(Point p){
+		Boolean aligned = false;
+		double centerXAxis = mRgbaOutput.width() / 2;
+		double TOL = 2.0;
+		while (!aligned) {
+			double ballXAxis = p.x;
+			double diff = centerXAxis - ballXAxis;
+			if (Math.abs(diff) > TOL && diff < 0) {
+				robot.turnRobot(5, 'r');
+			} else if (Math.abs(diff) > TOL && diff < 0) {
+				robot.turnRobot(2, 'l');
+			}
+
+		}
+	}
+	
+	/**
+	 * 1) find ball
+	 * 2) cage ball
+	 * 3) move caged ball to target
+	 */
+	public void findAndDeliverBall(){
+		Ball myBall = detectOneBall();
+		driveToBallAndCage(myBall);
+	}
+	
 	/**
 	 * Turns robot for a maximum of 360°, stops when ball is adjusted to the
 	 * center of the camera frame.
@@ -945,39 +971,50 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * @return true if ball is found, false otherwise.
 	 */
 	public boolean turnAndFindABall() {
-		// TODO
-		return false;
 
-	}
-
-	/**
-	 * Finds the centers of all circles on camera.
-	 * 
-	 * @return a list of centers of circles that are currently present on the
-	 *         camera frame
-	 */
-	public List<Point> findCirclesOnCamera() {
-		List<Point> circleCenters = new ArrayList<Point>();
-
-		for (Scalar hsvColor : myColors) {
-			Mat grayImg = new Mat();
-			grayImg = mDetector.filter(mRgbaWork, hsvColor);
-
-			List<MatOfPoint> contours = mDetector.findContours(grayImg);
-
-			Log.e(TAG, "found areas: " + contours.size());
-			for (MatOfPoint area : contours) {
-
-				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
-				ballArea.add(area);
-
-				Point center = computeCenterPt(ballArea);
-
-				circleCenters.add(center);
+		Boolean foundBall = false;
+		int turnedAngle = 0;
+		List<Point> circles = new ArrayList<Point>();
+		while(turnedAngle < 360){
+			circles = findCirclesOnCamera();
+			if(circles.size() > 0){
+				alignToPoint(circles.get(0));
+				foundBall = true;
 			}
+			robot.turnRobot(5, 'r');
+		}
+		return foundBall;
+
 		}
 
-		return circleCenters;
+/**
+ * Finds the centers of all circles on camera.
+ * 
+ * @return a list of centers of circles that are currently present on the
+ *         camera frame
+ */
+public List<Point> findCirclesOnCamera() {
+	List<Point> circleCenters = new ArrayList<Point>();
+
+	for (Scalar hsvColor : myColors) {
+		Mat grayImg = new Mat();
+		grayImg = mDetector.filter(mRgbaWork, hsvColor);
+
+		List<MatOfPoint> contours = mDetector.findContours(grayImg);
+
+		Log.e(TAG, "found areas: " + contours.size());
+		for (MatOfPoint area : contours) {
+
+			List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
+			ballArea.add(area);
+
+			Point center = computeCenterPt(ballArea);
+
+			circleCenters.add(center);
+		}
+	}
+
+	return circleCenters;
 	}
 
 	/**
@@ -1018,7 +1055,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 *            the ball to cage
 	 */
 	public void driveToBallAndCage(Ball ball) {
-		// TODO
+		Point ballTarget = ball.getPosGroundPlane();
+		robot.MoveToTarget(ballTarget.x, ballTarget.y, 0);
+		robot.robotSetBar(0);
+		//robot.MoveToTarget(100.0,100.0,0);
 	}
 
 	/**
@@ -1028,6 +1068,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * @return ground plane coordinates of camera point
 	 */
 	public Point getGroundPlaneCoordinates(Point cameraPoint) {
+
 		Mat src = new Mat(1, 1, CvType.CV_32FC2);
 		Mat dest = new Mat(1, 1, CvType.CV_32FC2);
 		src.put(0, 0, new double[] { cameraPoint.x, cameraPoint.y }); // ps is a
@@ -1053,7 +1094,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		// TODO: This method probably already exists; otherwise it might be
 		// a good idea to merge this method with some moveToGoal-Method.
 	}
-
+	
+	
 	// TODO needed?
 	// TODO if so, write comment
 	private Scalar converScalarHsv2Rgba(Scalar hsvColor) {

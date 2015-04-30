@@ -84,8 +84,6 @@ public class Robot {
 	// range.
 
 	// <- Robot Calibration
-	
-	private List<Point> balls = new ArrayList<Point>();
 
 	private double Xg = 0, Yg = 0; // Position of the robot.
 	private int Tg = 0; // Angle of the robot.
@@ -93,14 +91,6 @@ public class Robot {
 
 	private FTDriver com;
 	private Handler mhandler = new Handler();
-	
-	public void addBall(Point p){
-		this.balls.add(p);
-	}
-	
-	public List<Point> getBalls(){
-		return balls;
-	}
 
 	private class WriteLogRunnable implements Runnable {
 
@@ -850,23 +840,19 @@ public class Robot {
 	public void MoveToTarget(double x, double y, double theta) {
 		int angle = 0, dist, moved, stepLength = 5;
 		Boolean goalReached = false;
-
+		int TOL = 3;
 		while (!goalReached) {
 
 			angle = getAngleToGoal(x, y);
-			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+			dist = getDistanceToGoal(x, y);
 
 			writeLog("Moving to goal at angle " + angle + " in " + dist
 					+ "cm distance");
 
 			turnRobotBalanced(angle, 'r');
 			robotSetLeds(127, 0);
-			moved = 0;
-			while (moved < dist) {
-				moved += stepLength;
-				moveRobot(stepLength);
-			}
-			if (Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)) < stepLength + 1) {
+			moveByVelocity(dist, false);
+			if (getDistanceToGoal(x, y) < TOL) {
 				goalReached = true;
 			}
 		}
