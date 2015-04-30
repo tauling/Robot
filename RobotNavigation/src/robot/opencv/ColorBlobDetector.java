@@ -115,6 +115,53 @@ public class ColorBlobDetector {
 		}
 	}
 
+
+	public Mat filter(Mat rgbaImage, Scalar hsvColor) {
+		Scalar mmLowerBound = new Scalar(0);
+		Scalar mmUpperBound = new Scalar(0);
+		Mat mmPyrDownMat = new Mat();
+		Mat mmHsvMat = new Mat();
+		Mat mmMask = new Mat();
+		Mat mmDilatedMask = new Mat();
+		// Color radius for range checking in HSV color space
+		Scalar mmColorRadius = new Scalar(30, 70, 70, 0);
+		double minH = (hsvColor.val[0] >= mmColorRadius.val[0]) ? hsvColor.val[0]
+				- mmColorRadius.val[0]
+				: 0;
+		double maxH = (hsvColor.val[0] + mmColorRadius.val[0] <= 255) ? hsvColor.val[0]
+				+ mmColorRadius.val[0]
+				: 255;
+
+		mmLowerBound.val[0] = minH;
+		mmUpperBound.val[0] = maxH;
+
+		mmLowerBound.val[1] = hsvColor.val[1] - mmColorRadius.val[1];
+		mmUpperBound.val[1] = hsvColor.val[1] + mmColorRadius.val[1];
+
+		mmLowerBound.val[2] = hsvColor.val[2] - mmColorRadius.val[2];
+		mmUpperBound.val[2] = hsvColor.val[2] + mmColorRadius.val[2];
+
+		mmLowerBound.val[3] = 0;
+		mmUpperBound.val[3] = 255;
+		
+		Imgproc.pyrDown(rgbaImage, mmPyrDownMat);
+		Imgproc.pyrDown(mmPyrDownMat, mmPyrDownMat);
+
+		Imgproc.cvtColor(mmPyrDownMat, mmHsvMat, Imgproc.COLOR_RGB2HSV_FULL);
+
+		Core.inRange(mmHsvMat, mmLowerBound, mmUpperBound, mmMask);
+		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(10,10));
+
+		Imgproc.dilate(mmMask, mmDilatedMask, element);
+		Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
+		
+		Imgproc.threshold(mmDilatedMask, mmDilatedMask, 100, 255, Imgproc.THRESH_BINARY_INV);
+
+		Imgproc.resize(mmDilatedMask, mmDilatedMask, rgbaImage.size());
+		
+		return mmDilatedMask;
+	}
+
 	public List<MatOfPoint> getContours() {
 		return mContours;
 	}
