@@ -319,7 +319,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-
+				findAndDeliverBall();
 			};
 		};
 
