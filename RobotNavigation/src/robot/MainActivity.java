@@ -937,34 +937,35 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	public void alignToPoint(Point p) {
-		Log.i(TAG,"(alignToPoint) p = "+ p.toString());
+		Log.i(TAG, "(alignToPoint) p = " + p.toString());
 		Boolean aligned = false;
 		double centerXAxis = mRgbaOutput.width() / 2;
 		double TOL = 100.0;
+		double ballXAxis = p.x;
 		while (!aligned) {
-			double ballXAxis = p.x;
+			ballXAxis = findCirclesOnCamera().get(0).x;
 			double diff = centerXAxis - ballXAxis;
 			if (Math.abs(diff) > TOL && diff < 0) {
 				robot.turnRobot(5, 'r');
-				Log.i(TAG,"(alignToPoint) turning right");
+				Log.i(TAG, "(alignToPoint) turning right");
 			} else if (Math.abs(diff) > TOL && diff < 0) {
 				robot.turnRobot(2, 'l');
-				Log.i(TAG,"(alignToPoint) turning left");
+				Log.i(TAG, "(alignToPoint) turning left");
 			}
 
 		}
-		Log.i(TAG,"(alignToPoint) aligned");
+		Log.i(TAG, "(alignToPoint) aligned");
 	}
 
 	/**
 	 * 1) find ball 2) cage ball 3) move caged ball to target
 	 */
 	public void findAndDeliverBall() {
-		Log.i(TAG,"(findAndDeliverPoint) Start");
+		Log.i(TAG, "(findAndDeliverPoint) Start");
 		Ball myBall = detectOneBall();
-		Log.i(TAG,"(findAndDeliverPoint) Ready to cage the ball");
+		Log.i(TAG, "(findAndDeliverPoint) Ready to cage the ball");
 		driveToBallAndCage(myBall);
-		Log.i(TAG,"(findAndDeliverPoint) Ball caged");
+		Log.i(TAG, "(findAndDeliverPoint) Ball caged");
 	}
 
 	/**
@@ -978,17 +979,19 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Boolean foundBall = false;
 		int turnedAngle = 0;
 		List<Point> circles = new ArrayList<Point>();
-		Log.i(TAG,"(turnAndFindABall) start");
+		Log.i(TAG, "(turnAndFindABall) start");
 		while (turnedAngle < 360 && !foundBall) {
 			circles = findCirclesOnCamera();
 			if (circles.size() > 0) {
 				alignToPoint(circles.get(0));
+				Log.i(TAG, "(turnAndFindABall) found a ball");
 				foundBall = true;
-				Log.i(TAG,"(turnAndFindABall) found a ball");
+				break;
 			}
 			robot.turnRobot(5, 'r');
+			turnedAngle += 5;
 		}
-		Log.i(TAG,"(turnAndFindABall) Finished");
+		Log.i(TAG, "(turnAndFindABall) Finished");
 		return foundBall;
 
 	}
@@ -1002,13 +1005,17 @@ public class MainActivity extends Activity implements OnTouchListener,
 	public List<Point> findCirclesOnCamera() {
 		List<Point> circleCenters = new ArrayList<Point>();
 
-		Log.i(TAG,"(findCirclesOnCamera) Searching circles on camera; Number of colors: " + myColors.size());
+		Log.i(TAG,
+				"(findCirclesOnCamera) Searching circles on camera; Number of colors: "
+						+ myColors.size());
 		for (Scalar hsvColor : myColors) {
 			Mat grayImg = new Mat();
 			grayImg = mDetector.filter(mRgbaWork, hsvColor);
 
 			List<MatOfPoint> contours = mDetector.findContours(grayImg);
-			Log.i(TAG,"(findCirclesOnCamera) Found following number of contours: " + contours.size());
+			Log.i(TAG,
+					"(findCirclesOnCamera) Found following number of contours: "
+							+ contours.size());
 
 			for (MatOfPoint area : contours) {
 
@@ -1032,15 +1039,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * 
 	 * @return Ball object if found, null otherwise.
 	 */
-	public Ball detectOneBall() {		
-		Log.i(TAG,
-			"(detectOneBall) start");
+	public Ball detectOneBall() {
+		Log.i(TAG, "(detectOneBall) start");
 		mRgbaWork = new Mat();
 		mRgbaOutput.copyTo(mRgbaWork);
 		Ball detectedBall = null;
 		if (turnAndFindABall()) {
-			Log.i(TAG,
-					"(detectOneBall) Found ball");
+			Log.i(TAG, "(detectOneBall) Found ball");
 			for (Scalar hsvColor : myColors) {
 				Mat grayImg = new Mat();
 				grayImg = mDetector.filter(mRgbaWork, hsvColor);
@@ -1058,12 +1063,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 					detectedBall = new Ball(center, pointGroundPlane, rad);
 					Log.i(TAG,
-							"(detectOneBall) found ball with following ground coordinates: " + detectedBall.toString());
+							"(detectOneBall) found ball with following ground coordinates: "
+									+ detectedBall.toString());
 				}
 			}
 		}
 		Log.i(TAG,
-				"(detectOneBall) returning ball with following ground coordinates: " + detectedBall.toString());
+				"(detectOneBall) returning ball with following ground coordinates: "
+						+ detectedBall.toString());
 
 		return detectedBall;
 	}
@@ -1074,17 +1081,16 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * @param ball
 	 *            the ball to cage
 	 */
-	public void driveToBallAndCage(Ball ball) {					
+	public void driveToBallAndCage(Ball ball) {
+		Log.i(TAG, "(driveToBallAndCage) start");
+		Point ballTarget = ball.getPosGroundPlane();
 		Log.i(TAG,
-			"(driveToBallAndCage) start");
-		Point ballTarget = ball.getPosGroundPlane();				
-		Log.i(TAG,
-				"(driveToBallAndCage) received groundPlane coordinates of ball: " + ballTarget.toString());			
+				"(driveToBallAndCage) received groundPlane coordinates of ball: "
+						+ ballTarget.toString());
 		Log.i(TAG,
 				"(driveToBallAndCage) moving to ball: " + ballTarget.toString());
-		robot.MoveToTarget(ballTarget.x, ballTarget.y, 0);			
-		Log.i(TAG,
-				"(driveToBallAndCage) lowering bar");
+		robot.MoveToTarget(ballTarget.x, ballTarget.y, 0);
+		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robot.robotSetBar(0);
 		// robot.MoveToTarget(100.0,100.0,0);
 	}
@@ -1096,7 +1102,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * @return ground plane coordinates of camera point
 	 */
 	public Point getGroundPlaneCoordinates(Point cameraPoint) {
-		
+
 		Mat src = new Mat(1, 1, CvType.CV_32FC2);
 		Mat dest = new Mat(1, 1, CvType.CV_32FC2);
 		src.put(0, 0, new double[] { cameraPoint.x, cameraPoint.y }); // ps is a
@@ -1110,10 +1116,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 																// matrix
 		Point pointGroundCoord = new Point(dest.get(0, 0)[0], dest.get(0, 0)[1]);
 		Log.i(TAG,
-				"(getGroundPlaneCoordinates) Found ground plane coordinates: " + pointGroundCoord.toString());
+				"(getGroundPlaneCoordinates) Found ground plane coordinates: "
+						+ pointGroundCoord.toString());
 		return pointGroundCoord;
 	}
-	
 
 	// TODO needed?
 	// TODO if so, write comment

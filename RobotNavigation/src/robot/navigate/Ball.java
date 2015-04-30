@@ -43,5 +43,9 @@ public class Ball {
 	public void setRadius(int radius) {
 		this.radius = radius;
 	}
+	
+	public String toString(){
+		return "id: "+this.id+"\nposition ground plane" + this.posGroundPlane+"\nballCenterCameraFrame: "+this.ballCenterCameraFrame+"\nradius: "+this.radius;
+	}
 
 }
