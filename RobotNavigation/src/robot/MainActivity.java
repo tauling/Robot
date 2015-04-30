@@ -3,6 +3,7 @@ package robot;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ import jp.ksksue.driver.serial.FTDriver;
 import android.app.Activity;
 import android.graphics.Camera;
 import android.hardware.usb.UsbManager;
+import android.media.Image;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -97,6 +99,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private Robot robot;
 
 	private Mat homographyMatrix;
+
+	private List<Scalar> hsvColors = new LinkedList<Scalar>();
 
 	/**
 	 * Connects to the robot when app is started and initializes the position of
@@ -371,8 +375,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private Mat mSpectrum;
 	private Size SPECTRUM_SIZE;
 	private Scalar CONTOUR_COLOR;
-	
-	private int executionInterval = 15; //every 100. frame
+
+	private int executionInterval = 15; // every 100. frame
 
 	private List<Scalar> myColors = new ArrayList<Scalar>(); // TODO: find
 																// better name
@@ -437,64 +441,39 @@ public class MainActivity extends Activity implements OnTouchListener,
 	public boolean onTouch(View v, MotionEvent event) {
 		int cols = mRgba.cols();
 		int rows = mRgba.rows();
-
 		int xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
 		int yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
-
 		int x = (int) event.getX() - xOffset;
 		int y = (int) event.getY() - yOffset;
-
 		Log.i(TAG, "Touch image coordinates: (" + x + ", " + y + ")");
-
 		if ((x < 0) || (y < 0) || (x > cols) || (y > rows))
 			return false;
-
 		Rect touchedRect = new Rect();
-
 		touchedRect.x = (x > 4) ? x - 4 : 0;
 		touchedRect.y = (y > 4) ? y - 4 : 0;
-
 		touchedRect.width = (x + 4 < cols) ? x + 4 - touchedRect.x : cols
 				- touchedRect.x;
 		touchedRect.height = (y + 4 < rows) ? y + 4 - touchedRect.y : rows
 				- touchedRect.y;
-
 		Mat touchedRegionRgba = mRgba.submat(touchedRect);
-
 		Mat touchedRegionHsv = new Mat();
 		Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv,
 				Imgproc.COLOR_RGB2HSV_FULL);
-
 		// Calculate average color of touched region
 		mBlobColorHsv = Core.sumElems(touchedRegionHsv);
 		int pointCount = touchedRect.width * touchedRect.height;
 		for (int i = 0; i < mBlobColorHsv.val.length; i++)
 			mBlobColorHsv.val[i] /= pointCount;
-
 		mBlobColorRgba = converScalarHsv2Rgba(mBlobColorHsv);
 		// add mBlobColorHsv in myColors-list; ignores Rgba color
 		myColors.add(mBlobColorHsv);
-
 		Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", "
 				+ mBlobColorRgba.val[1] + ", " + mBlobColorRgba.val[2] + ", "
 				+ mBlobColorRgba.val[3] + ")");
-
 		Log.i(TAG, "saved colors: " + myColors.size());
-		mDetector.setHsvColor(myColors);
-
-		Log.i(TAG,
-				"spectrum for img resize: "
-						+ mDetector.getSpectrum()
-								.get(mDetector.getSpectrum().size() - 1)
-								.toString());
-		Imgproc.resize(
-				mDetector.getSpectrum().get(mDetector.getSpectrum().size() - 1),
-				mSpectrum, SPECTRUM_SIZE);
 		mIsColorSelected = true;
-
 		touchedRegionRgba.release();
 		touchedRegionHsv.release();
-
 		return false; // don't need subsequent touch events
 	}
 
@@ -503,7 +482,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		if (contours.isEmpty()) {
 			return (new Point(-200.0, -200.0));
 		}
-		int avgX = 0, avgY = 0, count = 0;
+		double avgX = 0, avgY = 0;
+		int count = 0;
 		for (int i = 0; i < contours.size(); i++) {
 			List<Point> pts = contours.get(i).toList();
 			for (Point p : pts) {
@@ -516,10 +496,41 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return ptCenter;
 	}
 
-	public int distPointToPoint(Point p1, Point p2) {
-		return (int) Math.sqrt(Math.pow(p2.x - p1.x, 2)
-				+ Math.pow(p2.y - p1.y, 2));
+	public double distPointToPoint(Point p1, Point p2) {
+		return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
 	}
+
+	// public void circleDetection(Mat frame) {
+	// // the lower this figure the more spurious circles you get
+	// // 50 looks good in CANNY, but 100 is better when converting that into
+	// Hough circles
+	// int iCannyUpperThreshold = 100;
+	// Mat grayImg = null;
+	// Point pt;
+	// int radius;
+	//
+	// grayImg = CreateImage(frame.size(), 8, 1);
+	// Imgproc.HoughCircles(frame, grayImg, Imgproc.CV_HOUGH_GRADIENT, 2.0,
+	// frame.rows() / 8,
+	// iCannyUpperThreshold, 200, 20, 400);
+	//
+	// if (grayImg.cols() > 0)
+	// for (int x = 0; x < Math.min(grayImg.cols(), 10); x++)
+	// {
+	// double vCircle[] = grayImg.get(0,x);
+	//
+	// if (vCircle == null)
+	// break;
+	//
+	// pt = new Point(Math.round(vCircle[0]), Math.round(vCircle[1]));
+	// radius = (int)Math.round(vCircle[2]);
+	// // draw the found circle
+	// // Core.circle(mRgba, pt, radius, colorRed, iLineThickness);
+	//
+	// // draw a cross on the centre of the circle
+	// // Core.circle(mRgba, pt, 5, , );
+	// }
+	// }
 
 	// TODO: add comment
 	/**
@@ -536,11 +547,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	// TODO: add comment
 	// TODO: Unstable method; improve
-	public int computeRadius(List<MatOfPoint> contours, Point center) {
+	public double computeRadius(List<MatOfPoint> contours, Point center) {
 		if (contours.isEmpty()) {
 			return 0;
 		}
-		int distToCenter = 0;
+		double distToCenter = 0;
 		for (int i = 0; i < contours.size(); i++) {
 			List<Point> pts = contours.get(i).toList();
 			for (Point p : pts) {
@@ -549,6 +560,36 @@ public class MainActivity extends Activity implements OnTouchListener,
 				}
 			}
 		}
+		return distToCenter;
+	}
+
+	// TODO: add comment
+	public int computeRadius2(List<MatOfPoint> contours) {
+		if (contours.isEmpty()) {
+			return 0;
+		}
+		int radius2 = (int) (computeContourArea(contours) / (2 * Math.PI));
+
+		return radius2;
+	}
+
+	// TODO: add comment
+	public double computeRadius3(List<MatOfPoint> contours, Point center) {
+		if (contours.isEmpty()) {
+			return 0;
+		}
+		center = computeCenterPt(contours);
+		double distToCenter = 0;
+		int nrElements = 0;
+		for (int i = 0; i < contours.size(); i++) {
+			List<Point> pts = contours.get(i).toList();
+			for (Point p : pts) {
+				distToCenter += distPointToPoint(p, center);
+			}
+			nrElements += pts.size();
+		}
+		distToCenter = distToCenter / nrElements;
+
 		return distToCenter;
 	}
 
@@ -599,8 +640,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 			mDetector.process(mRgba);
 			List<MatOfPoint> contours = mDetector.getContours();
 			Point center = computeCenterPt(contours);
-			int rad = computeRadius(contours, center);
+			double rad = computeRadius3(contours, center);
 			robot.writeLog("Radius: " + rad);
+			robot.writeLog("Center x = " + center.x + " and y = " + center.y);
 
 			// Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
 			// int radius = Math.min(mRgba.cols() / 4, mRgba.rows() / 4);
@@ -610,6 +652,99 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return lowPt;
 	}
 
+	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+		mRgba = inputFrame.rgba();
+		Mat tempmRgba = new Mat();
+		inputFrame.rgba().copyTo(tempmRgba);
+		// Mat mRgbaT = inputFrame.rgba();
+
+		// if (mIsColorSelected) {
+		// mDetector.process(mRgba);
+		// int camSurface = mRgba.height() * mRgba.width();
+		// List<MatOfPoint> contours = mDetector.getContours();
+		// Point center = computeCenterPt(contours);
+		// double rad = computeRadius3(contours,center);
+		// int ballSurface = computeContourArea(contours);
+		// Log.e(TAG, "centerPoint:" + center.toString());
+		// Log.e(TAG, "Contours count: " + contours.size());
+		// Log.e(TAG, "Contour area size: " + ballSurface);
+		// Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
+		// int radius = Math.min(mRgba.cols() / 4, mRgba.rows() / 4);
+		// int radius2 = (int) Math.sqrt(ballSurface / Math.PI);
+		// Scalar color = new Scalar(128);
+		// Core.circle(mRgba, center, 10, new Scalar(20), -1);
+		// Core.circle(mRgba, center, (int) rad, color, 5);
+		// Point lowestPoint = new Point(center.x, center.y + rad);
+		//
+		// Core.circle(mRgba, lowestPoint, 10, color, 5);
+		//
+		// Mat colorLabel = mRgba.submat(4, 68, 4, 68);
+		// colorLabel.setTo(mBlobColorRgba);
+		//
+		// Mat spectrumLabel = mRgba.submat(4, 4 + mSpectrum.rows(), 70,
+		// 70 + mSpectrum.cols());
+		// mSpectrum.copyTo(spectrumLabel);
+		// // mRgbaT = mRgba.t();
+		//
+		// // Core.flip(mRgba.t(),mRgbaT,1);
+		// // Imgproc.resize(mRgbaT, mRgbaT, mRgba.size());
+		// }
+
+		// the lower this figure the more spurious circles you get
+		// 50 looks good in CANNY, but 100 is better when converting that into
+		// Hough circles
+		for (Scalar hsvColor : myColors) {
+			// int iCannyUpperThreshold = 100;
+			Mat grayImg = mDetector.filter(tempmRgba, hsvColor);
+			// Mat ccircles = new Mat();
+			// Point pt;
+			// int radius;
+			// Imgproc.cvtColor(grayImg, grayImg, Imgproc.COLOR_RGB2GRAY);
+			// Imgproc.HoughCircles(grayImg, ccircles,
+			// Imgproc.CV_HOUGH_GRADIENT, 4.0, mRgba.rows() / 4,
+			// iCannyUpperThreshold, 70, 20, 400);
+
+			// mRgba = grayImg;
+
+			// if (ccircles.cols() > 0)
+			// for (int x = 0; x < Math.min(ccircles.cols(), 10); x++)
+			// {
+			// double vCircle[] = ccircles.get(0,x);
+			//
+			// if (vCircle == null)
+			// break;
+			//
+			// pt = new Point(Math.round(vCircle[0]), Math.round(vCircle[1]));
+			// radius = (int)Math.round(vCircle[2]);
+			// // draw the found circle
+			// Core.circle(mRgba, pt, radius, new Scalar(128), 5);
+			//
+			// // draw a cross on the centre of the circle
+			// Core.circle(mRgba, pt, 5, new Scalar(128), 1);
+			// }
+			detectBalls(grayImg);
+
+			// Log.i(TAG,"detected Balls: " + myBalls.size());
+			// mRgba = grayImg;
+		}
+
+		// mRgba = drawBalls(mRgba);
+
+		// printBallInfo();
+
+		// Mat colorLabel = mRgba.submat(4, 68, 4, 68);
+		// colorLabel.setTo(mBlobColorRgba);
+
+		// Mat spectrumLabel = mRgba.submat(4, 4 + mSpectrum.rows(), 70,
+		// 70 + mSpectrum.cols());
+		// mSpectrum.copyTo(spectrumLabel);
+
+		return mRgba;
+	}
+
+	// TODO Needed?
+	// TODO If so, add comment
+	// TODO move to colorblog-class
 	public Point computeAvgPt(ArrayList<Point> points) {
 		Point avgPoint = new Point(0.0, 0.0);
 		for (Point p : points) {
@@ -621,6 +756,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return avgPoint;
 	}
 
+	// TODO Needed?
+	// TODO If so, add comment
+	// TODO move to colorblog-class
 	public Point computeTargetPt() {
 		Point target = new Point();
 		Mat src = new Mat(1, 1, CvType.CV_32FC2);
@@ -656,79 +794,89 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return target;
 	}
 
+	// TODO Needed?
+	// TODO If so, add comment
+	// TODO move to colorblog-class
+	// TODO refactor "myBalls" (sounds kinky :p)
 	public void printBallInfo() {
-		Log.i(TAG, "ball amount" + myBalls.size());
+		// Log.i(TAG, "ball amount" + myBalls.size());
 		for (Ball b : myBalls) {
-			Log.i(TAG, b.getId() + " .ball position:" + b.getPos()
-					+ "lowest point" + b.getLowPt());
+			Log.i(TAG, b.getId() + " .ball position: " + b.getPosGroundPlane()
+					+ " ball center: " + b.getBallCenterCameraFrame()
+					+ " ball radius: " + b.getRadius());
 		}
+	}
+
+	public Mat drawBalls(Mat mRgbaWithBalls) {
+
+		int counter = 0;
+		for (Ball ball : myBalls) {
+
+			// Just for highlighting
+			Scalar color = null;
+			Scalar red = new Scalar(20);
+			Scalar black = new Scalar(128);
+			if (counter % 2 == 0) {
+				color = red;
+			} else {
+				color = black;
+			}
+
+			Point center = ball.getBallCenterCameraFrame();
+			int rad = (int) ball.getRadius();
+			Core.circle(mRgbaWithBalls, center, 10, new Scalar(20), -1);
+			Core.circle(mRgbaWithBalls, center, (int) rad, color, 5);
+			Point lowestPoint = new Point(center.x, center.y + rad);
+			Core.circle(mRgbaWithBalls, lowestPoint, 10, color, 5);
+			// Imgproc.drawContours(img, ballArea, -1, color, -1);
+
+			counter++;
+		}
+
+		return mRgbaWithBalls;
 	}
 
 	// TODO: refactor name
-	public void detectBalls() {
-		if (mIsColorSelected) {
-			mDetector.process(mRgba);
-			List<MatOfPoint> contours = mDetector.getContours();
-			int counter = 0; //needed to print different areas with different colors
-			Log.e(TAG, "found areas: " + contours.size());
-			for (MatOfPoint area : contours) {
+	// TODO: needed?
+	// TODO: If so, move to colorblog-class
+	// TODO add comment
+	public void detectBalls(Mat img) {
+		List<MatOfPoint> contours = mDetector.findContours(img);
+		Log.e(TAG, "found areas: " + contours.size());
+		for (MatOfPoint area : contours) {
 
-				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
-				ballArea.add(area);
+			List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
+			ballArea.add(area);
 
-				Point target = computeTargetPt();
-				Point center = computeCenterPt(ballArea);
-				int rad = computeRadius(ballArea, center);
-				Scalar color = null;
-				Scalar red = new Scalar(20);
-				Scalar black = new Scalar(128);
-				if (counter % 2 == 0) {
-					color = red;
+			Point center = computeCenterPt(ballArea);
+			// Point pointGroundPlane = computePointGroundPlane();
+			Point pointGroundPlane = null; // TODO implement (don't forget to
+											// add the robot's pos coordinates)
+			double rad = computeRadius3(ballArea, center);
+
+			Ball detectedBall = new Ball(center, pointGroundPlane, rad);
+
+			Core.circle(mRgba, center, 10, new Scalar(20), -1);
+			Core.circle(mRgba, center, (int) rad, new Scalar(50), 5);
+			Point lowestPoint = new Point(center.x, center.y + rad);
+			Core.circle(mRgba, lowestPoint, 10, new Scalar(50), 5);
+
+			// add only new balls to myBalls-list
+			double TOL = 30;
+			Point detectedBallPos = detectedBall.getPosGroundPlane(); // refactor
+																		// variable
+																		// name
+			for (Ball b : myBalls) {
+				Point bPos = b.getPosGroundPlane();
+				if (Math.abs(bPos.x - detectedBallPos.x) > TOL
+						|| Math.abs(bPos.y - detectedBallPos.y) > TOL) {
+					myBalls.add(detectedBall);
+					printBallInfo();
 				} else {
-					color = black;
+					// TODO update radius etc.
 				}
-				Core.circle(mRgba, center, 10, new Scalar(20), -1);
-				Core.circle(mRgba, center, rad, color, 5);
-				Point lowestPoint = new Point(center.x, center.y + rad);
-				Core.circle(mRgba, lowestPoint, 10, color, 5);
-				Imgproc.drawContours(mRgba, ballArea, -1, color, -1);
-				//Ball detectedBall = new Ball(target, lowestPoint);
-				// add only new balls to myBalls-list
-				double TOL = 5.0;
-//				Point detectedBallPos = detectedBall.getPos(); //refactor variable name
-//				for (Ball b : myBalls) {
-//					Point bPos = b.getPos();
-//					if (Math.abs(bPos.x - detectedBallPos.x) > TOL
-//							|| Math.abs(bPos.y - detectedBallPos.y) > TOL) {
-//						myBalls.add(detectedBall);
-//					}
-//				}
-				counter++;
 			}
-			counter = 0;
 		}
-	}
-
-	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		mRgba = inputFrame.rgba();
-		
-		if(executionInterval > 0){
-			executionInterval--;
-		}else if(executionInterval == 0){
-			detectBalls();
-			//printBallInfo();
-			Log.i(TAG, "detect balls now");
-			robot.writeLog("detect balls now");
-			executionInterval = 15;
-		}
-		Mat colorLabel = mRgba.submat(4, 68, 4, 68);
-		colorLabel.setTo(mBlobColorRgba);
-
-		Mat spectrumLabel = mRgba.submat(4, 4 + mSpectrum.rows(), 70,
-				70 + mSpectrum.cols());
-		mSpectrum.copyTo(spectrumLabel);
-
-		return mRgba;
 	}
 
 	private Scalar converScalarHsv2Rgba(Scalar hsvColor) {
