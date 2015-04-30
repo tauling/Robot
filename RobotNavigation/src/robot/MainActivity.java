@@ -939,17 +939,21 @@ public class MainActivity extends Activity implements OnTouchListener,
 	public void alignToPoint(Point p){
 		Boolean aligned = false;
 		double centerXAxis = mRgbaOutput.width() / 2;
-		double TOL = 2.0;
+		double TOL = 100.0;
+		double ballXAxis = p.x;
 		while (!aligned) {
-			double ballXAxis = p.x;
+			ballXAxis = findCirclesOnCamera().get(0).x;
 			double diff = centerXAxis - ballXAxis;
 			if (Math.abs(diff) > TOL && diff < 0) {
 				robot.turnRobot(5, 'r');
-			} else if (Math.abs(diff) > TOL && diff < 0) {
+			} else if (Math.abs(diff) > TOL && diff > 0) {
 				robot.turnRobot(2, 'l');
+			}else{
+				aligned = true;
 			}
 
 		}
+		Log.i(TAG, "robot is aligned to ball");
 	}
 	
 	/**
@@ -973,13 +977,16 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Boolean foundBall = false;
 		int turnedAngle = 0;
 		List<Point> circles = new ArrayList<Point>();
-		while(turnedAngle < 360){
+		while(turnedAngle < 360 && !foundBall){
 			circles = findCirclesOnCamera();
+			Log.i(TAG, "found circles: "+circles.size());
 			if(circles.size() > 0){
 				alignToPoint(circles.get(0));
 				foundBall = true;
+				break;
 			}
 			robot.turnRobot(5, 'r');
+			turnedAngle += 5;
 		}
 		return foundBall;
 
@@ -1058,6 +1065,7 @@ public List<Point> findCirclesOnCamera() {
 		Point ballTarget = ball.getPosGroundPlane();
 		robot.MoveToTarget(ballTarget.x, ballTarget.y, 0);
 		robot.robotSetBar(0);
+		Log.i(TAG, "lower bar (cage ball)");
 		//robot.MoveToTarget(100.0,100.0,0);
 	}
 
