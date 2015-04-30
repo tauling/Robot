@@ -722,8 +722,45 @@ public class MainActivity extends Activity implements OnTouchListener,
 			// // draw a cross on the centre of the circle
 			// Core.circle(mRgba, pt, 5, new Scalar(128), 1);
 			// }
-			detectBalls(grayImg);
+//			detectBalls(grayImg);
 
+			List<MatOfPoint> contours = mDetector.findContours(grayImg);
+			Log.e(TAG, "found areas: " + contours.size());
+			for (MatOfPoint area : contours) {
+
+				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
+				ballArea.add(area);
+
+				Point center = computeCenterPt(ballArea);
+				// Point pointGroundPlane = computePointGroundPlane();
+				Point pointGroundPlane = null; // TODO implement (don't forget to
+												// add the robot's pos coordinates)
+				double rad = computeRadius3(ballArea, center);
+
+				Ball detectedBall = new Ball(center, pointGroundPlane, rad);
+
+				Log.i(TAG, "Found ball at " + center + " with radius " + rad);
+				Core.circle(mRgba, center, 10, new Scalar(20), -1);
+				Core.circle(mRgba, center, (int) rad, new Scalar(50), 5);
+				Point lowestPoint = new Point(center.x, center.y + rad);
+				Core.circle(mRgba, lowestPoint, 10, new Scalar(50), 5);
+
+		
+//				for (Ball b : myBalls) {
+//					Point bPos = b.getPosGroundPlane();
+//					if (Math.abs(bPos.x - detectedBallPos.x) > TOL
+//							|| Math.abs(bPos.y - detectedBallPos.y) > TOL) {
+//						myBalls.add(detectedBall);
+//						printBallInfo();
+//					} else {
+//						// TODO update radius etc.
+//					}
+//				}
+
+				
+			}
+			
+//			detectBalls(grayImg);
 			// Log.i(TAG,"detected Balls: " + myBalls.size());
 			// mRgba = grayImg;
 		}
