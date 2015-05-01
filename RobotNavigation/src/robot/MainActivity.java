@@ -48,8 +48,6 @@ import android.widget.TextView;
 public class MainActivity extends Activity implements OnTouchListener,
 		CvCameraViewListener2 {
 
-	// TODO: Create a class "Robot" with public and private methods
-
 	// TODO: Working Demos -> rename to Examination Task 1
 
 	// TODO: Fix: (x,y) are switched in move to goal methods
@@ -62,34 +60,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// TODO: Add button to stop all threads
 
 	// TODO: Add a function that allows to drive curves (and updates odometry)
-
-	// TODO: Detect green and red blobs
-
-	// TODO: Detect a ball and calculate it's lowest position (where it touches
-	// the surface)
-
-	// TODO: Move to the ball and use the robot's cage to catch it.
-
-	// TODO: Detect multiple balls at the same time
-
-	// TODO: Also detect blue, yellow, black and white blobs
-
-	// TODO: explore workspace
-
-	// TODO: catch ball -> drive to target corner
-
-	// TODO: Calculate the homography matrix using the function Mat
-	// getHomographyMatrix(Mat mRgba) (see below). It uses a chessboard pattern
-	// as shown in the picture. Add a new button to the menu for performing this
-	// action. (You will receive sheets with the correct chessboard pattern.)
-
-	// TODO: Calculate distance and angle from the robot to the bottom point of
-	// a detected blob using your homography matrix. Display it in a live feed.
-
-	// TODO: Detect multiple objects (of identical or distinct colors) and find
-	// their bottom points using the homography matrix.
-
-	// TODO: Cage ball and move it to a given position
 
 	// TODO: Explore workspace and remember positions of all balls
 
@@ -331,7 +301,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.robotSetBar(120);
+				robot.robotSetBar(126);
 				findAndDeliverBall();
 			};
 		};
@@ -345,7 +315,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-
+				for(int i=0;i<12;i++){
+					robot.turnRobot(30, 'r');
+				}
 			};
 		};
 
@@ -715,9 +687,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 			double ballXAxis = ballCenter.x;
 			double diff = centerXAxis - ballXAxis;
 			if (Math.abs(diff) > TOL && diff < 0) {
-				robot.turnRobot(5, 'r');
+				robot.turnRobotBalanced(15, 'r');
 			} else if (Math.abs(diff) > TOL && diff < 0) {
-				robot.turnRobot(2, 'l');
+				robot.turnRobotBalanced(10, 'l');
 			}
 
 		}
@@ -891,7 +863,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Boolean aligned = false;
 		double centerXAxis = mRgbaOutput.width() / 2;
 		Log.i(TAG, "robot Camera xAxis: " + centerXAxis);
-		double TOL = 200.0;
+		double TOL = 150.0;
 		double ballXAxis = p.x;
 		while (!aligned) {
 			ballXAxis = findCirclesOnCamera().get(0).x;
@@ -899,10 +871,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 			double diff = centerXAxis - ballXAxis;
 			Log.i(TAG, "axis difference:" + diff);
 			if (Math.abs(diff) > TOL && diff < 0) {
-				robot.turnRobot(5, 'r');
+				robot.turnRobotBalanced(15, 'r');
 				Log.i(TAG, "(alignToPoint) turning right");
 			} else if (Math.abs(diff) > TOL && diff > 0) {
-				robot.turnRobot(2, 'l');
+				robot.turnRobotBalanced(10, 'l');
 				Log.i(TAG, "(alignToPoint) turning left");
 			} else {
 				aligned = true;
@@ -916,7 +888,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * 1) find ball 2) cage ball 3) move caged ball to target
 	 */
 	public void findAndDeliverBall() {
-		Position finalPos = new Position(120, 120, 45);
+		Position finalPos = new Position(70, 70, 45);
 		Log.i(TAG, "(findAndDeliverPoint) Start");
 		robot.writeLog("(findAndDeliverPoint) Start");
 		Ball myBall = detectOneBall();
@@ -949,8 +921,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 				foundBall = true;
 				break;
 			}
-			robot.turnRobot(5, 'r');
-			turnedAngle += 5;
+			robot.turnRobotBalanced(30, 'r');
+			turnedAngle += 30;
 		}
 		Log.i(TAG, "(turnAndFindABall) Finished");
 		return foundBall;
@@ -1061,7 +1033,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Log.i(TAG,
 				"(driveToBallAndCage) moving to ball: " + ballTarget.toString());
 		robot.writeLog("(driveToBallAndCage) moving to ball: " + ballTarget.toString());
-		robot.MoveToTarget(ballTarget.y, ballTarget.x, 0);
+		robot.MoveToTarget(ballTarget.y, ballTarget.x, robot.getAngleToGoal(ballTarget.x,ballTarget.y), 7.5);
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robot.writeLog("(driveToBallAndCage) lowering bar");
 		robot.robotSetBar(0);
@@ -1071,7 +1043,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Log.i(TAG, "(driveToBallAndCage) move to final Position" + finalPos);
 		robot.writeLog("(driveToBallAndCage) move to final Position" + finalPos);
 		robot.MoveToTarget(finalPosY, finalPosX, finalTheta);
-		robot.robotSetBar(120);
+		robot.robotSetBar(126);
+		robot.moveRobot(-25);
+		robot.turnRobotBalanced(180, 'r');
+		robot.MoveToTarget(0.0, 0.0, 0.0);
 	}
 
 	/**

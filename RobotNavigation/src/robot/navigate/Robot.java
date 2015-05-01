@@ -54,11 +54,12 @@ public class Robot {
 
 	private double CorrFactMoveForwardByVel = (303.0 / 650.0) * (100.0 / 98.0)
 			* (101.0 / 98.0) * (103.0 / 102.0);
-	private double CorrFactAngleByDist = (8.0 / 7.0) * (360.0 / 365.0); // Should be
-																	// set, such
-																	// that
+	private double CorrFactAngleByDist = 360.0/268.0; // Should
+																		// be
+	// set, such
+	// that
 	private double CorrFactAngleByVel = 100;
-	
+
 	// turnRobot(360)
 	// rotates for exactly 360 degrees.
 	private final int IdSensorLeft = 7; // Call findSensorIDs() to determine the
@@ -81,12 +82,11 @@ public class Robot {
 										// sensor
 	// measures distances correctly in its working
 	// range.
-	
 
 	// <- Robot Calibration
 
 	private Position myPos = new Position(0, 0, 0);
-	
+
 	private int balancedAngle = 0;
 
 	private FTDriver com;
@@ -241,9 +241,9 @@ public class Robot {
 	private void writeLog(long value) {
 		new Thread(new WriteLogRunnable(value + "\n")).start();
 	}
-	
+
 	// TODO write description; Fix
-	public void turnByVelocity(int angle,char dir) {
+	public void turnByVelocity(int angle, char dir) {
 
 		double start = System.currentTimeMillis(); // [ms]
 		double curTime = start;
@@ -262,7 +262,7 @@ public class Robot {
 		case 'l':
 			writeLog("Turning left");
 		}
-		
+
 		comReadWrite(new byte[] { 'i', (byte) velocity, (byte) -velocity, '\r',
 				'\n' });
 		while (curTime <= end) {
@@ -271,7 +271,7 @@ public class Robot {
 		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' });
 		double movedTime = curTime - start;
 
-		updateRotation((int) (movedTime * angle), 'r');		
+		updateRotation((int) (movedTime * angle), 'r');
 	}
 
 	/**
@@ -320,7 +320,8 @@ public class Robot {
 		movementY = Math.sin(Math.toRadians((double) myPos.theta)) * stepLength;
 		myPos.x += movementX;
 		myPos.y += movementY;
-		writeLog("my Position: (" + myPos.x + "," + myPos.y + "," + myPos.theta + ")");
+		writeLog("my Position: (" + myPos.x + "," + myPos.y + "," + myPos.theta
+				+ ")");
 	}
 
 	// TODO Add description
@@ -332,7 +333,8 @@ public class Robot {
 
 	// TODO Add description
 	public int getDistanceToGoal(double x, double y) {
-		return (int) Math.sqrt(Math.pow(x - myPos.x, 2) + Math.pow(y - myPos.y, 2));
+		return (int) Math.sqrt(Math.pow(x - myPos.x, 2)
+				+ Math.pow(y - myPos.y, 2));
 	}
 
 	// TODO Add description
@@ -383,7 +385,8 @@ public class Robot {
 			break;
 		}
 		myPos.theta = reduceAngle(myPos.theta);
-		writeLog("my Position: (" + myPos.x + "," + myPos.y + "," + myPos.theta + ")");
+		writeLog("my Position: (" + myPos.x + "," + myPos.y + "," + myPos.theta
+				+ ")");
 	}
 
 	/**
@@ -425,8 +428,10 @@ public class Robot {
 	 */
 	public Boolean[] driveToIntersectionMLine(int max_dist, int goal_x,
 			int goal_y) {
-		double x_ofIntersection = (myPos.y - (myPos.x * Math.tan(Math.toRadians(myPos.theta))))
-				/ ((((double) goal_y) / goal_x) - (Math.tan(Math.toRadians(myPos.theta))));
+		double x_ofIntersection = (myPos.y - (myPos.x * Math.tan(Math
+				.toRadians(myPos.theta))))
+				/ ((((double) goal_y) / goal_x) - (Math.tan(Math
+						.toRadians(myPos.theta))));
 		double y_ofIntersection = x_ofIntersection * ((double) goal_y) / goal_x;
 		double dist = Math
 				.min(getDistanceToGoal(x_ofIntersection, y_ofIntersection),
@@ -767,7 +772,8 @@ public class Robot {
 			obstacleFound = false;
 
 			angle = getAngleToGoal(x, y);
-			dist = (int) Math.sqrt(Math.pow(x - myPos.x, 2) + Math.pow(y - myPos.y, 2));
+			dist = (int) Math.sqrt(Math.pow(x - myPos.x, 2)
+					+ Math.pow(y - myPos.y, 2));
 
 			writeLog("Moving to goal at angle " + angle + " in " + dist
 					+ "cm distance");
@@ -854,17 +860,23 @@ public class Robot {
 	}
 
 	public void MoveToTarget(double x, double y, double theta) {
+		MoveToTarget(x, y, theta,0.0);
+	}
+	
+	public void MoveToTarget(double x, double y, double theta,double offset) {
 		int angle = 0, dist, moved, stepLength = 5;
 		Boolean goalReached = false;
-		int TOL = 3;
+		int TOL = 5;
 		while (!goalReached) {
 
 			angle = getAngleToGoal(x, y);
 			dist = getDistanceToGoal(x, y);
 
-			writeLog("Moving to goal at angle " + angle + " in " + dist
-					+ "cm distance");
 
+			writeLog("Moving to goal at angle " + angle + " in " + dist
+					+ "cm distance"+"-offset of"+offset);
+			dist = (int) (dist -offset);
+			
 			turnRobotBalanced(angle, 'r');
 			robotSetLeds(127, 0);
 			moveByVelocity(dist, false);
@@ -872,19 +884,19 @@ public class Robot {
 				goalReached = true;
 			}
 		}
-		turnRobotBalanced((int)theta - myPos.theta, 'r');
+		turnRobotBalanced((int) theta - myPos.theta, 'r');
 		robotSetLeds(127, 127);
 	}
-	
-	public void resetPosition(){
+
+	public void resetPosition() {
 		myPos = new Position(0.0, 0.0, 0);
 	}
-	
+
 	public Position getMyPosition() {
 		return myPos;
 	}
-	
-	public int getTg(){
+
+	public int getTg() {
 		return myPos.theta;
 	}
 }
