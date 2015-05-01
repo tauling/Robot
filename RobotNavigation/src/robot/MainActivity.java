@@ -887,6 +887,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public void alignToPoint(Point p) {
 		Log.i(TAG, "(alignToPoint) p = " + p.toString());
+		robot.writeLog("(alignToPoint) p = " + p.toString());
 		Boolean aligned = false;
 		double centerXAxis = mRgbaOutput.width() / 2;
 		Log.i(TAG, "robot Camera xAxis: " + centerXAxis);
@@ -908,6 +909,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			}
 		}
 		Log.i(TAG, "(alignToPoint) aligned");
+		robot.writeLog("(alignToPoint) aligned");
 	}
 
 	/**
@@ -916,10 +918,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 	public void findAndDeliverBall() {
 		Position finalPos = new Position(120, 120, 45);
 		Log.i(TAG, "(findAndDeliverPoint) Start");
+		robot.writeLog("(findAndDeliverPoint) Start");
 		Ball myBall = detectOneBall();
 		Log.i(TAG, "(findAndDeliverPoint) Ready to cage the ball");
+		robot.writeLog("(findAndDeliverPoint) Ready to cage the ball");
 		driveToBallAndCage(myBall, finalPos);
 		Log.i(TAG, "(findAndDeliverPoint) Ball caged");
+		robot.writeLog("Ball caged");
 	}
 
 	/**
@@ -998,11 +1003,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public Ball detectOneBall() {
 		Log.i(TAG, "(detectOneBall) start");
+		robot.writeLog("(detectOneBall) start");
 		mRgbaWork = new Mat();
 		mRgbaOutput.copyTo(mRgbaWork);
 		Ball detectedBall = null;
 		if (turnAndFindABall()) {
 			Log.i(TAG, "(detectOneBall) Found ball");
+			robot.writeLog("(detectOneBall) Found ball");
 			for (Scalar hsvColor : myColors) {
 				Mat grayImg = new Mat();
 				grayImg = mDetector.filter(mRgbaWork, hsvColor);
@@ -1022,11 +1029,15 @@ public class MainActivity extends Activity implements OnTouchListener,
 					Log.i(TAG,
 							"(detectOneBall) found ball with following ground coordinates: "
 									+ detectedBall.toString());
+					robot.writeLog("(detectOneBall) found ball with following ground coordinates: "
+									+ detectedBall.toString());
 				}
 			}
 		}
 		Log.i(TAG,
 				"(detectOneBall) returning ball with following ground coordinates: "
+						+ detectedBall.toString());
+		robot.writeLog("(detectOneBall) returning ball with following ground coordinates: "
 						+ detectedBall.toString());
 
 		return detectedBall;
@@ -1040,12 +1051,16 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public void driveToBallAndCage(Ball ball, Position finalPos) {
 		Log.i(TAG, "(driveToBallAndCage) start");
+		robot.writeLog("(driveToBallAndCage) start");
 		Point ballTarget = ball.getPosGroundPlane();
 		Log.i(TAG,
 				"(driveToBallAndCage) received groundPlane coordinates of ball: "
 						+ ballTarget.toString());
+		robot.writeLog("(driveToBallAndCage) received groundPlane coordinates of ball: "
+						+ ballTarget.toString());
 		Log.i(TAG,
 				"(driveToBallAndCage) moving to ball: " + ballTarget.toString());
+		robot.writeLog("(driveToBallAndCage) moving to ball: " + ballTarget.toString());
 		robot.MoveToTarget(ballTarget.x, ballTarget.y, 0);
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robot.robotSetBar(0);
@@ -1053,6 +1068,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		double finalPosY = finalPos.y;
 		double finalTheta = finalPos.theta;
 		Log.i(TAG, "move to final Position" + finalPos);
+		robot.writeLog("move to final position"+finalPos);
 		robot.MoveToTarget(finalPosX, finalPosY, finalTheta);
 		robot.robotSetBar(120);
 	}
