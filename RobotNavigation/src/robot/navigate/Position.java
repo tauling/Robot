@@ -30,6 +30,10 @@ public class Position implements Comparable<Object>{
 	public void setTheta(int theta) {
 		this.theta = theta;
 	}
+	
+	public String toString(){
+		return "{"+this.x+"|"+this.y+"|"+this.theta+"}";
+	}
 
 	public double minus(Position two){
 		return Math.sqrt(Math.pow(this.x - two.getX(), 2) + Math.pow(this.y - two.getY(), 2));

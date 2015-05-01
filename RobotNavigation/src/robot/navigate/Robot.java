@@ -856,5 +856,7 @@ public class Robot {
 				goalReached = true;
 			}
 		}
+		turnRobotBalanced((int)theta - Tg, 'r');
+		robotSetLeds(127, 127);
 	}
 }

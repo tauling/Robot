@@ -252,8 +252,14 @@
                     android:layout_gravity="left"
                     android:layout_weight="0.38"
                     android:layout_row="1"
-               		 android:onClick="button3_onClick"
+               		android:onClick="button3_onClick"
                     android:text="Homography" />
+
+                <Button
+                    android:id="@+id/button8"
+                    android:layout_gravity="left"
+                    android:onClick="ButtonfindCirclesOnClick"
+                    android:text="findCircles" />
                 
             </GridLayout>
             

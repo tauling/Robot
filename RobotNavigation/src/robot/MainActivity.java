@@ -25,6 +25,7 @@ import org.opencv.imgproc.Imgproc;
 
 import robot.generated.R;
 import robot.navigate.Ball;
+import robot.navigate.Position;
 import robot.navigate.Robot;
 import robot.opencv.ColorBlobDetector;
 
@@ -319,6 +320,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
+				robot.robotSetBar(120);
 				findAndDeliverBall();
 			};
 		};
@@ -358,6 +360,19 @@ public class MainActivity extends Activity implements OnTouchListener,
 					}
 				}
 				robot.writeLog("Homography Matrix found.");
+			};
+		};
+
+		t.start();
+	}
+	
+	public void ButtonfindCirclesOnClick(View v) {
+
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				List<Point> circles = findCirclesOnCamera();
 			};
 		};
 
@@ -940,19 +955,23 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Log.i(TAG, "(alignToPoint) p = " + p.toString());
 		Boolean aligned = false;
 		double centerXAxis = mRgbaOutput.width() / 2;
-		double TOL = 100.0;
+		Log.i(TAG, "robot Camera xAxis: "+centerXAxis);
+		double TOL = 200.0;
 		double ballXAxis = p.x;
 		while (!aligned) {
 			ballXAxis = findCirclesOnCamera().get(0).x;
+			Log.i(TAG, "ball xAxis: "+ballXAxis);
 			double diff = centerXAxis - ballXAxis;
+			Log.i(TAG, "axis difference:"+ diff);
 			if (Math.abs(diff) > TOL && diff < 0) {
 				robot.turnRobot(5, 'r');
 				Log.i(TAG, "(alignToPoint) turning right");
-			} else if (Math.abs(diff) > TOL && diff < 0) {
+			} else if (Math.abs(diff) > TOL && diff > 0) {
 				robot.turnRobot(2, 'l');
 				Log.i(TAG, "(alignToPoint) turning left");
+			} else {
+				aligned = true;
 			}
-
 		}
 		Log.i(TAG, "(alignToPoint) aligned");
 	}
@@ -961,10 +980,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * 1) find ball 2) cage ball 3) move caged ball to target
 	 */
 	public void findAndDeliverBall() {
+		Position finalPos = new Position(120, 120, 45);
 		Log.i(TAG, "(findAndDeliverPoint) Start");
 		Ball myBall = detectOneBall();
 		Log.i(TAG, "(findAndDeliverPoint) Ready to cage the ball");
-		driveToBallAndCage(myBall);
+		driveToBallAndCage(myBall, finalPos);
 		Log.i(TAG, "(findAndDeliverPoint) Ball caged");
 	}
 
@@ -983,6 +1003,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		while (turnedAngle < 360 && !foundBall) {
 			circles = findCirclesOnCamera();
 			if (circles.size() > 0) {
+				Log.i(TAG, "found circle x:"+ circles.get(0).x+" y:"+circles.get(0).y);
 				alignToPoint(circles.get(0));
 				Log.i(TAG, "(turnAndFindABall) found a ball");
 				foundBall = true;
@@ -1081,7 +1102,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * @param ball
 	 *            the ball to cage
 	 */
-	public void driveToBallAndCage(Ball ball) {
+	public void driveToBallAndCage(Ball ball, Position finalPos) {
 		Log.i(TAG, "(driveToBallAndCage) start");
 		Point ballTarget = ball.getPosGroundPlane();
 		Log.i(TAG,
@@ -1092,7 +1113,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 		robot.MoveToTarget(ballTarget.x, ballTarget.y, 0);
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robot.robotSetBar(0);
-		// robot.MoveToTarget(100.0,100.0,0);
+		double finalPosX = finalPos.getX();
+		double finalPosY = finalPos.getY();
+		double finalTheta = finalPos.getTheta();
+		Log.i(TAG, "move to final Position"+finalPos);
+		robot.MoveToTarget(finalPosX,finalPosY,finalTheta);
+		robot.robotSetBar(120);
 	}
 
 	/**
@@ -1114,10 +1140,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 																// your
 																// homography
 																// matrix
-		Point pointGroundCoord = new Point(dest.get(0, 0)[0], dest.get(0, 0)[1]);
+		Point pointGroundCoord = new Point(dest.get(0, 0)[0] / 10, dest.get(0, 0)[1] / 10);
 		Log.i(TAG,
 				"(getGroundPlaneCoordinates) Found ground plane coordinates: "
 						+ pointGroundCoord.toString());
+		// TODO Add robot's current position
 		return pointGroundCoord;
 	}
 
