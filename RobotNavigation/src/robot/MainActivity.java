@@ -401,6 +401,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * list which stores all found balls
 	 */
 	private List<Ball> foundBalls = new ArrayList<Ball>();
+	
+	List<Point> circleCenters = new ArrayList<Point>();
 
 	private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -697,8 +699,16 @@ public class MainActivity extends Activity implements OnTouchListener,
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		mRgbaOutput = inputFrame.rgba();
 		mRgbaWork = inputFrame.rgba();
-
-		findCirclesOnCamera();
+		int frameInterval = 0;
+		if(frameInterval == executionInterval){
+			findCirclesOnCamera();
+			frameInterval = 0;
+		}
+		if(!circleCenters.isEmpty()){
+			for(Point circleCenter:circleCenters)
+				Core.circle(mRgbaOutput, circleCenter, 10, new Scalar(20), -1);
+		}
+		frameInterval++;
 
 		return mRgbaOutput;
 	}
@@ -920,8 +930,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 *         camera frame
 	 */
 	public List<Point> findCirclesOnCamera() {
-		List<Point> circleCenters = new ArrayList<Point>();
-
+		circleCenters = new ArrayList<Point>();
 		Log.i(TAG,
 				"(findCirclesOnCamera) Searching circles on camera; Number of colors: "
 						+ myColors.size());
@@ -940,8 +949,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 				ballArea.add(area);
 
 				Point center = computeCenterPt(ballArea);
-
-				Core.circle(mRgbaOutput, center, 10, new Scalar(20), -1);
 
 				circleCenters.add(center);
 				Log.i(TAG, "(findCirclesOnCamera) Found circle on camera at: "
