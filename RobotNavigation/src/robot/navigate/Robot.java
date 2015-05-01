@@ -57,9 +57,11 @@ public class Robot {
 
 	private double CorrFactMoveForwardByVel = (303.0 / 650.0) * (100.0 / 98.0)
 			* (101.0 / 98.0) * (103.0 / 102.0);
-	private double CorrFactAngle = (8.0 / 7.0) * (360.0 / 365.0); // Should be
+	private double CorrFactAngleByDist = (8.0 / 7.0) * (360.0 / 365.0); // Should be
 																	// set, such
 																	// that
+	private double CorrFactAngleByVel = 1;
+	
 	// turnRobot(360)
 	// rotates for exactly 360 degrees.
 	private final int IdSensorLeft = 7; // Call findSensorIDs() to determine the
@@ -254,6 +256,38 @@ public class Robot {
 		Yg = 0;
 		Tg = 0;
 	}
+	
+	// TODO write description; Fix
+	public void turnByVelocity(int angle,char dir) {
+
+		double start = System.currentTimeMillis(); // [ms]
+		double curTime = start;
+		int velocity = 15;
+		writeLog("startTime: " + (int) start);
+		double speed = velocity * CorrFactAngleByVel;
+		double corrTime = angle / speed; // [ms]
+		double end = start + corrTime;
+		robotSetLeds(0, 127);
+
+		switch (dir) {
+		case 'r':
+			velocity = -velocity;
+			writeLog("Turning right");
+			break;
+		case 'l':
+			writeLog("Turning left");
+		}
+		
+		comReadWrite(new byte[] { 'i', (byte) velocity, (byte) -velocity, '\r',
+				'\n' });
+		while (curTime <= end) {
+			curTime = System.currentTimeMillis();
+		}
+		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' });
+		double movedTime = curTime - start;
+
+		updateRotation((int) (movedTime * angle), 'r');		
+	}
 
 	/**
 	 * Drive by velocity, update position afterwards.
@@ -323,9 +357,11 @@ public class Robot {
 		case '+':
 			writeLog("Rising bar");
 			comReadWrite(new byte[] { '+', '\r', '\n' });
+			break;
 		case '-':
 			writeLog("Lowering bar");
 			comReadWrite(new byte[] { '-', '\r', '\n' });
+			break;
 		}
 
 	}
@@ -537,7 +573,7 @@ public class Robot {
 		updateRotation(angle, dir);
 		int degrees = angle;
 
-		degrees = (int) (CorrFactAngle * degrees);
+		degrees = (int) (CorrFactAngleByDist * degrees);
 
 		switch (dir) {
 		case 'r':

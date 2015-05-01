@@ -183,7 +183,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.04"
-                android:columnCount="2" >
+                android:columnCount="3" >
 
                 <TextView
                     android:id="@+id/textView2"
@@ -224,7 +224,17 @@
                     android:layout_row="1"
                     android:layout_weight="0.04"
                     android:onClick="button360Deg_onClick"
-                    android:text="360°" />
+                    android:text="360° by dist" />
+
+                <Button
+                    android:id="@+id/Button02"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_column="2"
+                    android:layout_row="1"
+                    android:layout_weight="0.04"
+                    android:onClick="button360DegByVel_onClick"
+                    android:text="360° by vel" />
 
                 <Button
                     android:id="@+id/button2"

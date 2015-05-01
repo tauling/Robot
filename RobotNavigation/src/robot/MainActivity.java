@@ -207,6 +207,19 @@ public class MainActivity extends Activity implements OnTouchListener,
 		t.start();
 	}
 
+	public void button360DegByVel_onClick(View v) {
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				robot.turnByVelocity(180, 'r');
+				robot.turnByVelocity(180, 'r');
+			};
+		};
+
+		t.start();
+	}
+
 	public void buttonMinus_onClick(View v) {
 		robot.moveBar('-');
 	}
