@@ -18,9 +18,6 @@ public class Robot {
 	private ScrollView svLog;
 
 	public Robot(TextView textLog, ScrollView svLog, FTDriver com) {
-		this.Xg = 0;
-		this.Yg = 0;
-		this.Tg = 0;
 		this.textLog = textLog;
 		this.svLog = svLog;
 		this.com = com;
@@ -87,8 +84,8 @@ public class Robot {
 
 	// <- Robot Calibration
 
-	private double Xg = 0, Yg = 0; // Position of the robot.
-	private int Tg = 0; // Angle of the robot.
+	private Position myPos = new Position(0, 0, 0);
+	
 	private int balancedAngle = 0;
 
 	private FTDriver com;
@@ -112,10 +109,6 @@ public class Robot {
 				}
 			});
 		}
-	}
-	
-	public int getTg() {
-		return Tg;
 	}
 
 	/**
@@ -247,15 +240,6 @@ public class Robot {
 	private void writeLog(long value) {
 		new Thread(new WriteLogRunnable(value + "\n")).start();
 	}
-
-	/**
-	 * Resets position of the robot to (0,0,0)
-	 */
-	public void resetPosition() {
-		Xg = 0;
-		Yg = 0;
-		Tg = 0;
-	}
 	
 	// TODO write description; Fix
 	public void turnByVelocity(int angle,char dir) {
@@ -331,23 +315,23 @@ public class Robot {
 	 */
 	public void updatePosition(int stepLength) {
 		double movementX = 0, movementY = 0;
-		movementX = Math.cos(Math.toRadians((double) Tg)) * stepLength;
-		movementY = Math.sin(Math.toRadians((double) Tg)) * stepLength;
-		Xg += movementX;
-		Yg += movementY;
-		writeLog("my Position: (" + Xg + "," + Yg + "," + Tg + ")");
+		movementX = Math.cos(Math.toRadians((double) myPos.theta)) * stepLength;
+		movementY = Math.sin(Math.toRadians((double) myPos.theta)) * stepLength;
+		myPos.x += movementX;
+		myPos.y += movementY;
+		writeLog("my Position: (" + myPos.x + "," + myPos.y + "," + myPos.theta + ")");
 	}
 
 	// TODO Add description
 	public int getAngleToGoal(double x, double y) {
-		int angle = (int) (Math.toDegrees(Math.atan2(y - Yg, x - Xg)));
+		int angle = (int) (Math.toDegrees(Math.atan2(y - myPos.y, x - myPos.x)));
 
-		return reduceAngle(angle - Tg);
+		return reduceAngle(angle - myPos.theta);
 	}
 
 	// TODO Add description
 	public int getDistanceToGoal(double x, double y) {
-		return (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+		return (int) Math.sqrt(Math.pow(x - myPos.x, 2) + Math.pow(y - myPos.y, 2));
 	}
 
 	// TODO Add description
@@ -388,17 +372,17 @@ public class Robot {
 	private void updateRotation(int angle, char dir) {
 		switch (dir) {
 		case 'l':
-			Tg -= angle;
+			myPos.theta -= angle;
 			break;
 		case 'r':
-			Tg += angle;
+			myPos.theta += angle;
 			break;
 		default:
 			System.out.println("wrong input direction");
 			break;
 		}
-		Tg = reduceAngle(Tg);
-		writeLog("my Position: (" + Xg + "," + Yg + "," + Tg + ")");
+		myPos.theta = reduceAngle(myPos.theta);
+		writeLog("my Position: (" + myPos.x + "," + myPos.y + "," + myPos.theta + ")");
 	}
 
 	/**
@@ -440,8 +424,8 @@ public class Robot {
 	 */
 	public Boolean[] driveToIntersectionMLine(int max_dist, int goal_x,
 			int goal_y) {
-		double x_ofIntersection = (Yg - (Xg * Math.tan(Math.toRadians(Tg))))
-				/ ((((double) goal_y) / goal_x) - (Math.tan(Math.toRadians(Tg))));
+		double x_ofIntersection = (myPos.y - (myPos.x * Math.tan(Math.toRadians(myPos.theta))))
+				/ ((((double) goal_y) / goal_x) - (Math.tan(Math.toRadians(myPos.theta))));
 		double y_ofIntersection = x_ofIntersection * ((double) goal_y) / goal_x;
 		double dist = Math
 				.min(getDistanceToGoal(x_ofIntersection, y_ofIntersection),
@@ -483,7 +467,7 @@ public class Robot {
 			}
 			turnRobotBalanced(getAngleToGoal(0, 0), 'r');
 			moveByVelocity(getDistanceToGoal(0, 0), false);
-			turnRobotBalanced(Tg, 'l');
+			turnRobotBalanced(myPos.theta, 'l');
 			robotSetLeds(127, 127);
 			break;
 		case 1:
@@ -500,7 +484,7 @@ public class Robot {
 			if (freeway) {
 				turnRobotBalanced(getAngleToGoal(0, 0), 'r');
 				moveByVelocity(getDistanceToGoal(0, 0), false);
-				turnRobotBalanced(Tg, 'l');
+				turnRobotBalanced(myPos.theta, 'l');
 			}
 			robotSetLeds(127, 127);
 			break;
@@ -782,7 +766,7 @@ public class Robot {
 			obstacleFound = false;
 
 			angle = getAngleToGoal(x, y);
-			dist = (int) Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2));
+			dist = (int) Math.sqrt(Math.pow(x - myPos.x, 2) + Math.pow(y - myPos.y, 2));
 
 			writeLog("Moving to goal at angle " + angle + " in " + dist
 					+ "cm distance");
@@ -794,7 +778,7 @@ public class Robot {
 				moved += stepLength;
 				moveRobot(stepLength);
 				if (obstacleInFront()) {
-					writeLog("Obstacle found at " + getMyPosition());
+					writeLog("Obstacle found at " + myPos);
 					obstacleFound = true;
 				}
 			}
@@ -808,12 +792,12 @@ public class Robot {
 						measurement.get("frontLeft") - 5,
 						Math.min(measurement.get("frontMiddle") - 5, 50))));
 			}
-			if (Math.sqrt(Math.pow(x - Xg, 2) + Math.pow(y - Yg, 2)) < stepLength + 1) {
+			if (Math.sqrt(Math.pow(x - myPos.x, 2) + Math.pow(y - myPos.y, 2)) < stepLength + 1) {
 				goalReached = true;
 			}
 		}
 
-		turnRobotBalanced(theta - Tg, 'r');
+		turnRobotBalanced(theta - myPos.theta, 'r');
 		robotSetLeds(127, 127);
 	}
 
@@ -851,7 +835,7 @@ public class Robot {
 			if (!moveByVelocity(dist, true)) {
 				obstacleFound = true;
 				robotSetLeds(127, 0);
-				writeLog("Obstacle found at " + getMyPosition());
+				writeLog("Obstacle found at " + myPos);
 			}
 
 			if (obstacleFound) {
@@ -864,17 +848,8 @@ public class Robot {
 			}
 		}
 
-		turnRobotBalanced(theta - Tg, 'r');
+		turnRobotBalanced(theta - myPos.theta, 'r');
 		robotSetLeds(127, 127);
-	}
-
-	/**
-	 * 
-	 * @return Position object based on current position
-	 */
-	public Position getMyPosition() {
-		Position myPos = new Position(Xg, Yg, Tg);
-		return myPos;
 	}
 
 	public void MoveToTarget(double x, double y, double theta) {
@@ -896,7 +871,15 @@ public class Robot {
 				goalReached = true;
 			}
 		}
-		turnRobotBalanced((int)theta - Tg, 'r');
+		turnRobotBalanced((int)theta - myPos.theta, 'r');
 		robotSetLeds(127, 127);
+	}
+	
+	public void resetPosition(){
+		myPos = new Position(0.0, 0.0, 0);
+	}
+	
+	public int getTg(){
+		return myPos.theta;
 	}
 }

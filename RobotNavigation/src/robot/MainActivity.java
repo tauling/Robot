@@ -419,7 +419,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private Size SPECTRUM_SIZE;
 	private Scalar CONTOUR_COLOR;
 
-	private int executionInterval = 15; // TODO: needed? every 100. frame
+	private int executionInterval = 15;
+	
+	int frameInterval = 0;
 
 	private List<Scalar> myColors = new ArrayList<Scalar>();
 
@@ -725,7 +727,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		mRgbaOutput = inputFrame.rgba();
 		mRgbaWork = inputFrame.rgba();
-		int frameInterval = 0;
 		if(frameInterval == executionInterval){
 			findCirclesOnCamera();
 			frameInterval = 0;
@@ -1046,9 +1047,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 		robot.MoveToTarget(ballTarget.x, ballTarget.y, 0);
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robot.robotSetBar(0);
-		double finalPosX = finalPos.getX();
-		double finalPosY = finalPos.getY();
-		double finalTheta = finalPos.getTheta();
+		double finalPosX = finalPos.x;
+		double finalPosY = finalPos.y;
+		double finalTheta = finalPos.theta;
 		Log.i(TAG, "move to final Position" + finalPos);
 		robot.MoveToTarget(finalPosX, finalPosY, finalTheta);
 		robot.robotSetBar(120);
