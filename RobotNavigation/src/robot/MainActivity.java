@@ -365,7 +365,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		t.start();
 	}
-	
+
 	public void ButtonfindCirclesOnClick(View v) {
 
 		Thread t = new Thread() {
@@ -373,6 +373,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 			@Override
 			public void run() {
 				List<Point> circles = findCirclesOnCamera();
+				if (circles.size() > 0)
+					getGroundPlaneCoordinates(circles.get(0));
 			};
 		};
 
@@ -381,7 +383,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	// TODO: All the things below belong to the former
 	// ColorBlobDetectorActivity. Clean up and migrate.
-	private static final String TAG = "OCVSample::Activity";
+	private static final String TAG = "RobotLog";
 
 	private boolean mIsColorSelected = false;
 	private Mat mRgbaOutput;
@@ -442,6 +444,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	public void onCameraViewStarted(int width, int height) {
+		mRgbaWork = new Mat(height, width, CvType.CV_8UC4);
 		mRgbaOutput = new Mat(height, width, CvType.CV_8UC4);
 		mDetector = new ColorBlobDetector();
 		mSpectrum = new Mat();
@@ -689,6 +692,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		mRgbaOutput = inputFrame.rgba();
+		mRgbaWork = inputFrame.rgba();
 		// Mat tempmRgba = new Mat();
 		// inputFrame.rgba().copyTo(tempmRgba);
 		// Mat mRgbaT = inputFrame.rgba();
@@ -955,14 +959,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Log.i(TAG, "(alignToPoint) p = " + p.toString());
 		Boolean aligned = false;
 		double centerXAxis = mRgbaOutput.width() / 2;
-		Log.i(TAG, "robot Camera xAxis: "+centerXAxis);
+		Log.i(TAG, "robot Camera xAxis: " + centerXAxis);
 		double TOL = 200.0;
 		double ballXAxis = p.x;
 		while (!aligned) {
 			ballXAxis = findCirclesOnCamera().get(0).x;
-			Log.i(TAG, "ball xAxis: "+ballXAxis);
+			Log.i(TAG, "ball xAxis: " + ballXAxis);
 			double diff = centerXAxis - ballXAxis;
-			Log.i(TAG, "axis difference:"+ diff);
+			Log.i(TAG, "axis difference:" + diff);
 			if (Math.abs(diff) > TOL && diff < 0) {
 				robot.turnRobot(5, 'r');
 				Log.i(TAG, "(alignToPoint) turning right");
@@ -1003,7 +1007,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		while (turnedAngle < 360 && !foundBall) {
 			circles = findCirclesOnCamera();
 			if (circles.size() > 0) {
-				Log.i(TAG, "found circle x:"+ circles.get(0).x+" y:"+circles.get(0).y);
+				Log.i(TAG, "found circle x:" + circles.get(0).x + " y:"
+						+ circles.get(0).y);
 				alignToPoint(circles.get(0));
 				Log.i(TAG, "(turnAndFindABall) found a ball");
 				foundBall = true;
@@ -1046,6 +1051,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 				Point center = computeCenterPt(ballArea);
 
 				circleCenters.add(center);
+				Log.i(TAG, "(findCirclesOnCamera) Found circle on camera at: "
+						+ center);
 			}
 		}
 
@@ -1116,8 +1123,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		double finalPosX = finalPos.getX();
 		double finalPosY = finalPos.getY();
 		double finalTheta = finalPos.getTheta();
-		Log.i(TAG, "move to final Position"+finalPos);
-		robot.MoveToTarget(finalPosX,finalPosY,finalTheta);
+		Log.i(TAG, "move to final Position" + finalPos);
+		robot.MoveToTarget(finalPosX, finalPosY, finalTheta);
 		robot.robotSetBar(120);
 	}
 
@@ -1140,7 +1147,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 																// your
 																// homography
 																// matrix
-		Point pointGroundCoord = new Point(dest.get(0, 0)[0] / 10, dest.get(0, 0)[1] / 10);
+		Point pointGroundCoord = new Point(dest.get(0, 0)[0] / 10, dest.get(0,
+				0)[1] / 10);
 		Log.i(TAG,
 				"(getGroundPlaneCoordinates) Found ground plane coordinates: "
 						+ pointGroundCoord.toString());
