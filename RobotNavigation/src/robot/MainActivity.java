@@ -392,13 +392,15 @@ public class MainActivity extends Activity implements OnTouchListener,
 		t.start();
 	}
 	
-	public void ButtonclearColorList(View v) {
+	public void ButtonEmptyBrain(View v) {
 
 		Thread t = new Thread() {
 
 			@Override
 			public void run() {
 				circleCenters = new ArrayList<Point>();
+				robot.resetPosition();
+				homographyMatrix = new Mat();
 			};
 		};
 
