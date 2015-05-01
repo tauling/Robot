@@ -306,7 +306,48 @@
         android:layout_gravity="center|top"
         android:id="@+id/color_blob_detection_activity_surface_view" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.38"
+        android:orientation="vertical" >       
+
+       <EditText
+            android:id="@+id/editText1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+             android:text="100"
+            android:ems="10" >
+        </EditText>
+
+        <EditText
+            android:id="@+id/editText2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+             android:text="100"
+            android:ems="10" >
+        </EditText>
+        
+       <EditText
+            android:id="@+id/editText3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:text="45"
+            android:ems="10" >
+		</EditText>
+		<Button
+           android:id="@+id/button16"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+            android:onClick="buttonReadTargetPoint"
+            android:text="submit target position" />
+    </LinearLayout>
+
         </LinearLayout>
+       
     </ScrollView>
 
 </LinearLayout>

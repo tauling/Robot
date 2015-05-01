@@ -42,6 +42,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.View.OnTouchListener;
+import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -69,6 +70,16 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	private Mat homographyMatrix;
 
+	private EditText editText1;
+	private EditText editText2;
+	private EditText editText3;
+
+	private double targetX = 100.0;
+
+	private double targetY = 100.0;
+
+	private Integer targetTheta = 45;
+
 	private List<Scalar> hsvColors = new LinkedList<Scalar>();
 
 	/**
@@ -83,6 +94,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 		setContentView(R.layout.activity_main);
 
 		textLog = (TextView) findViewById(R.id.textLog);
+		editText1 = (EditText) findViewById(R.id.editText1);
+		editText2 = (EditText) findViewById(R.id.editText2);
+		editText3 = (EditText) findViewById(R.id.editText3);
 		textLog.setMovementMethod(new ScrollingMovementMethod());
 		ScrollView svLog = (ScrollView) findViewById(R.id.scrollMe);
 
@@ -228,6 +242,21 @@ public class MainActivity extends Activity implements OnTouchListener,
 				if (robot.moveSquare(50, 'r', 1)) {
 					robot.moveSquare(50, 'l', 1);
 				}
+			};
+		};
+		t.start();
+	}
+
+	public void buttonReadTargetPoint(View v) {
+		robot.resetPosition();
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				targetX = Integer.parseInt(editText1.getText().toString());
+				targetY = Integer.parseInt(editText2.getText().toString());
+				targetTheta = Integer.parseInt(editText3.getText().toString());
+				robot.writeLog("new target at x: "+targetX+" y: "+targetY+" theta: "+targetTheta);
 			};
 		};
 		t.start();
@@ -929,7 +958,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * 1) find ball 2) cage ball 3) move caged ball to target
 	 */
 	public void findAndDeliverBall() {
-		Position finalPos = new Position(70, 70, 45);
+		Position finalPos = new Position(targetX, targetY, targetTheta);
 		Log.i(TAG, "(findAndDeliverPoint) Start");
 		robot.writeLog("(findAndDeliverPoint) Start");
 		Ball myBall = detectOneBall();
