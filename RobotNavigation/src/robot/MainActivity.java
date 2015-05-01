@@ -393,10 +393,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private Size SPECTRUM_SIZE;
 	private Scalar CONTOUR_COLOR;
 
-	private int executionInterval = 15; //TODO: needed? every 100. frame
+	private int executionInterval = 15; // TODO: needed? every 100. frame
 
 	private List<Scalar> myColors = new ArrayList<Scalar>();
-	
+
 	/**
 	 * list which stores all found balls
 	 */
@@ -498,7 +498,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * computes center point of given contour
-	 * @param contours 
+	 * 
+	 * @param contours
 	 * @return Point (representing center point)
 	 */
 	public Point computeCenterPt(List<MatOfPoint> contours) {
@@ -559,8 +560,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * unstable method
 	 * 
 	 * computes Radius based on distance from most far away point to center
+	 * 
 	 * @param contours
-	 * @param center point
+	 * @param center
+	 *            point
 	 * @return radius
 	 */
 	public double computeRadius(List<MatOfPoint> contours, Point center) {
@@ -580,7 +583,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	/**
-	 * computes contour radius with circle surface equation 
+	 * computes contour radius with circle surface equation
+	 * 
 	 * @param contours
 	 * @return radius
 	 */
@@ -597,7 +601,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * measures distance from every point to center and computes average radius
 	 * 
 	 * @param contours
-	 * @param center point
+	 * @param center
+	 *            point
 	 * @return radius
 	 */
 	public double computeRadius3(List<MatOfPoint> contours, Point center) {
@@ -621,6 +626,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * computes surface of given contour (by counting points inside)
+	 * 
 	 * @param contours
 	 * @return surface of contour (point amount)
 	 */
@@ -954,7 +960,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * robot aligns his body to a surrendered Point
-	 * @param point 
+	 * 
+	 * @param point
 	 */
 	public void alignToPoint(Point p) {
 		Log.i(TAG, "(alignToPoint) p = " + p.toString());
@@ -1050,7 +1057,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 				ballArea.add(area);
 
 				Point center = computeCenterPt(ballArea);
-				
+
 				Core.circle(mRgbaOutput, center, 10, new Scalar(20), -1);
 
 				circleCenters.add(center);
@@ -1153,8 +1160,21 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Point pointGroundCoord = new Point(dest.get(0, 0)[0] / 10, dest.get(0,
 				0)[1] / 10);
 		Log.i(TAG,
-				"(getGroundPlaneCoordinates) Found ground plane coordinates: "
+				"(getGroundPlaneCoordinates) Found ground plane coordinates relative to robot: "
 						+ pointGroundCoord.toString());
+		double theta2 = Math.atan2(pointGroundCoord.y, pointGroundCoord.x);
+		double dist = Math.sqrt(Math.pow(pointGroundCoord.x, 2)
+				+ Math.pow(pointGroundCoord.y, 2));
+		double dx = dist * Math.sin(2*Math.PI - (theta2 + Math.toRadians(robot.getTg())));
+		double dy = dist * Math.cos(2*Math.PI - (theta2 + Math.toRadians(robot.getTg())));
+		
+		pointGroundCoord.x += dx;
+		pointGroundCoord.y += dy;
+		
+		Log.i(TAG,
+				"(getGroundPlaneCoordinates) Found ground plane coordinates (global): "
+						+ pointGroundCoord.toString());
+
 		// TODO Add robot's current position
 		return pointGroundCoord;
 	}
