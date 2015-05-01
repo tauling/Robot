@@ -42,6 +42,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.View.OnTouchListener;
+import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -69,6 +70,16 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	private Mat homographyMatrix;
 
+	private EditText editText1;
+	private EditText editText2;
+	private EditText editText3;
+
+	private double targetX = 100.0;
+
+	private double targetY = 100.0;
+
+	private Integer targetTheta = 45;
+
 	private List<Scalar> hsvColors = new LinkedList<Scalar>();
 
 	/**
@@ -83,6 +94,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 		setContentView(R.layout.activity_main);
 
 		textLog = (TextView) findViewById(R.id.textLog);
+		editText1 = (EditText) findViewById(R.id.editText1);
+		editText2 = (EditText) findViewById(R.id.editText2);
+		editText3 = (EditText) findViewById(R.id.editText3);
 		textLog.setMovementMethod(new ScrollingMovementMethod());
 		ScrollView svLog = (ScrollView) findViewById(R.id.scrollMe);
 
@@ -233,6 +247,21 @@ public class MainActivity extends Activity implements OnTouchListener,
 		t.start();
 	}
 
+	public void buttonReadTargetPoint(View v) {
+		robot.resetPosition();
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				targetX = Integer.parseInt(editText1.getText().toString());
+				targetY = Integer.parseInt(editText2.getText().toString());
+				targetTheta = Integer.parseInt(editText3.getText().toString());
+				robot.writeLog("new target at x: "+targetX+" y: "+targetY+" theta: "+targetTheta);
+			};
+		};
+		t.start();
+	}
+
 	public void buttonEightTwo_onClick(View v) {
 		robot.resetPosition();
 		Thread t = new Thread() {
@@ -315,7 +344,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				for(int i=0;i<12;i++){
+				for (int i = 0; i < 12; i++) {
 					robot.turnRobot(30, 'r');
 				}
 			};
@@ -363,7 +392,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		t.start();
 	}
-	
+
 	public void ButtonEmptyBrain(View v) {
 
 		Thread t = new Thread() {
@@ -401,7 +430,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * list which stores all found balls
 	 */
 	private List<Ball> foundBalls = new ArrayList<Ball>();
-	
+
 	List<Point> circleCenters = new ArrayList<Point>();
 
 	private CameraBridgeViewBase mOpenCvCameraView;
@@ -697,16 +726,16 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	private int frameInterval = 0;
-	
+
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		mRgbaOutput = inputFrame.rgba();
 		mRgbaWork = inputFrame.rgba();
-		if(frameInterval >= executionInterval){
+		if (frameInterval >= executionInterval) {
 			findCirclesOnCamera();
 			frameInterval = 0;
 		}
-		if(!circleCenters.isEmpty()){
-			for(Point circleCenter:circleCenters)
+		if (!circleCenters.isEmpty()) {
+			for (Point circleCenter : circleCenters)
 				Core.circle(mRgbaOutput, circleCenter, 10, new Scalar(20), -1);
 		}
 		frameInterval++;
@@ -888,7 +917,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * 1) find ball 2) cage ball 3) move caged ball to target
 	 */
 	public void findAndDeliverBall() {
-		Position finalPos = new Position(70, 70, 45);
+		Position finalPos = new Position(targetX, targetY, targetTheta);
 		Log.i(TAG, "(findAndDeliverPoint) Start");
 		robot.writeLog("(findAndDeliverPoint) Start");
 		Ball myBall = detectOneBall();
@@ -1002,7 +1031,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 							"(detectOneBall) found ball with following ground coordinates: "
 									+ detectedBall.toString());
 					robot.writeLog("(detectOneBall) found ball with following ground coordinates: "
-									+ detectedBall.toString());
+							+ detectedBall.toString());
 				}
 			}
 		}
@@ -1010,7 +1039,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 				"(detectOneBall) returning ball with following ground coordinates: "
 						+ detectedBall.toString());
 		robot.writeLog("(detectOneBall) returning ball with following ground coordinates: "
-						+ detectedBall.toString());
+				+ detectedBall.toString());
 
 		return detectedBall;
 	}
@@ -1029,11 +1058,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 				"(driveToBallAndCage) received groundPlane coordinates of ball: "
 						+ ballTarget.toString());
 		robot.writeLog("(driveToBallAndCage) received groundPlane coordinates of ball: "
-						+ ballTarget.toString());
+				+ ballTarget.toString());
 		Log.i(TAG,
 				"(driveToBallAndCage) moving to ball: " + ballTarget.toString());
-		robot.writeLog("(driveToBallAndCage) moving to ball: " + ballTarget.toString());
-		robot.MoveToTarget(ballTarget.y, ballTarget.x, robot.getAngleToGoal(ballTarget.x,ballTarget.y), 7.5);
+		robot.writeLog("(driveToBallAndCage) moving to ball: "
+				+ ballTarget.toString());
+		robot.MoveToTarget(ballTarget.y, ballTarget.x,
+				robot.getAngleToGoal(ballTarget.x, ballTarget.y), 7.5);
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robot.writeLog("(driveToBallAndCage) lowering bar");
 		robot.robotSetBar(0);
@@ -1079,16 +1110,20 @@ public class MainActivity extends Activity implements OnTouchListener,
 						+ pointGroundCoord.toString());
 		double dist = Math.sqrt(Math.pow(pointGroundCoord.x, 2)
 				+ Math.pow(pointGroundCoord.y, 2));
-		double dx = -dist*Math.sin(2*Math.PI - (theta2 + Math.toRadians(robot.getTg())));
-		double dy = dist * Math.cos(2*Math.PI - (theta2 + Math.toRadians(robot.getTg())));
+		double dx = -dist
+				* Math.sin(2 * Math.PI
+						- (theta2 + Math.toRadians(robot.getTg())));
+		double dy = dist
+				* Math.cos(2 * Math.PI
+						- (theta2 + Math.toRadians(robot.getTg())));
 
-		Log.i(TAG,
-				"(getGroundPlaneCoordinates) theta2: "
-						+ theta2 + " theta: " + robot.getTg() + " dist: " + dist + " dx: " + dx + " dy: " + dy);
-		
+		Log.i(TAG, "(getGroundPlaneCoordinates) theta2: " + theta2 + " theta: "
+				+ robot.getTg() + " dist: " + dist + " dx: " + dx + " dy: "
+				+ dy);
+
 		pointGroundCoord.x = robot.getMyPosition().x + dx;
 		pointGroundCoord.y = robot.getMyPosition().y + dy;
-		
+
 		Log.i(TAG,
 				"(getGroundPlaneCoordinates) Found ground plane coordinates (global): "
 						+ pointGroundCoord.toString());
