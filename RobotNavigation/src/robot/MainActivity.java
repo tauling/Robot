@@ -391,6 +391,19 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		t.start();
 	}
+	
+	public void ButtonclearColorList(View v) {
+
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				circleCenters = new ArrayList<Point>();
+			};
+		};
+
+		t.start();
+	}
 
 	// TODO: All the things below belong to the former
 	// ColorBlobDetectorActivity. Clean up and migrate.
@@ -406,7 +419,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private Size SPECTRUM_SIZE;
 	private Scalar CONTOUR_COLOR;
 
-	private int executionInterval = 15; // TODO: needed? every 100. frame
+	private int executionInterval = 15;
 
 	private List<Scalar> myColors = new ArrayList<Scalar>();
 
@@ -1034,9 +1047,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 		robot.MoveToTarget(ballTarget.x, ballTarget.y, 0);
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robot.robotSetBar(0);
-		double finalPosX = finalPos.getX();
-		double finalPosY = finalPos.getY();
-		double finalTheta = finalPos.getTheta();
+		double finalPosX = finalPos.x;
+		double finalPosY = finalPos.y;
+		double finalTheta = finalPos.theta;
 		Log.i(TAG, "move to final Position" + finalPos);
 		robot.MoveToTarget(finalPosX, finalPosY, finalTheta);
 		robot.robotSetBar(120);
@@ -1079,8 +1092,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 				"(getGroundPlaneCoordinates) theta2: "
 						+ theta2 + " theta: " + robot.getTg() + " dist: " + dist + " dx: " + dx + " dy: " + dy);
 		
-		pointGroundCoord.x = robot.getMyPosition().getX() + dx;
-		pointGroundCoord.y = robot.getMyPosition().getY() + dy;
+		pointGroundCoord.x = robot.getMyPosition().x + dx;
+		pointGroundCoord.y = robot.getMyPosition().y + dy;
 		
 		Log.i(TAG,
 				"(getGroundPlaneCoordinates) Found ground plane coordinates (global): "

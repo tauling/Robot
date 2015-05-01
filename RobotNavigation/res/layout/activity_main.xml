@@ -270,6 +270,12 @@
                     android:layout_gravity="left"
                     android:onClick="ButtonfindCirclesOnClick"
                     android:text="findCircles" />
+
+                <Button
+                    android:id="@+id/button15"
+                    android:layout_gravity="left"
+                    android:onClick="ButtonclearColorList"
+                    android:text="clearColorList" />
                 
             </GridLayout>
             
