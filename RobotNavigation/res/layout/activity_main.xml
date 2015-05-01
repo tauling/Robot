@@ -33,12 +33,30 @@
             android:orientation="vertical" >
 
             <Button
+                android:id="@+id/Button04"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.05"
+                android:onClick="buttonTest_onClick"
+                android:text="Tes1" />
+
+            <Button
+                android:id="@+id/Button03"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.05"
+                android:onClick="buttonTest2_onClick"
+                android:text="Test2" />
+
+            <Button
                 android:id="@+id/TestButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.38"
-                android:onClick="buttonTest_onClick"
-                android:text="Test" />
+                android:onClick="buttonTest3_onClick"
+                android:text="Test3" />
 
             <Button
                 android:id="@+id/button7"
@@ -46,8 +64,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.05"
-                android:onClick="buttonTest2_onClick"
-                android:text="Test2" />
+                android:onClick="buttonTest4_onClick"
+                android:text="Test4" />
 
             <GridLayout
                 android:layout_width="match_parent"

@@ -58,7 +58,7 @@ public class Robot {
 																		// be
 	// set, such
 	// that
-	private double CorrFactAngleByVel = 100;
+	private double CorrFactAngleByVel = 200*(360.0/375.0);
 
 	// turnRobot(360)
 	// rotates for exactly 360 degrees.
@@ -249,18 +249,19 @@ public class Robot {
 		double curTime = start;
 		int velocity = 15;
 		writeLog("startTime: " + (int) start);
-		double speed = velocity * CorrFactAngleByVel;
+		double speed = velocity / CorrFactAngleByVel;
 		double corrTime = angle / speed; // [ms]
 		double end = start + corrTime;
 		robotSetLeds(0, 127);
 
 		switch (dir) {
-		case 'r':
+		case 'l':
 			velocity = -velocity;
+			writeLog("Turning left");
+			break;
+		case 'r':
 			writeLog("Turning right");
 			break;
-		case 'l':
-			writeLog("Turning left");
 		}
 
 		comReadWrite(new byte[] { 'i', (byte) velocity, (byte) -velocity, '\r',
@@ -271,7 +272,7 @@ public class Robot {
 		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' });
 		double movedTime = curTime - start;
 
-		updateRotation((int) (movedTime * angle), 'r');
+		updateRotation((int) (movedTime * speed), 'r');
 	}
 
 	/**
