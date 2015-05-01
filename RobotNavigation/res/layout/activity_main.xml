@@ -274,8 +274,8 @@
                 <Button
                     android:id="@+id/button15"
                     android:layout_gravity="left"
-                    android:onClick="ButtonclearColorList"
-                    android:text="clearColorList" />
+                    android:onClick="ButtonEmptyBrain"
+                    android:text="emptyBrain" />
                 
             </GridLayout>
             
