@@ -1045,6 +1045,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 				ballArea.add(area);
 
 				Point center = computeCenterPt(ballArea);
+				
+				Core.circle(mRgbaOutput, center, 10, new Scalar(20), -1);
 
 				circleCenters.add(center);
 			}
