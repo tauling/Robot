@@ -74,8 +74,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	// TODO: Also detect blue, yellow, black and white blobs
 
-	// TODO: implement MoveToTarget(x,y,theta) (ignoring obstacles)
-
 	// TODO: explore workspace
 
 	// TODO: catch ball -> drive to target corner
@@ -395,13 +393,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private Size SPECTRUM_SIZE;
 	private Scalar CONTOUR_COLOR;
 
-	private int executionInterval = 15; // every 100. frame
+	private int executionInterval = 15; //TODO: needed? every 100. frame
 
-	private List<Scalar> myColors = new ArrayList<Scalar>(); // TODO: find
-																// better name
-
-	private List<Ball> myBalls = new ArrayList<Ball>(); // TODO: find better
-														// name
+	private List<Scalar> myColors = new ArrayList<Scalar>();
+	
+	/**
+	 * list which stores all found balls
+	 */
+	private List<Ball> foundBalls = new ArrayList<Ball>();
 
 	private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -497,7 +496,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return false; // don't need subsequent touch events
 	}
 
-	// TODO: add comment
+	/**
+	 * computes center point of given contour
+	 * @param contours 
+	 * @return Point (representing center point)
+	 */
 	public Point computeCenterPt(List<MatOfPoint> contours) {
 		if (contours.isEmpty()) {
 			return (new Point(-200.0, -200.0));
@@ -552,21 +555,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// }
 	// }
 
-	// TODO: add comment
 	/**
-	 * should maybe return a boolean...
+	 * unstable method
+	 * 
+	 * computes Radius based on distance from most far away point to center
+	 * @param contours
+	 * @param center point
+	 * @return radius
 	 */
-	public Boolean catchObstacle(int radius, int ballSurface, int camSurface) {
-		Boolean closeEnough = false;
-		if (ballSurface / camSurface >= 70) {
-			Log.e(TAG, "lower bar NOW!");
-			closeEnough = true;
-		}
-		return closeEnough;
-	}
-
-	// TODO: add comment
-	// TODO: Unstable method; improve
 	public double computeRadius(List<MatOfPoint> contours, Point center) {
 		if (contours.isEmpty()) {
 			return 0;
@@ -583,7 +579,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return distToCenter;
 	}
 
-	// TODO: add comment
+	/**
+	 * computes contour radius with circle surface equation 
+	 * @param contours
+	 * @return radius
+	 */
 	public int computeRadius2(List<MatOfPoint> contours) {
 		if (contours.isEmpty()) {
 			return 0;
@@ -593,7 +593,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return radius2;
 	}
 
-	// TODO: add comment
+	/**
+	 * measures distance from every point to center and computes average radius
+	 * 
+	 * @param contours
+	 * @param center point
+	 * @return radius
+	 */
 	public double computeRadius3(List<MatOfPoint> contours, Point center) {
 		if (contours.isEmpty()) {
 			return 0;
@@ -613,7 +619,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return distToCenter;
 	}
 
-	// TODO: add comment
+	/**
+	 * computes surface of given contour (by counting points inside)
+	 * @param contours
+	 * @return surface of contour (point amount)
+	 */
 	public int computeContourArea(List<MatOfPoint> contours) {
 		if (contours.isEmpty()) {
 			return 0;
@@ -632,18 +642,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 		if (mIsColorSelected) {
 			mDetector.process(mRgbaOutput);
 			mDetector.getContours();
-		}
-	}
-
-	// TODO: add comment
-	/**
-	 * robot explores workspace and rotates to ball
-	 */
-	public void rotate360searchObstacles() {
-		int turn = 0;
-		while (turn < 360) {
-			robot.turnRobot(5, 'r');
-			detectBalls(mRgbaOutput);
 		}
 	}
 
@@ -871,10 +869,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// TODO Needed?
 	// TODO If so, add comment
 	// TODO move to colorblog-class
-	// TODO refactor "myBalls" (sounds kinky :p)
 	public void printBallInfo() {
 		// Log.i(TAG, "ball amount" + myBalls.size());
-		for (Ball b : myBalls) {
+		for (Ball b : foundBalls) {
 			Log.i(TAG, b.getId() + " .ball position: " + b.getPosGroundPlane()
 					+ " ball center: " + b.getBallCenterCameraFrame()
 					+ " ball radius: " + b.getRadius());
@@ -884,7 +881,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	public Mat drawBalls(Mat mRgbaWithBalls) {
 
 		int counter = 0;
-		for (Ball ball : myBalls) {
+		for (Ball ball : foundBalls) {
 
 			// Just for highlighting
 			Scalar color = null;
@@ -942,11 +939,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 			Point detectedBallPos = detectedBall.getPosGroundPlane(); // refactor
 																		// variable
 																		// name
-			for (Ball b : myBalls) {
+			for (Ball b : foundBalls) {
 				Point bPos = b.getPosGroundPlane();
 				if (Math.abs(bPos.x - detectedBallPos.x) > TOL
 						|| Math.abs(bPos.y - detectedBallPos.y) > TOL) {
-					myBalls.add(detectedBall);
+					foundBalls.add(detectedBall);
 					printBallInfo();
 				} else {
 					// TODO update radius etc.
@@ -955,6 +952,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 	}
 
+	/**
+	 * robot aligns his body to a surrendered Point
+	 * @param point 
+	 */
 	public void alignToPoint(Point p) {
 		Log.i(TAG, "(alignToPoint) p = " + p.toString());
 		Boolean aligned = false;
@@ -1049,6 +1050,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 				ballArea.add(area);
 
 				Point center = computeCenterPt(ballArea);
+				
+				Core.circle(mRgbaOutput, center, 10, new Scalar(20), -1);
 
 				circleCenters.add(center);
 				Log.i(TAG, "(findCirclesOnCamera) Found circle on camera at: "
