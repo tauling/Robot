@@ -422,8 +422,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private Scalar CONTOUR_COLOR;
 
 	private int executionInterval = 15;
-	
-	int frameInterval = 0;
 
 	private List<Scalar> myColors = new ArrayList<Scalar>();
 
@@ -726,10 +724,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return aligned;
 	}
 
+	private int frameInterval = 0;
+	
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		mRgbaOutput = inputFrame.rgba();
 		mRgbaWork = inputFrame.rgba();
-		if(frameInterval == executionInterval){
+		if(frameInterval >= executionInterval){
 			findCirclesOnCamera();
 			frameInterval = 0;
 		}
@@ -1097,14 +1097,21 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Log.i(TAG,
 				"(getGroundPlaneCoordinates) Found ground plane coordinates relative to robot: "
 						+ pointGroundCoord.toString());
-		double theta2 = Math.atan2(pointGroundCoord.y, pointGroundCoord.x);
+		double theta2 = Math.atan2(pointGroundCoord.x, pointGroundCoord.y);
+		Log.i(TAG,
+				"(getGroundPlaneCoordinates) Found ground plane coordinates relative to robot: "
+						+ pointGroundCoord.toString());
 		double dist = Math.sqrt(Math.pow(pointGroundCoord.x, 2)
 				+ Math.pow(pointGroundCoord.y, 2));
-		double dx = dist * Math.sin(2*Math.PI - (theta2 + Math.toRadians(robot.getTg())));
+		double dx = -dist*Math.sin(2*Math.PI - (theta2 + Math.toRadians(robot.getTg())));
 		double dy = dist * Math.cos(2*Math.PI - (theta2 + Math.toRadians(robot.getTg())));
+
+		Log.i(TAG,
+				"(getGroundPlaneCoordinates) theta2: "
+						+ theta2 + " theta: " + robot.getTg() + " dist: " + dist + " dx: " + dx + " dy: " + dy);
 		
-		pointGroundCoord.x += dx;
-		pointGroundCoord.y += dy;
+		pointGroundCoord.x = robot.getMyPosition().x + dx;
+		pointGroundCoord.y = robot.getMyPosition().y + dy;
 		
 		Log.i(TAG,
 				"(getGroundPlaneCoordinates) Found ground plane coordinates (global): "

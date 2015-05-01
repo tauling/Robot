@@ -57,7 +57,7 @@ public class Robot {
 	private double CorrFactAngleByDist = (8.0 / 7.0) * (360.0 / 365.0); // Should be
 																	// set, such
 																	// that
-	private double CorrFactAngleByVel = 1;
+	private double CorrFactAngleByVel = 100;
 	
 	// turnRobot(360)
 	// rotates for exactly 360 degrees.
@@ -877,6 +877,10 @@ public class Robot {
 	
 	public void resetPosition(){
 		myPos = new Position(0.0, 0.0, 0);
+	}
+	
+	public Position getMyPosition() {
+		return myPos;
 	}
 	
 	public int getTg(){
