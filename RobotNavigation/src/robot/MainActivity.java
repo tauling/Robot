@@ -378,6 +378,19 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		t.start();
 	}
+	
+	public void ButtonclearColorList(View v) {
+
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				circleCenters = new ArrayList<Point>();
+			};
+		};
+
+		t.start();
+	}
 
 	// TODO: All the things below belong to the former
 	// ColorBlobDetectorActivity. Clean up and migrate.
