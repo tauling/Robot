@@ -1040,20 +1040,26 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public void driveToBallAndCage(Ball ball, Position finalPos) {
 		Log.i(TAG, "(driveToBallAndCage) start");
+		robot.writeLog("(driveToBallAndCage) start");
 		Point ballTarget = ball.getPosGroundPlane();
 		Log.i(TAG,
 				"(driveToBallAndCage) received groundPlane coordinates of ball: "
 						+ ballTarget.toString());
+		robot.writeLog("(driveToBallAndCage) received groundPlane coordinates of ball: "
+						+ ballTarget.toString());
 		Log.i(TAG,
 				"(driveToBallAndCage) moving to ball: " + ballTarget.toString());
-		robot.MoveToTarget(ballTarget.x, ballTarget.y, 0);
+		robot.writeLog("(driveToBallAndCage) moving to ball: " + ballTarget.toString());
+		robot.MoveToTarget(ballTarget.y, ballTarget.x, 0);
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
+		robot.writeLog("(driveToBallAndCage) lowering bar");
 		robot.robotSetBar(0);
 		double finalPosX = finalPos.x;
 		double finalPosY = finalPos.y;
 		double finalTheta = finalPos.theta;
-		Log.i(TAG, "move to final Position" + finalPos);
-		robot.MoveToTarget(finalPosX, finalPosY, finalTheta);
+		Log.i(TAG, "(driveToBallAndCage) move to final Position" + finalPos);
+		robot.writeLog("(driveToBallAndCage) move to final Position" + finalPos);
+		robot.MoveToTarget(finalPosY, finalPosX, finalTheta);
 		robot.robotSetBar(120);
 	}
 
