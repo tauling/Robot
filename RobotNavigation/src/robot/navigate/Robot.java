@@ -111,6 +111,10 @@ public class Robot {
 			});
 		}
 	}
+	
+	public int getTg() {
+		return Tg;
+	}
 
 	/**
 	 * Sets the blue and red LED of the robot.
