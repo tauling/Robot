@@ -183,8 +183,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.turnRobot(180, 'r');
-				robot.turnRobot(180, 'r');
+				for (int i = 0; i < 12; i++)
+					robot.turnRobot(30, 'r');
 			};
 		};
 
@@ -197,7 +197,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 			@Override
 			public void run() {
 				// for (int i = 0; i < 12; i++)
-				robot.turnByVelocity(360, 'r');
+				robot.turnByVelocity(180, 'r');
+				robot.turnByVelocity(180, 'r');
 			};
 		};
 
@@ -256,7 +257,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 				targetX = Integer.parseInt(editText1.getText().toString());
 				targetY = Integer.parseInt(editText2.getText().toString());
 				targetTheta = Integer.parseInt(editText3.getText().toString());
-				robot.writeLog("new target at x: "+targetX+" y: "+targetY+" theta: "+targetTheta);
+				robot.writeLog("new target at x: " + targetX + " y: " + targetY
+						+ " theta: " + targetTheta);
 			};
 		};
 		t.start();
@@ -348,8 +350,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				Position finalPos = new Position(70, 70, 45);
-				driveToBallAndCage(myBall, finalPos);
+				driveToBallAndCage(myBall);
 				Log.i(TAG, "(findAndDeliverPoint) Ball caged");
 				robot.writeLog("Ball caged");
 			};
@@ -372,7 +373,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 						+ finalPos);
 				robot.writeLog("(driveToBallAndCage) move to final Position"
 						+ finalPos);
-				robot.MoveToTarget(finalPosY, finalPosX, finalTheta);
+				robot.MoveToTarget(finalPosX, finalPosY, finalTheta);
 				robot.robotSetBar(126);
 			};
 		};
@@ -386,8 +387,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.moveRobot(-20);
-				robot.MoveToTarget(0, 0, 0);
+				findAndDeliverBall(70, 70);
 			};
 		};
 
@@ -436,17 +436,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	public void ButtonEmptyBrain(View v) {
 
-		Thread t = new Thread() {
+		circleCenters = new ArrayList<Point>();
+		myColors = new ArrayList<Scalar>();
+		robot.resetPosition();
+		homographyMatrix = new Mat();
+		textLog.setText("");
 
-			@Override
-			public void run() {
-				circleCenters = new ArrayList<Point>();
-				robot.resetPosition();
-				homographyMatrix = new Mat();
-			};
-		};
-
-		t.start();
 	}
 
 	// TODO: All the things below belong to the former
@@ -757,9 +752,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 			double ballXAxis = ballCenter.x;
 			double diff = centerXAxis - ballXAxis;
 			if (Math.abs(diff) > TOL && diff < 0) {
-				robot.turnByVelocity(15, 'r');
+				robot.turnRobotBalanced(15, 'r');
 			} else if (Math.abs(diff) > TOL && diff < 0) {
-				robot.turnByVelocity(10, 'l');
+				robot.turnRobotBalanced(10, 'l');
 			}
 
 		}
@@ -933,6 +928,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Boolean aligned = false;
 		double centerXAxis = mRgbaOutput.width() / 2;
 		Log.i(TAG, "robot Camera xAxis: " + centerXAxis);
+		robot.writeLog("(alignToPoint) robot Camera xAxis: " + centerXAxis);
 		double TOL = 150.0;
 		double ballXAxis = p.x;
 		while (!aligned) {
@@ -941,10 +937,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 			double diff = centerXAxis - ballXAxis;
 			Log.i(TAG, "axis difference:" + diff);
 			if (Math.abs(diff) > TOL && diff < 0) {
-				robot.turnByVelocity(15, 'r');
+				robot.turnRobotBalanced(30, 'r');
 				Log.i(TAG, "(alignToPoint) turning right");
 			} else if (Math.abs(diff) > TOL && diff > 0) {
-				robot.turnByVelocity(10, 'l');
+				robot.turnRobotBalanced(25, 'l');
 				Log.i(TAG, "(alignToPoint) turning left");
 			} else {
 				aligned = true;
@@ -957,16 +953,18 @@ public class MainActivity extends Activity implements OnTouchListener,
 	/**
 	 * 1) find ball 2) cage ball 3) move caged ball to target
 	 */
-	public void findAndDeliverBall() {
-		Position finalPos = new Position(targetX, targetY, targetTheta);
+	public void findAndDeliverBall(double x, double y) {
 		Log.i(TAG, "(findAndDeliverPoint) Start");
 		robot.writeLog("(findAndDeliverPoint) Start");
 		Ball myBall = detectOneBall();
 		Log.i(TAG, "(findAndDeliverPoint) Ready to cage the ball");
 		robot.writeLog("(findAndDeliverPoint) Ready to cage the ball");
-		driveToBallAndCage(myBall, finalPos);
+		driveToBallAndCage(myBall);
 		Log.i(TAG, "(findAndDeliverPoint) Ball caged");
 		robot.writeLog("Ball caged");
+		robot.MoveToTarget(x, y);
+		robot.robotSetBar(126);
+		robot.moveByVelocity(-20, false);
 	}
 
 	/**
@@ -990,8 +988,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 				Log.i(TAG, "(turnAndFindABall) found a ball");
 				foundBall = true;
 			} else {
-				robot.turnByVelocity(15, 'r');
-				turnedAngle += 15;
+				robot.turnRobotBalanced(25, 'r');
+				turnedAngle += 25;
 			}
 		}
 		Log.i(TAG, "(turnAndFindABall) Finished");
@@ -1091,7 +1089,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * @param ball
 	 *            the ball to cage
 	 */
-	public void driveToBallAndCage(Ball ball, Position finalPos) {
+	public void driveToBallAndCage(Ball ball) {
 		Log.i(TAG, "(driveToBallAndCage) start");
 		robot.writeLog("(driveToBallAndCage) start");
 		Point ballTarget = ball.getPosGroundPlane();
@@ -1104,7 +1102,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 				"(driveToBallAndCage) moving to ball: " + ballTarget.toString());
 		robot.writeLog("(driveToBallAndCage) moving to ball: "
 				+ ballTarget.toString());
-		robot.MoveToTarget(ballTarget.y, ballTarget.x,
+		// robot.MoveToTarget(ballTarget.x, ballTarget.y,
+		// robot.getAngleToGoal(ballTarget.x, ballTarget.y), 30);
+		// ballTarget = detectOneBall().getPosGroundPlane();
+		// robot.writeLog("readjusting");
+		robot.MoveToTarget(ballTarget.x, ballTarget.y,
 				robot.getAngleToGoal(ballTarget.x, ballTarget.y), 7.5);
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robot.writeLog("(driveToBallAndCage) lowering bar");

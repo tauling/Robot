@@ -54,14 +54,16 @@ public class Robot {
 
 	private double CorrFactMoveForwardByVel = (303.0 / 650.0) * (100.0 / 98.0)
 			* (101.0 / 98.0) * (103.0 / 102.0);
-	private double CorrFactAngleByDist = 360.0/268.0; // Should
-																		// be
+	private double CorrFactAngleByDist = (360.0 / 268.0) * (360.0 / 343.0); // Should
+																			// be
 	// set, such
 	// that
-	private double CorrFactAngleByVel = 200*(360.0/375.0);
-
 	// turnRobot(360)
 	// rotates for exactly 360 degrees.
+
+	private double CorrFactAngleByVel = 2 * 200 * (360.0 / 375.0)
+			* (10.0 / 11.0) * (180.0 / 315.0) * (360.0 / 352.0);
+
 	private final int IdSensorLeft = 7; // Call findSensorIDs() to determine the
 										// corresponding ID
 	private final int IdSensorRight = 8; // Call findSensorIDs() to determine
@@ -245,22 +247,23 @@ public class Robot {
 	// TODO write description; Fix
 	public void turnByVelocity(int angle, char dir) {
 
+		writeLog("turnByVelocity " + angle);
 		double start = System.currentTimeMillis(); // [ms]
 		double curTime = start;
-		int velocity = 15;
-		writeLog("startTime: " + (int) start);
+		int velocity = 11;
+		// writeLog("startTime: " + (int) start);
 		double speed = velocity / CorrFactAngleByVel;
-		double corrTime = angle / speed; // [ms]
+		double corrTime = reduceAngle(angle) / speed; // [ms]
 		double end = start + corrTime;
 		robotSetLeds(0, 127);
 
 		switch (dir) {
 		case 'l':
 			velocity = -velocity;
-			writeLog("Turning left");
+			// writeLog("Turning left");
 			break;
 		case 'r':
-			writeLog("Turning right");
+			// writeLog("Turning right");
 			break;
 		}
 
@@ -288,7 +291,7 @@ public class Robot {
 		double start = System.currentTimeMillis(); // [ms]
 		double curTime = start;
 		int velocity = 15;
-		writeLog("startTime: " + (int) start);
+		// writeLog("startTime: " + (int) start);
 		double speed = (100.0 / (1000 * velocity)) / CorrFactMoveForwardByVel; // [cm/ms]
 		double corrTime = dist / speed; // [ms]
 		double end = start + corrTime;
@@ -317,8 +320,8 @@ public class Robot {
 	 */
 	public void updatePosition(int stepLength) {
 		double movementX = 0, movementY = 0;
-		movementX = Math.cos(Math.toRadians((double) myPos.theta)) * stepLength;
-		movementY = Math.sin(Math.toRadians((double) myPos.theta)) * stepLength;
+		movementX = Math.sin(Math.toRadians((double) myPos.theta)) * stepLength;
+		movementY = Math.cos(Math.toRadians((double) myPos.theta)) * stepLength;
 		myPos.x += movementX;
 		myPos.y += movementY;
 		writeLog("my Position: (" + myPos.x + "," + myPos.y + "," + myPos.theta
@@ -327,7 +330,7 @@ public class Robot {
 
 	// TODO Add description
 	public int getAngleToGoal(double x, double y) {
-		int angle = (int) (Math.toDegrees(Math.atan2(y - myPos.y, x - myPos.x)));
+		int angle = (int) (Math.toDegrees(Math.atan2(x - myPos.x, y - myPos.y)));
 
 		return reduceAngle(angle - myPos.theta);
 	}
@@ -382,7 +385,7 @@ public class Robot {
 			myPos.theta += angle;
 			break;
 		default:
-			System.out.println("wrong input direction");
+			System.out.println("Wrong input direction");
 			break;
 		}
 		myPos.theta = reduceAngle(myPos.theta);
@@ -401,15 +404,14 @@ public class Robot {
 		while (Math.abs(corrDist) > 127) { // Byte stores values from -128 to
 											// 127
 			corrDist -= (int) (Math.signum(corrDist)) * 127;
-			writeLog(comReadWrite(
-					new byte[] { 'k',
-							(byte) ((int) (Math.signum(corrDist)) * 127), '\r',
-							'\n' }, (int) (127 / CorrFactMoveForwardByDist)
-							* waitTimeFact));
+			comReadWrite(new byte[] { 'k',
+					(byte) ((int) (Math.signum(corrDist)) * 127), '\r', '\n' },
+					(int) (127 / CorrFactMoveForwardByDist) * waitTimeFact);
 		}
-		writeLog(comReadWrite(new byte[] { 'k', (byte) corrDist, '\r', '\n' },
+		comReadWrite(new byte[] { 'k', (byte) corrDist, '\r', '\n' },
 				(int) Math.abs(corrDist / CorrFactMoveForwardByDist)
-						* waitTimeFact));
+						* waitTimeFact);
+		writeLog("moving by distance");
 		updatePosition(dist);
 	}
 
@@ -546,7 +548,6 @@ public class Robot {
 				balancedAngle -= (360 - angle);
 				turnRobot(360 - angle, 'l');
 			}
-
 		}
 	}
 
@@ -563,17 +564,14 @@ public class Robot {
 		angle = reduceAngle(angle);
 		updateRotation(angle, dir);
 		int degrees = angle;
-
 		degrees = (int) (CorrFactAngleByDist * degrees);
-
 		switch (dir) {
 		case 'r':
 			degrees = -degrees;
 			break;
 		}
-
 		while (Math.abs(degrees) > 127) { // Byte stores values from -128 to
-											// 127
+			// 127
 			degrees -= (int) (Math.signum(degrees)) * 127;
 			writeLog(comReadWrite(
 					new byte[] { 'l',
@@ -860,12 +858,20 @@ public class Robot {
 		robotSetLeds(127, 127);
 	}
 
-	public void MoveToTarget(double x, double y, double theta) {
-		MoveToTarget(x, y, theta,0.0);
+	public void MoveToTarget(double x, double y) {
+		MoveToTarget(x, y, getAngleToGoal(x, y));
 	}
-	
-	public void MoveToTarget(double x, double y, double theta,double offset) {
-		int angle = 0, dist, moved, stepLength = 5;
+
+	public void MoveToTarget(double x, double y, double theta) {
+		MoveToTarget(x, y, theta, 0.0);
+	}
+
+	public void MoveToTarget(Position target) {
+		MoveToTarget(target.x, target.y, target.theta, 0.0);
+	}
+
+	public void MoveToTarget(double x, double y, double theta, double offset) {
+		int angle = 0, dist;
 		Boolean goalReached = false;
 		int TOL = 5;
 		while (!goalReached) {
@@ -873,15 +879,14 @@ public class Robot {
 			angle = getAngleToGoal(x, y);
 			dist = getDistanceToGoal(x, y);
 
-
 			writeLog("Moving to goal at angle " + angle + " in " + dist
-					+ "cm distance"+"-offset of"+offset);
-			dist = (int) (dist -offset);
-			
+					+ "cm distance" + " offset of " + offset);
+			dist = (int) (dist - offset);
+
 			turnRobotBalanced(angle, 'r');
 			robotSetLeds(127, 0);
 			moveByVelocity(dist, false);
-			if (getDistanceToGoal(x, y) < TOL) {
+			if (Math.abs((getDistanceToGoal(x, y) - offset)) < TOL) {
 				goalReached = true;
 			}
 		}
