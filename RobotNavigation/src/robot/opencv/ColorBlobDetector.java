@@ -28,7 +28,7 @@ public class ColorBlobDetector {
 	Mat mMask = new Mat();
 	Mat mDilatedMask = new Mat();
 	Mat mHierarchy = new Mat();
-	
+
 	// TODO add comment
 	public List<MatOfPoint> findContours(Mat grayImage) {
 		List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
@@ -38,7 +38,7 @@ public class ColorBlobDetector {
 		grayImage.copyTo(tempImage);
 		Imgproc.findContours(tempImage, contours, mHierarchy,
 				Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-		
+
 		// Find max contour area
 		double maxArea = 0;
 		Iterator<MatOfPoint> each = contours.iterator();
@@ -48,7 +48,7 @@ public class ColorBlobDetector {
 			if (area > maxArea)
 				maxArea = area;
 		}
-		
+
 		// Filter contours by area and resize to fit the original image size
 		List<MatOfPoint> mmContours = new ArrayList<MatOfPoint>();
 		each = contours.iterator();
@@ -58,7 +58,7 @@ public class ColorBlobDetector {
 				mmContours.add(contour);
 			}
 		}
-		
+
 		return mmContours;
 	}
 
@@ -127,21 +127,22 @@ public class ColorBlobDetector {
 
 		mmLowerBound.val[3] = 0;
 		mmUpperBound.val[3] = 255;
-		
+
 		Imgproc.pyrDown(rgbaImage, mmPyrDownMat);
 		Imgproc.pyrDown(mmPyrDownMat, mmPyrDownMat);
 
 		Imgproc.cvtColor(mmPyrDownMat, mmHsvMat, Imgproc.COLOR_RGB2HSV_FULL);
 
 		Core.inRange(mmHsvMat, mmLowerBound, mmUpperBound, mmMask);
-		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(10,10));
+		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
+				new Size(10, 10));
 
 		Imgproc.dilate(mmMask, mmDilatedMask, element);
 		Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
-		
+
 		Imgproc.resize(mmDilatedMask, mmDilatedMask, rgbaImage.size());
-		
+
 		return mmDilatedMask;
 	}
-	
+
 }

@@ -8,14 +8,14 @@ public class Ball {
 	private Point ballCenterCameraFrame;
 	private double radius;
 	public static int counter = 0;
-	
-	public Ball(Point ballCenterCameraFrame, Point posGroundPlane, double radius){
+
+	public Ball(Point ballCenterCameraFrame, Point posGroundPlane, double radius) {
 		this.id = counter++;
 		this.posGroundPlane = posGroundPlane;
 		this.ballCenterCameraFrame = ballCenterCameraFrame;
 		this.radius = radius;
 	}
-	
+
 	public Integer getId() {
 		return id;
 	}
@@ -43,9 +43,11 @@ public class Ball {
 	public void setRadius(int radius) {
 		this.radius = radius;
 	}
-	
-	public String toString(){
-		return "id: "+this.id+"\nposition ground plane" + this.posGroundPlane+"\nballCenterCameraFrame: "+this.ballCenterCameraFrame+"\nradius: "+this.radius;
+
+	public String toString() {
+		return "id: " + this.id + "\nposition ground plane"
+				+ this.posGroundPlane + "\nballCenterCameraFrame: "
+				+ this.ballCenterCameraFrame + "\nradius: " + this.radius;
 	}
 
 }

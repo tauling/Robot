@@ -40,9 +40,9 @@ public class Robot {
 	// the robot for 100cm.
 
 	private double CorrFactMoveForwardByVel = (303.0 / 650.0) * (100.0 / 98.0)
-			* (101.0 / 98.0) * (103.0 / 102.0)*(100.0/103.0);
+			* (101.0 / 98.0) * (103.0 / 102.0)*(100.0/103.0)*(100.0/97.0);
 	private double CorrFactMoveForwardByVelSlow = (303.0 / 650.0) * (100.0 / 98.0)
-			* (101.0 / 98.0) * (103.0 / 102.0) * (103.0/56.0)*(100.0/103.0);
+			* (101.0 / 98.0) * (103.0 / 102.0) * (103.0/56.0)*(100.0/103.0)*(100.0/99.0);
 	private double CorrFactAngleByDist = (360.0 / 268.0) * (360.0 / 343.0) * (360.0/380.0); // Should
 																			// be
 	// set, such

@@ -10,6 +10,7 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -44,12 +45,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// TODO: Add a function that allows to drive curves (and updates odometry)
 
 	// TODO: Explore workspace and remember positions of all balls
-	
+
 	// TODO: Add comments for variables.
-	
-	// TODO: Check if some methods should be moved to Robot.java or ColorBlobDetection.java.
-	
-	// TODO: Resolve warnings in activity.xml.
+
+	// TODO: Check if some methods should be moved to Robot.java or
+	// ColorBlobDetection.java.
+
+	// TODO: Resolve warnings in all xml-files.
 
 	private TextView textLog;
 
@@ -61,7 +63,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private EditText editText2;
 	private EditText editText3;
 
-	private double targetX = 100.0;
+	private double targetX = 100.0; // TODO Use Position.java
 
 	private double targetY = 100.0;
 
@@ -73,13 +75,18 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private Scalar mBlobColorHsv;
 	private ColorBlobDetector mDetector;
 
-	private int frameInterval = 0; // Helper variable which is needed to calculate the ball centers only every 15th frame.
+	private int frameInterval = 0; // Helper variable which is needed to
+									// calculate the ball centers only every
+									// 15th frame.
 
-	private int executionInterval = 15; // Every executionInterval frames, the objects are drawn into the camera frame
+	private int executionInterval = 15; // Every executionInterval frames, the
+										// objects are drawn into the camera
+										// frame
 
 	private List<Scalar> myColors = new ArrayList<Scalar>();
 
-	private List<Ball> foundBalls = new ArrayList<Ball>(); // list which stores all found balls
+	private List<Ball> foundBalls = new ArrayList<Ball>(); // list which stores
+															// all found balls
 
 	List<Point> circleCenters = new ArrayList<Point>();
 
@@ -107,7 +114,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		robot = new Robot(textLog, svLog, com);
 		robot.connect();
-		
+
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
 	}
@@ -150,6 +157,18 @@ public class MainActivity extends Activity implements OnTouchListener,
 			@Override
 			public void run() {
 				robot.moveByVelocity(100, false);
+			};
+		};
+
+		t.start();
+	}
+
+	public void buttonOneMeterDriveByVelSlow_onClick(View v) {
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				robot.moveByVelocitySlow(100, false);
 			};
 		};
 
@@ -239,19 +258,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	public void buttonReadTargetPoint(View v) {
-		robot.resetPosition();
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				targetX = Integer.parseInt(editText1.getText().toString());
-				targetY = Integer.parseInt(editText2.getText().toString());
-				targetTheta = Integer.parseInt(editText3.getText().toString());
-				robot.writeLog("new target at x: " + targetX + " y: " + targetY
-						+ " theta: " + targetTheta);
-			};
-		};
-		t.start();
+		targetX = Integer.parseInt(editText1.getText().toString());
+		targetY = Integer.parseInt(editText2.getText().toString());
+		targetTheta = Integer.parseInt(editText3.getText().toString());
+		robot.writeLog("new target at x: " + targetX + " y: " + targetY
+				+ " theta: " + targetTheta);
 	}
 
 	public void buttonMLineDemo_onClick(View v) {
@@ -316,7 +327,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 		t.start();
 	}
 
-
 	public void buttonTest2_onClick(View v) {
 
 		Thread t = new Thread() {
@@ -337,7 +347,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 			@Override
 			public void run() {
 				// Not needed currently
-				robot.moveByVelocitySlow(100, false); // TODO Add a Button for this method to "Kalibrieriung"; Then remove this line here.
+				robot.moveByVelocitySlow(100, false); // TODO Add a Button for
+														// this method to
+														// "Kalibrieriung"; Then
+														// remove this line
+														// here.
 			};
 		};
 
@@ -406,7 +420,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	// TODO add comment
-	@SuppressWarnings("unused")
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
 		@SuppressLint("ClickableViewAccessibility")
 		@Override
@@ -487,7 +500,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public Point computeCenterPt(List<MatOfPoint> contours) {
 		if (contours.isEmpty()) {
-			return (new Point(-200.0, -200.0)); // TODO: Better to return null in this case?
+			return (new Point(-200.0, -200.0)); // TODO: Better to return null
+												// in this case?
 		}
 		double avgX = 0, avgY = 0;
 		int count = 0;
@@ -508,7 +522,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
 	}
 
-	
 	// TODO update comment
 	/**
 	 * measures distance from every point to center and computes average radius
@@ -562,12 +575,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 		return aligned;
 	}
-	
-	
-    // TODO add comment
+
+	// TODO add comment
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		mRgbaOutput = inputFrame.rgba();
-		mRgbaWork = inputFrame.rgba(); // TODO: does mRgbaWork refer to the same image as mRgbaOutput? In that case, either fix or remove this variable.
+		mRgbaWork = inputFrame.rgba(); // TODO: does mRgbaWork refer to the same
+										// image as mRgbaOutput? In that case,
+										// either fix or remove this variable.
 		if (frameInterval >= executionInterval) {
 			findCirclesOnCamera();
 			frameInterval = 0;
@@ -579,6 +593,20 @@ public class MainActivity extends Activity implements OnTouchListener,
 		frameInterval++;
 
 		return mRgbaOutput;
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		if (mOpenCvCameraView != null)
+			mOpenCvCameraView.disableView();
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
+				mLoaderCallback);
 	}
 
 	// TODO Needed?
@@ -615,7 +643,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// TODO: needed?
 	// TODO: If so, move to colorblog-class
 	// TODO add comment
-	// TODO fix: this method is used to detect various balls; currently not working
+	// TODO fix: this method is used to detect various balls; currently not
+	// working
 	public void detectBalls(Mat img) {
 		List<MatOfPoint> contours = mDetector.findContours(img);
 		Log.e(TAG, "found areas: " + contours.size());
@@ -858,10 +887,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 		robot.moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 25);
 		ballTarget = detectOneBall().getPosGroundPlane();
 		robot.writeLog("readjusting");
-		robot.moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 7.5);
+		robot.moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 5);
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robot.writeLog("(driveToBallAndCage) lowering bar");
-		robot.robotSetBar(30);
+		robot.robotSetBar(50);
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {

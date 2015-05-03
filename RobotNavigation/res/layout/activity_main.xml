@@ -228,6 +228,16 @@
                     android:layout_weight="0.04"
                     android:onClick="buttonOneMeterDriveByVel_onClick"
                     android:text="1m by vel" />
+
+                <Button
+                    android:id="@+id/ButtonOneMeterByVelSlow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_column="3"
+                    android:layout_row="0"
+                    android:layout_weight="0.04"
+                    android:onClick="buttonOneMeterDriveByVelSlow_onClick"
+                    android:text="1m by vel slow" />
                 
                 <Button
                     android:id="@+id/buttonSensor"
