@@ -85,7 +85,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	/**
 	 * Connects to the robot when app is started and initializes the position of
 	 * the robot's bar.
-	 *
+	 * 
 	 * @param savedInstanceState
 	 */
 	@Override
@@ -350,11 +350,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-//				driveToBallAndCage(myBall);
-//				Log.i(TAG, "(findAndDeliverPoint) Ball caged");
-//				robot.writeLog("Ball caged");
-				robot.moveByVelocity(-20,false);
-				robot.moveByVelocitySlow(-20,false);
+				// driveToBallAndCage(myBall);
+				// Log.i(TAG, "(findAndDeliverPoint) Ball caged");
+				// robot.writeLog("Ball caged");
+				robot.moveByVelocity(-20, false);
+				robot.moveByVelocitySlow(-20, false);
 			};
 		};
 
@@ -367,17 +367,17 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-//				Position finalPos = new Position(70, 70, 45);
-//				double finalPosX = finalPos.x;
-//				double finalPosY = finalPos.y;
-//				double finalTheta = finalPos.theta;
-//				Log.i(TAG, "(driveToBallAndCage) move to final Position"
-//						+ finalPos);
-//				robot.writeLog("(driveToBallAndCage) move to final Position"
-//						+ finalPos);
-//				robot.moveToTarget(finalPosX, finalPosY, finalTheta);
-//				robot.robotSetBar(126);
-				
+				// Position finalPos = new Position(70, 70, 45);
+				// double finalPosX = finalPos.x;
+				// double finalPosY = finalPos.y;
+				// double finalTheta = finalPos.theta;
+				// Log.i(TAG, "(driveToBallAndCage) move to final Position"
+				// + finalPos);
+				// robot.writeLog("(driveToBallAndCage) move to final Position"
+				// + finalPos);
+				// robot.moveToTarget(finalPosX, finalPosY, finalTheta);
+				// robot.robotSetBar(126);
+
 				robot.moveByVelocitySlow(100, false);
 			};
 		};
@@ -467,8 +467,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		textLog.setText("");
 
 	}
-	
-	public void ButtonFindAndDeliverBall(View v){
+
+	public void ButtonFindAndDeliverBall(View v) {
 		Thread t = new Thread() {
 
 			@Override
@@ -602,7 +602,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * computes center point of given contour
-	 *
+	 * 
 	 * @param contours
 	 * @return Point (representing center point)
 	 */
@@ -662,9 +662,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * unstable method
-	 *
+	 * 
 	 * computes Radius based on distance from most far away point to center
-	 *
+	 * 
 	 * @param contours
 	 * @param center
 	 *            point
@@ -688,7 +688,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * computes contour radius with circle surface equation
-	 *
+	 * 
 	 * @param contours
 	 * @return radius
 	 */
@@ -703,7 +703,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * measures distance from every point to center and computes average radius
-	 *
+	 * 
 	 * @param contours
 	 * @param center
 	 *            point
@@ -730,7 +730,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * computes surface of given contour (by counting points inside)
-	 *
+	 * 
 	 * @param contours
 	 * @return surface of contour (point amount)
 	 */
@@ -776,7 +776,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * robot aligns his body to a surrendered ball
-	 *
+	 * 
 	 * @param ball
 	 * @return TRUE, after he turned enough
 	 */
@@ -956,7 +956,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * robot aligns his body to a surrendered Point
-	 *
+	 * 
 	 * @param point
 	 */
 	public void alignToPoint(Point p) {
@@ -996,31 +996,33 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Ball myBall = detectOneBall();
 		Log.i(TAG, "(findAndDeliverPoint) Ready to cage the ball");
 		robot.writeLog("(findAndDeliverPoint) Ready to cage the ball");
-		driveToBallAndCage(myBall);
-		Log.i(TAG, "(findAndDeliverPoint) Ball caged");
-		robot.writeLog("Ball caged");
-		robot.moveToTargetWithoutAngle(x, y, 5);
-		robot.moveByVelocitySlow(-16, false);
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (myBall != null) {
+			driveToBallAndCage(myBall);
+			Log.i(TAG, "(findAndDeliverPoint) Ball caged");
+			robot.writeLog("Ball caged");
+			robot.moveToTargetWithoutAngle(x, y, 5);
+			robot.moveByVelocitySlow(-16, false);
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			robot.robotSetBar(126);
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			robot.moveByVelocity(-35, false);
 		}
-		robot.robotSetBar(126);
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		robot.moveByVelocity(-35, false);
 	}
 
 	/**
 	 * Turns robot for a maximum of 360°, stops when ball is adjusted to the
 	 * center of the camera frame.
-	 *
+	 * 
 	 * @return true if ball is found, false otherwise.
 	 */
 	public boolean turnAndFindABall() {
@@ -1049,7 +1051,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * Finds the centers of all circles on camera.
-	 *
+	 * 
 	 * @return a list of centers of circles that are currently present on the
 	 *         camera frame
 	 */
@@ -1088,7 +1090,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * Detects a ball.
-	 *
+	 * 
 	 * @return Ball object if found, null otherwise.
 	 */
 	public Ball detectOneBall() {
@@ -1135,7 +1137,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * Drives to the ball and cages it.
-	 *
+	 * 
 	 * @param ball
 	 *            the ball to cage
 	 */
@@ -1169,7 +1171,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * Takes a camera point and calculates its ground plane coordinates.
-	 *
+	 * 
 	 * @param cameraPoint
 	 * @return ground plane coordinates of camera point
 	 */
