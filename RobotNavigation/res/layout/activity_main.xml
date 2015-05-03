@@ -172,6 +172,12 @@
                     android:onClick="buttonmoveToGoalN2_onClick"
                     android:text="moveToGoalN2" />
 
+                <Button
+                    android:id="@+id/button17"
+                    android:layout_gravity="left"
+                    android:onClick="ButtonFindAndDeliverBall"
+                    android:text="FindADeliverBall" />
+
             </GridLayout>
 
             <GridLayout
