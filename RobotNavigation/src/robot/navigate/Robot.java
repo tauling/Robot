@@ -132,7 +132,10 @@ public class Robot {
 				(byte) Math.max(Math.min(blue, 127), 0), '\r', '\n' }));
 	}
 
-	// TODO Add description
+	/**
+	 * set bar with value between 0 and 260
+	 * @param value
+	 */
 	public void robotSetBar(int value) {
 		if (Math.abs(value) > 127) {
 			value = (int) (Math.signum(value) * 127);
