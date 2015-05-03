@@ -474,7 +474,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			@Override
 			public void run() {
 				findAndDeliverBall(targetX, targetY);
-				robot.MoveToTarget(0.0, 0.0, 0);
+				robot.moveToTarget(0.0, 0.0, 0);
 			};
 		};
 
