@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
@@ -16,67 +15,22 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import android.util.Log;
-// TODO: Review this class: Remove all unnecessary methods
+
 // TODO: Review this class: Make methods private/public
 
 public class ColorBlobDetector {
-	// Lower and Upper bounds for range checking in HSV color space
-	private Scalar mLowerBound = new Scalar(0);
-	private Scalar mUpperBound = new Scalar(0);
 	// Minimum contour area in percent for contours filtering
 	private static double mMinContourArea = 0.1;
-	// Color radius for range checking in HSV color space
-	private Scalar mColorRadius = new Scalar(25, 60, 60, 0);
-	private Mat mSpectrum = new Mat();
-	private List<MatOfPoint> mContours = new ArrayList<MatOfPoint>();
+
 	// Cache
 	Mat mPyrDownMat = new Mat();
 	Mat mHsvMat = new Mat();
 	Mat mMask = new Mat();
 	Mat mDilatedMask = new Mat();
 	Mat mHierarchy = new Mat();
-
-	public void setColorRadius(Scalar radius) {
-		mColorRadius = radius;
-	}
-
-	public void setHsvColor(Scalar hsvColor) {
-		double minH = (hsvColor.val[0] >= mColorRadius.val[0]) ? hsvColor.val[0]
-				- mColorRadius.val[0]
-				: 0;
-		double maxH = (hsvColor.val[0] + mColorRadius.val[0] <= 255) ? hsvColor.val[0]
-				+ mColorRadius.val[0]
-				: 255;
-		mLowerBound.val[0] = minH;
-		mUpperBound.val[0] = maxH;
-		mLowerBound.val[1] = hsvColor.val[1] - mColorRadius.val[1];
-		mUpperBound.val[1] = hsvColor.val[1] + mColorRadius.val[1];
-		mLowerBound.val[2] = hsvColor.val[2] - mColorRadius.val[2];
-		mUpperBound.val[2] = hsvColor.val[2] + mColorRadius.val[2];
-		mLowerBound.val[3] = 0;
-		mUpperBound.val[3] = 255;
-		Mat spectrumHsv = new Mat(1, (int) (maxH - minH), CvType.CV_8UC3);
-		for (int j = 0; j < maxH - minH; j++) {
-			byte[] tmp = { (byte) (minH + j), (byte) 255, (byte) 255 };
-			spectrumHsv.put(0, j, tmp);
-		}
-		Imgproc.cvtColor(spectrumHsv, mSpectrum, Imgproc.COLOR_HSV2RGB_FULL, 4);
-	}
-
-	public Mat getSpectrum() {
-		return mSpectrum;
-	}
-
-	public void setMinContourArea(double area) {
-		mMinContourArea = area;
-	}
 	
+	// TODO add comment
 	public List<MatOfPoint> findContours(Mat grayImage) {
-//		Imgproc.pyrDown(rgbaImage, mPyrDownMat);
-//		Imgproc.pyrDown(mPyrDownMat, mPyrDownMat);
-//		Imgproc.cvtColor(mPyrDownMat, mHsvMat, Imgproc.COLOR_RGB2HSV_FULL);
-//		Core.inRange(mHsvMat, mLowerBound, mUpperBound, mMask);
-//		Imgproc.dilate(mMask, mDilatedMask, new Mat());
 		List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		String TAG = "OCVSample::Activity";
 		Log.i(TAG, "Typ " + grayImage.type());
@@ -94,13 +48,13 @@ public class ColorBlobDetector {
 			if (area > maxArea)
 				maxArea = area;
 		}
+		
 		// Filter contours by area and resize to fit the original image size
 		List<MatOfPoint> mmContours = new ArrayList<MatOfPoint>();
 		each = contours.iterator();
 		while (each.hasNext()) {
 			MatOfPoint contour = each.next();
 			if (Imgproc.contourArea(contour) > mMinContourArea * maxArea) {
-//				Core.multiply(contour, new Scalar(4, 4), contour);
 				mmContours.add(contour);
 			}
 		}
@@ -108,40 +62,7 @@ public class ColorBlobDetector {
 		return mmContours;
 	}
 
-	public void process(Mat rgbaImage) {
-		Imgproc.pyrDown(rgbaImage, mPyrDownMat);
-		Imgproc.pyrDown(mPyrDownMat, mPyrDownMat);
-		Imgproc.cvtColor(mPyrDownMat, mHsvMat, Imgproc.COLOR_RGB2HSV_FULL);
-		Core.inRange(mHsvMat, mLowerBound, mUpperBound, mMask);
-		Imgproc.dilate(mMask, mDilatedMask, new Mat());
-		List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-		Imgproc.findContours(mDilatedMask, contours, mHierarchy,
-				Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-		// Find max contour area
-		double maxArea = 0;
-		Iterator<MatOfPoint> each = contours.iterator();
-		while (each.hasNext()) {
-			MatOfPoint wrapper = each.next();
-			double area = Imgproc.contourArea(wrapper);
-			if (area > maxArea)
-				maxArea = area;
-		}
-		// Filter contours by area and resize to fit the original image size
-		mContours.clear();
-		each = contours.iterator();
-		while (each.hasNext()) {
-			MatOfPoint contour = each.next();
-			if (Imgproc.contourArea(contour) > mMinContourArea * maxArea) {
-				Core.multiply(contour, new Scalar(4, 4), contour);
-				mContours.add(contour);
-			}
-		}
-	}
-
-	public List<MatOfPoint> getContours() {
-		return mContours;
-	}
-
+	// TODO add comment
 	public Mat getHomographyMatrix(Mat mRgba) {
 		final Size mPatternSize = new Size(6, 9); // number of inner corners in
 		// the used chessboard
@@ -178,7 +99,7 @@ public class ColorBlobDetector {
 			return new Mat();
 	}
 
-
+	// TODO add description
 	public Mat filter(Mat rgbaImage, Scalar hsvColor) {
 		Scalar mmLowerBound = new Scalar(0);
 		Scalar mmUpperBound = new Scalar(0);
@@ -218,8 +139,6 @@ public class ColorBlobDetector {
 		Imgproc.dilate(mmMask, mmDilatedMask, element);
 		Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
 		
-//		Imgproc.threshold(mmDilatedMask, mmDilatedMask, 100, 255, Imgproc.THRESH_BINARY_INV);
-
 		Imgproc.resize(mmDilatedMask, mmDilatedMask, rgbaImage.size());
 		
 		return mmDilatedMask;

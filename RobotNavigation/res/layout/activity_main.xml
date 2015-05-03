@@ -200,11 +200,6 @@
                     android:text="Development"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
 
-                <Button
-                    android:id="@+id/button4"
-                    android:layout_gravity="left"
-                    android:text="getBlob"
-                    android:onClick="buttonGetBlob_onClick" />
 
             </GridLayout>
 
@@ -293,13 +288,6 @@
                     android:layout_row="1"
                		android:onClick="button3_onClick"
                     android:text="Homography" />
-
-                <Button
-                    android:id="@+id/button8"
-                    android:layout_gravity="left"
-                    android:layout_row="2"
-                    android:onClick="ButtonfindCirclesOnClick"
-                    android:text="findCircles" />
 
                 <Button
                     android:id="@+id/button15"

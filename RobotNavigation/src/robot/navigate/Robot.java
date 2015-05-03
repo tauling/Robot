@@ -1,11 +1,7 @@
 package robot.navigate;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import org.opencv.core.Point;
 
 import jp.ksksue.driver.serial.FTDriver;
 import android.os.Handler;
@@ -34,16 +30,7 @@ public class Robot {
 											// treated as obstacle (Working
 											// range of middle sensor is 20 to
 											// 80cm)
-	private Integer ObsDetectBorderL = 25; // Measurements to the left of the
-											// robot
-	// below this value are treated as
-	// obstacle (Working range of left
-	// sensor is 10 to 80cm)
-	private Integer ObsDetectBorderR = 25; // Measurements to the right of the
-											// robot
-	// below this value are treated as
-	// obstacle (Working range of right
-	// sensor is 10 to 80cm)
+
 	private double CorrFactMoveForwardByDist = (5875.0 / 4309.0)
 			* (100.0 / 98.0); // Should be
 	// set,
@@ -73,7 +60,7 @@ public class Robot {
 	private final int IdSensorMiddle = 9; // Call findSensorIDs() to determine
 											// the corresponding ID
 
-	// TODO: Sensors also have Factors sometimes; Add them here
+	// TODO Sensors also have Factors sometimes; Add them here
 	private int OffsetSensorLeft = 0; // Should be set, such that the left
 										// sensor
 	// measures distances correctly in its working
@@ -88,7 +75,10 @@ public class Robot {
 	// range.
 
 	// <- Robot Calibration
+	
+	// TODO Check the use of WriteLog; too many comments in textLog while playing with the robot.
 
+	// TODO Add comments for variables.
 	private Position myPos = new Position(0, 0, 0);
 
 	private int balancedAngle = 0;
@@ -96,6 +86,7 @@ public class Robot {
 	private FTDriver com;
 	private Handler mhandler = new Handler();
 
+	// TODO add description
 	private class WriteLogRunnable implements Runnable {
 
 		private String text = null;
@@ -250,13 +241,13 @@ public class Robot {
 	}
 
 	// TODO update description
+	// TODO needed?
 	public void turnByVelocity(int angle, char dir) {
 
 		writeLog("turnByVelocity " + angle);
 		double start = System.currentTimeMillis(); // [ms]
 		double curTime = start;
 		int velocity = 11;
-		// writeLog("startTime: " + (int) start);
 		double speed = velocity / CorrFactAngleByVel;
 		double corrTime = reduceAngle(angle) / speed; // [ms]
 		double end = start + corrTime;
@@ -265,10 +256,8 @@ public class Robot {
 		switch (dir) {
 		case 'l':
 			velocity = -velocity;
-			// writeLog("Turning left");
 			break;
 		case 'r':
-			// writeLog("Turning right");
 			break;
 		}
 
@@ -428,9 +417,9 @@ public class Robot {
 	}
 
 	/**
-	 * move robot specific distance
+	 * move robot by a specific distance
 	 * 
-	 * @param dist
+	 * @param dist distance in centimeters
 	 */
 	public void moveRobot(int dist) {
 		int corrDist = (int) (dist * CorrFactMoveForwardByDist);
@@ -599,7 +588,7 @@ public class Robot {
 		updateRotation(angle, dir);
 		int degrees = angle;
 		degrees = (int) (CorrFactAngleByDist * degrees);
-//		int targetedAngleByOnce = 30; // TODO: Make global?
+//		int targetedAngleByOnce = 30; // TODO: Make global? Check if needed; could improve accuracy
 		int maxDegreesByOnce = 40;
 //		if (angle > targetedAngleByOnce) {
 //			maxDegreesByOnce = Math.min(127, Math.abs(degrees/(angle/targetedAngleByOnce)));
@@ -720,7 +709,6 @@ public class Robot {
 		comReadWrite(new byte[] { 'i', 0, 0, '\r', '\n' });
 	}
 
-	// TODO: Merge with obstacleLeft and obstacleRight
 	/**
 	 * methods tests whether an obstacle is in the range of the 3 front sensors
 	 * or not
@@ -743,48 +731,7 @@ public class Robot {
 		}
 		return detected;
 	}
-
-	// TODO Check if needed
-	/**
-	 * checks if an obstacle is in the range of the left sensor
-	 * 
-	 * @return
-	 */
-	private Boolean obstacleLeft() {
-		Boolean detected = false;
-		if (com.isConnected()) {
-			Map<String, Integer> measurement = new HashMap<String, Integer>();
-			measurement = getDistance();
-			if (measurement.get("frontLeft") <= ObsDetectBorderL) {
-				detected = true;
-			}
-		} else {
-			detected = true;
-			writeLog("No connection to the robot. Sensors can't be read.");
-		}
-		return detected;
-	}
-
-	// TODO Check if needed
-	/**
-	 * checks if an obstacle is in the range of the right sensor
-	 * 
-	 * @return
-	 */
-	private Boolean obstacleRight() {
-		Boolean detected = false;
-		Map<String, Integer> measurement = new HashMap<String, Integer>();
-		if (com.isConnected()) {
-			measurement = getDistance();
-			if (measurement.get("frontRight") <= ObsDetectBorderR) {
-				detected = true;
-			}
-		} else {
-			detected = true;
-			writeLog("No connection to the robot. Sensors can't be read.");
-		}
-		return detected;
-	}
+	
 
 	/**
 	 * Uses move robot by distance to drive to a given goal destination while
@@ -951,14 +898,17 @@ public class Robot {
 		robotSetLeds(127, 127);
 	}
 
+	// TODO add comment
 	public void resetPosition() {
 		myPos = new Position(0.0, 0.0, 0);
 	}
 
+	// TODO add comment
 	public Position getMyPosition() {
 		return myPos;
 	}
 
+	// TODO Remove and use getMyPosition()
 	public int getTg() {
 		return myPos.theta;
 	}

@@ -1,16 +1,13 @@
 package robot;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.core.Core;
@@ -20,27 +17,22 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import robot.generated.R;
 import robot.navigate.Ball;
-import robot.navigate.Position;
 import robot.navigate.Robot;
 import robot.opencv.ColorBlobDetector;
 
 import jp.ksksue.driver.serial.FTDriver;
+import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.graphics.Camera;
 import android.hardware.usb.UsbManager;
-import android.media.Image;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.View.OnTouchListener;
 import android.widget.EditText;
 import android.widget.ScrollView;
@@ -49,20 +41,15 @@ import android.widget.TextView;
 public class MainActivity extends Activity implements OnTouchListener,
 		CvCameraViewListener2 {
 
-	// TODO: Working Demos -> rename to Examination Task 1
-
-	// TODO: Fix: (x,y) are switched in move to goal methods
-
-	// TODO: Change orientation; (0,0,0) means, that the robot is facing to the
-	// right
-
-	// TODO: Allow the user to enter values in the app.
-
-	// TODO: Add button to stop all threads
-
 	// TODO: Add a function that allows to drive curves (and updates odometry)
 
 	// TODO: Explore workspace and remember positions of all balls
+	
+	// TODO: Add comments for variables.
+	
+	// TODO: Check if some methods should be moved to Robot.java or ColorBlobDetection.java.
+	
+	// TODO: Resolve warnings in activity.xml.
 
 	private TextView textLog;
 
@@ -79,8 +66,24 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private double targetY = 100.0;
 
 	private Integer targetTheta = 45;
+	private static final String TAG = "RobotLog";
 
-	private List<Scalar> hsvColors = new LinkedList<Scalar>();
+	private Mat mRgbaOutput;
+	private Mat mRgbaWork;
+	private Scalar mBlobColorHsv;
+	private ColorBlobDetector mDetector;
+
+	private int frameInterval = 0; // Helper variable which is needed to calculate the ball centers only every 15th frame.
+
+	private int executionInterval = 15; // Every executionInterval frames, the objects are drawn into the camera frame
+
+	private List<Scalar> myColors = new ArrayList<Scalar>();
+
+	private List<Ball> foundBalls = new ArrayList<Ball>(); // list which stores all found balls
+
+	List<Point> circleCenters = new ArrayList<Point>();
+
+	private CameraBridgeViewBase mOpenCvCameraView;
 
 	/**
 	 * Connects to the robot when app is started and initializes the position of
@@ -104,17 +107,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		robot = new Robot(textLog, svLog, com);
 		robot.connect();
-
-		// TODO: The commented code right below belongs to the former
-		// ColorBlobDetectionActivity
-
-		// Log.i(TAG, "called onCreate");
-		// requestWindowFeature(Window.FEATURE_NO_TITLE);
-		// getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
+		
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
-		// Log.i(TAG, "Instantiated new " + this.getClass());
 	}
 
 	public void buttonMoveToGoalN3_onClick(View v) {
@@ -135,23 +130,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 			robot.findSensorIDs();
 		} catch (Exception e) {
 		}
-	}
-
-	public void buttonGetBlob_onClick(View v) {
-		Mat src = new Mat(1, 1, CvType.CV_32FC2);
-		Mat dest = new Mat(1, 1, CvType.CV_32FC2);
-		Point lowestPoint = lowestPt();
-		robot.writeLog("Found ball on cam at x = " + lowestPoint.x
-				+ " and y = " + lowestPoint.y);
-		src.put(0, 0, new double[] { lowestPoint.x, lowestPoint.y }); // ps is a
-																		// point
-																		// in
-																		// image
-																		// coordinates
-		Core.perspectiveTransform(src, dest, homographyMatrix);
-		Point dest_point = new Point(dest.get(0, 0)[0], dest.get(0, 0)[1]);
-		robot.writeLog("Found Blob at x = " + dest_point.x + " and y = "
-				+ dest_point.y);
 	}
 
 	public void buttonOneMeter_onClick(View v) {
@@ -196,7 +174,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				// for (int i = 0; i < 12; i++)
 				robot.turnByVelocity(180, 'r');
 				robot.turnByVelocity(180, 'r');
 			};
@@ -248,6 +225,19 @@ public class MainActivity extends Activity implements OnTouchListener,
 		t.start();
 	}
 
+	public void buttonEightTwo_onClick(View v) {
+		robot.resetPosition();
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				robot.moveSquare(50, 'r', 2);
+				robot.moveSquare(50, 'l', 2);
+			};
+		};
+		t.start();
+	}
+
 	public void buttonReadTargetPoint(View v) {
 		robot.resetPosition();
 		Thread t = new Thread() {
@@ -259,19 +249,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 				targetTheta = Integer.parseInt(editText3.getText().toString());
 				robot.writeLog("new target at x: " + targetX + " y: " + targetY
 						+ " theta: " + targetTheta);
-			};
-		};
-		t.start();
-	}
-
-	public void buttonEightTwo_onClick(View v) {
-		robot.resetPosition();
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				robot.moveSquare(50, 'r', 2);
-				robot.moveSquare(50, 'l', 2);
 			};
 		};
 		t.start();
@@ -332,17 +309,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.writeLog("(findAndDeliverPoint) Start");
-				myBall = detectOneBall();
-				Log.i(TAG, "(findAndDeliverPoint) Ready to cage the ball");
-				robot.writeLog("(findAndDeliverPoint) Ready to cage the ball");
+				// Not needed currently
 			};
 		};
 
 		t.start();
 	}
 
-	Ball myBall; // TODO Delete
 
 	public void buttonTest2_onClick(View v) {
 
@@ -350,11 +323,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				// driveToBallAndCage(myBall);
-				// Log.i(TAG, "(findAndDeliverPoint) Ball caged");
-				// robot.writeLog("Ball caged");
-				robot.moveByVelocity(-20, false);
-				robot.moveByVelocitySlow(-20, false);
+				// Not needed currently
 			};
 		};
 
@@ -367,18 +336,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				// Position finalPos = new Position(70, 70, 45);
-				// double finalPosX = finalPos.x;
-				// double finalPosY = finalPos.y;
-				// double finalTheta = finalPos.theta;
-				// Log.i(TAG, "(driveToBallAndCage) move to final Position"
-				// + finalPos);
-				// robot.writeLog("(driveToBallAndCage) move to final Position"
-				// + finalPos);
-				// robot.moveToTarget(finalPosX, finalPosY, finalTheta);
-				// robot.robotSetBar(126);
-
-				robot.moveByVelocitySlow(100, false);
+				// Not needed currently
+				robot.moveByVelocitySlow(100, false); // TODO Add a Button for this method to "Kalibrieriung"; Then remove this line here.
 			};
 		};
 
@@ -391,27 +350,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				findAndDeliverBall(targetX, targetY);
-				robot.moveToTarget(0, 0, 0);
-				// robot.robotSetLeds(0, 0);
-				// robot.robotSetLeds(127, 127);
-				// robot.robotSetLeds(0, 0);
-				// robot.robotSetLeds(127, 127);
-				// robot.robotSetLeds(0, 0);
-				// robot.MoveToTarget(100,100,0);
-				// robot.robotSetLeds(0, 0);
-				// robot.robotSetLeds(127, 127);
-				// robot.robotSetLeds(0, 0);
-				// robot.robotSetLeds(127, 127);
-				// robot.robotSetLeds(0, 0);
-				// robot.MoveToTarget(0,100,0);
-				// robot.robotSetLeds(0, 0);
-				// robot.robotSetLeds(127, 127);
-				// robot.robotSetLeds(0, 0);
-				// robot.robotSetLeds(127, 127);
-				// robot.robotSetLeds(0, 0);
-				// robot.MoveToTarget(0,0,0);
-
+				// not needed currently
 			};
 		};
 
@@ -443,21 +382,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 		t.start();
 	}
 
-	public void ButtonfindCirclesOnClick(View v) {
-
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				List<Point> circles = findCirclesOnCamera();
-				if (circles.size() > 0)
-					getGroundPlaneCoordinates(circles.get(0));
-			};
-		};
-
-		t.start();
-	}
-
 	public void ButtonEmptyBrain(View v) {
 
 		circleCenters = new ArrayList<Point>();
@@ -481,39 +405,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 		t.start();
 	}
 
-	// TODO: All the things below belong to the former
-	// ColorBlobDetectorActivity. Clean up and migrate.
-	private static final String TAG = "RobotLog";
-
-	private boolean mIsColorSelected = false;
-	private Mat mRgbaOutput;
-	private Mat mRgbaWork;
-	private Scalar mBlobColorRgba;
-	private Scalar mBlobColorHsv;
-	private ColorBlobDetector mDetector;
-	private Mat mSpectrum;
-	private Size SPECTRUM_SIZE;
-	private Scalar CONTOUR_COLOR;
-
-	private int executionInterval = 15;
-
-	private List<Scalar> myColors = new ArrayList<Scalar>();
-
-	/**
-	 * list which stores all found balls
-	 */
-	private List<Ball> foundBalls = new ArrayList<Ball>();
-
-	List<Point> circleCenters = new ArrayList<Point>();
-
-	private CameraBridgeViewBase mOpenCvCameraView;
-
+	// TODO add comment
+	@SuppressWarnings("unused")
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+		@SuppressLint("ClickableViewAccessibility")
 		@Override
 		public void onManagerConnected(int status) {
 			switch (status) {
 			case LoaderCallbackInterface.SUCCESS: {
-				// Log.i(TAG, "OpenCV loaded successfully");
 				mOpenCvCameraView.enableView();
 				mOpenCvCameraView.setOnTouchListener(MainActivity.this);
 			}
@@ -526,41 +425,28 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 	};
 
-	@Override
-	public void onPause() {
-		super.onPause();
-		if (mOpenCvCameraView != null)
-			mOpenCvCameraView.disableView();
-	}
-
-	@Override
-	public void onResume() {
-		super.onResume();
-		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
-				mLoaderCallback);
-	}
-
+	// TODO add comment
 	public void onDestroy() {
 		super.onDestroy();
 		if (mOpenCvCameraView != null)
 			mOpenCvCameraView.disableView();
 	}
 
+	// TODO add comment
 	public void onCameraViewStarted(int width, int height) {
 		mRgbaWork = new Mat(height, width, CvType.CV_8UC4);
 		mRgbaOutput = new Mat(height, width, CvType.CV_8UC4);
 		mDetector = new ColorBlobDetector();
-		mSpectrum = new Mat();
-		mBlobColorRgba = new Scalar(255);
 		mBlobColorHsv = new Scalar(255);
-		SPECTRUM_SIZE = new Size(200, 64);
-		CONTOUR_COLOR = new Scalar(255, 0, 0, 255);
 	}
 
+	// TODO add comment
 	public void onCameraViewStopped() {
 		mRgbaOutput.release();
 	}
 
+	// TODO add comment
+	@SuppressLint("ClickableViewAccessibility")
 	public boolean onTouch(View v, MotionEvent event) {
 		int cols = mRgbaOutput.cols();
 		int rows = mRgbaOutput.rows();
@@ -582,19 +468,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Mat touchedRegionHsv = new Mat();
 		Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv,
 				Imgproc.COLOR_RGB2HSV_FULL);
-		// Calculate average color of touched region
 		mBlobColorHsv = Core.sumElems(touchedRegionHsv);
 		int pointCount = touchedRect.width * touchedRect.height;
 		for (int i = 0; i < mBlobColorHsv.val.length; i++)
 			mBlobColorHsv.val[i] /= pointCount;
-		mBlobColorRgba = converScalarHsv2Rgba(mBlobColorHsv);
-		// add mBlobColorHsv in myColors-list; ignores Rgba color
 		myColors.add(mBlobColorHsv);
-		Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", "
-				+ mBlobColorRgba.val[1] + ", " + mBlobColorRgba.val[2] + ", "
-				+ mBlobColorRgba.val[3] + ")");
 		Log.i(TAG, "saved colors: " + myColors.size());
-		mIsColorSelected = true;
 		touchedRegionRgba.release();
 		touchedRegionHsv.release();
 		return false; // don't need subsequent touch events
@@ -608,7 +487,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public Point computeCenterPt(List<MatOfPoint> contours) {
 		if (contours.isEmpty()) {
-			return (new Point(-200.0, -200.0));
+			return (new Point(-200.0, -200.0)); // TODO: Better to return null in this case?
 		}
 		double avgX = 0, avgY = 0;
 		int count = 0;
@@ -624,51 +503,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return ptCenter;
 	}
 
+	// TODO add comment
 	public double distPointToPoint(Point p1, Point p2) {
 		return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
 	}
 
-	/**
-	 * unstable method
-	 * 
-	 * computes Radius based on distance from most far away point to center
-	 * 
-	 * @param contours
-	 * @param center
-	 *            point
-	 * @return radius
-	 */
-	public double computeRadius(List<MatOfPoint> contours, Point center) {
-		if (contours.isEmpty()) {
-			return 0;
-		}
-		double distToCenter = 0;
-		for (int i = 0; i < contours.size(); i++) {
-			List<Point> pts = contours.get(i).toList();
-			for (Point p : pts) {
-				if (distPointToPoint(p, center) > distToCenter) {
-					distToCenter = distPointToPoint(p, center);
-				}
-			}
-		}
-		return distToCenter;
-	}
-
-	/**
-	 * computes contour radius with circle surface equation
-	 * 
-	 * @param contours
-	 * @return radius
-	 */
-	public int computeRadius2(List<MatOfPoint> contours) {
-		if (contours.isEmpty()) {
-			return 0;
-		}
-		int radius2 = (int) (computeContourArea(contours) / (2 * Math.PI));
-
-		return radius2;
-	}
-
+	
+	// TODO update comment
 	/**
 	 * measures distance from every point to center and computes average radius
 	 * 
@@ -677,7 +518,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 *            point
 	 * @return radius
 	 */
-	public double computeRadius3(List<MatOfPoint> contours, Point center) {
+	public double computeRadius(List<MatOfPoint> contours, Point center) {
 		if (contours.isEmpty()) {
 			return 0;
 		}
@@ -696,52 +537,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return distToCenter;
 	}
 
-	/**
-	 * computes surface of given contour (by counting points inside)
-	 * 
-	 * @param contours
-	 * @return surface of contour (point amount)
-	 */
-	public int computeContourArea(List<MatOfPoint> contours) {
-		if (contours.isEmpty()) {
-			return 0;
-		}
-		int area = 0;
-		for (int i = 0; i < contours.size(); i++) {
-			List<Point> pts = contours.get(i).toList();
-			for (Point p : pts) {
-				area++;
-			}
-		}
-		return area;
-	}
-
-	public void separateContours() {
-		if (mIsColorSelected) {
-			mDetector.process(mRgbaOutput);
-			mDetector.getContours();
-		}
-	}
-
-	// TODO: add comment; use this method in onCameraFrame
-	public Point lowestPt() {
-		Point lowPt = null;
-		if (mIsColorSelected) {
-			mDetector.process(mRgbaOutput);
-			List<MatOfPoint> contours = mDetector.getContours();
-			Point center = computeCenterPt(contours);
-			double rad = computeRadius3(contours, center);
-			robot.writeLog("Radius: " + rad);
-			robot.writeLog("Center x = " + center.x + " and y = " + center.y);
-
-			// Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
-			// int radius = Math.min(mRgba.cols() / 4, mRgba.rows() / 4);
-
-			lowPt = new Point(center.x, center.y + rad);
-		}
-		return lowPt;
-	}
-
+	// TODO needed? (gets called inside detectBalls)
+	// TODO if so, comment
 	/**
 	 * robot aligns his body to a surrendered ball
 	 * 
@@ -765,12 +562,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 		return aligned;
 	}
-
-	private int frameInterval = 0;
-
+	
+	
+    // TODO add comment
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		mRgbaOutput = inputFrame.rgba();
-		mRgbaWork = inputFrame.rgba();
+		mRgbaWork = inputFrame.rgba(); // TODO: does mRgbaWork refer to the same image as mRgbaOutput? In that case, either fix or remove this variable.
 		if (frameInterval >= executionInterval) {
 			findCirclesOnCamera();
 			frameInterval = 0;
@@ -785,69 +582,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	// TODO Needed?
-	// TODO If so, add comment
-	// TODO move to colorblog-class
-	public Point computeAvgPt(ArrayList<Point> points) {
-		Point avgPoint = new Point(0.0, 0.0);
-		for (Point p : points) {
-			avgPoint.x += p.x;
-			avgPoint.y += p.y;
-		}
-		avgPoint.x = avgPoint.x / points.size();
-		avgPoint.y = avgPoint.y / points.size();
-		return avgPoint;
-	}
-
-	// TODO Needed?
-	// TODO If so, add comment
-	// TODO move to colorblog-class
-	public Point computeTargetPt() {
-		Point target = new Point();
-		Mat src = new Mat(1, 1, CvType.CV_32FC2);
-		Mat dest = new Mat(1, 1, CvType.CV_32FC2);
-		ArrayList<Point> avgLowPt = new ArrayList<Point>();
-		// do 20 measurements
-		for (int i = 0; i < 20; i++) {
-			avgLowPt.add(lowestPt());
-		}
-		Point avgPt = computeAvgPt(avgLowPt);
-		double TOL = 5.0;
-		for (Point pt : avgLowPt) {
-			if (Math.abs(pt.x - avgPt.x) > TOL
-					|| Math.abs(pt.y - avgPt.y) > TOL) {
-				pt.x = avgPt.x;
-				pt.y = avgPt.y;
-			}
-		}
-		avgPt = computeAvgPt(avgLowPt);
-		robot.writeLog("Found ball on cam at x = " + avgPt.x + " and y = "
-				+ avgPt.y);
-		src.put(0, 0, new double[] { avgPt.x, avgPt.y }); // ps is a
-															// point
-															// in
-															// image
-															// coordinates
-		Core.perspectiveTransform(src, dest, homographyMatrix);
-		Point dest_point = new Point(dest.get(0, 0)[0], dest.get(0, 0)[1]);
-		robot.writeLog("Found Blob at x = " + dest_point.x + " and y = "
-				+ dest_point.y);
-		target.x = dest_point.x;
-		target.y = dest_point.y;
-		return target;
-	}
-
-	// TODO Needed?
-	// TODO If so, add comment
-	// TODO move to colorblog-class
-	public void printBallInfo() {
-		// Log.i(TAG, "ball amount" + myBalls.size());
-		for (Ball b : foundBalls) {
-			Log.i(TAG, b.getId() + " .ball position: " + b.getPosGroundPlane()
-					+ " ball center: " + b.getBallCenterCameraFrame()
-					+ " ball radius: " + b.getRadius());
-		}
-	}
-
+	// TODO If so, comment
 	public Mat drawBalls(Mat mRgbaWithBalls) {
 
 		int counter = 0;
@@ -877,10 +612,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return mRgbaWithBalls;
 	}
 
-	// TODO: refactor name
 	// TODO: needed?
 	// TODO: If so, move to colorblog-class
 	// TODO add comment
+	// TODO fix: this method is used to detect various balls; currently not working
 	public void detectBalls(Mat img) {
 		List<MatOfPoint> contours = mDetector.findContours(img);
 		Log.e(TAG, "found areas: " + contours.size());
@@ -893,7 +628,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			// Point pointGroundPlane = computePointGroundPlane();
 			Point pointGroundPlane = null; // TODO implement (don't forget to
 											// add the robot's pos coordinates)
-			double rad = computeRadius3(ballArea, center);
+			double rad = computeRadius(ballArea, center);
 
 			Ball detectedBall = new Ball(center, pointGroundPlane, rad);
 
@@ -914,7 +649,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 				if (Math.abs(bPos.x - detectedBallPos.x) > TOL
 						|| Math.abs(bPos.y - detectedBallPos.y) > TOL) {
 					foundBalls.add(detectedBall);
-					printBallInfo();
 				} else {
 					// TODO update radius etc.
 				}
@@ -955,6 +689,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		robot.writeLog("(alignToPoint) aligned");
 	}
 
+	// TODO update description
 	/**
 	 * 1) find ball 2) cage ball 3) move caged ball to target
 	 */
@@ -973,15 +708,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// do nothing
 			}
 			robot.robotSetBar(126);
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// do nothing
 			}
 			robot.moveByVelocity(-35, false);
 		}
@@ -1081,7 +814,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 					ballArea.add(area);
 
 					Point center = computeCenterPt(ballArea);
-					double rad = computeRadius3(ballArea, center);
+					double rad = computeRadius(ballArea, center);
 					Point lowestPoint = new Point(center.x, center.y + rad);
 					Point pointGroundPlane = getGroundPlaneCoordinates(lowestPoint);
 
@@ -1185,19 +918,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 				"(getGroundPlaneCoordinates) Found ground plane coordinates (global): "
 						+ pointGroundCoord.toString());
 
-		// TODO Add robot's current position
 		return pointGroundCoord;
-	}
-
-	// TODO needed?
-	// TODO if so, write comment
-	private Scalar converScalarHsv2Rgba(Scalar hsvColor) {
-		Mat pointMatRgba = new Mat();
-		Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, hsvColor);
-		Imgproc.cvtColor(pointMatHsv, pointMatRgba, Imgproc.COLOR_HSV2RGB_FULL,
-				4);
-
-		return new Scalar(pointMatRgba.get(0, 0));
 	}
 
 }
