@@ -999,8 +999,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		driveToBallAndCage(myBall);
 		Log.i(TAG, "(findAndDeliverPoint) Ball caged");
 		robot.writeLog("Ball caged");
-		robot.moveToTargetWithoutAngle(x, y, 3);
-		robot.moveByVelocitySlow(-5, false);
+		robot.moveToTargetWithoutAngle(x, y, 5);
+		robot.moveByVelocitySlow(-16, false);
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
