@@ -628,38 +628,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
 	}
 
-	// public void circleDetection(Mat frame) {
-	// // the lower this figure the more spurious circles you get
-	// // 50 looks good in CANNY, but 100 is better when converting that into
-	// Hough circles
-	// int iCannyUpperThreshold = 100;
-	// Mat grayImg = null;
-	// Point pt;
-	// int radius;
-	//
-	// grayImg = CreateImage(frame.size(), 8, 1);
-	// Imgproc.HoughCircles(frame, grayImg, Imgproc.CV_HOUGH_GRADIENT, 2.0,
-	// frame.rows() / 8,
-	// iCannyUpperThreshold, 200, 20, 400);
-	//
-	// if (grayImg.cols() > 0)
-	// for (int x = 0; x < Math.min(grayImg.cols(), 10); x++)
-	// {
-	// double vCircle[] = grayImg.get(0,x);
-	//
-	// if (vCircle == null)
-	// break;
-	//
-	// pt = new Point(Math.round(vCircle[0]), Math.round(vCircle[1]));
-	// radius = (int)Math.round(vCircle[2]);
-	// // draw the found circle
-	// // Core.circle(mRgba, pt, radius, colorRed, iLineThickness);
-	//
-	// // draw a cross on the centre of the circle
-	// // Core.circle(mRgba, pt, 5, , );
-	// }
-	// }
-
 	/**
 	 * unstable method
 	 *
