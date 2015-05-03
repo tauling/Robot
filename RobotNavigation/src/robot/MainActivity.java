@@ -350,9 +350,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				driveToBallAndCage(myBall);
-				Log.i(TAG, "(findAndDeliverPoint) Ball caged");
-				robot.writeLog("Ball caged");
+//				driveToBallAndCage(myBall);
+//				Log.i(TAG, "(findAndDeliverPoint) Ball caged");
+//				robot.writeLog("Ball caged");
+				robot.moveByVelocity(-20,false);
+				robot.moveByVelocitySlow(-20,false);
 			};
 		};
 
@@ -365,16 +367,18 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				Position finalPos = new Position(70, 70, 45);
-				double finalPosX = finalPos.x;
-				double finalPosY = finalPos.y;
-				double finalTheta = finalPos.theta;
-				Log.i(TAG, "(driveToBallAndCage) move to final Position"
-						+ finalPos);
-				robot.writeLog("(driveToBallAndCage) move to final Position"
-						+ finalPos);
-				robot.MoveToTarget(finalPosX, finalPosY, finalTheta);
-				robot.robotSetBar(126);
+//				Position finalPos = new Position(70, 70, 45);
+//				double finalPosX = finalPos.x;
+//				double finalPosY = finalPos.y;
+//				double finalTheta = finalPos.theta;
+//				Log.i(TAG, "(driveToBallAndCage) move to final Position"
+//						+ finalPos);
+//				robot.writeLog("(driveToBallAndCage) move to final Position"
+//						+ finalPos);
+//				robot.moveToTarget(finalPosX, finalPosY, finalTheta);
+//				robot.robotSetBar(126);
+				
+				robot.moveByVelocitySlow(100, false);
 			};
 		};
 
@@ -387,7 +391,27 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				findAndDeliverBall(70, 70);
+				findAndDeliverBall(targetX, targetY);
+				robot.moveToTarget(0, 0, 0);
+				// robot.robotSetLeds(0, 0);
+				// robot.robotSetLeds(127, 127);
+				// robot.robotSetLeds(0, 0);
+				// robot.robotSetLeds(127, 127);
+				// robot.robotSetLeds(0, 0);
+				// robot.MoveToTarget(100,100,0);
+				// robot.robotSetLeds(0, 0);
+				// robot.robotSetLeds(127, 127);
+				// robot.robotSetLeds(0, 0);
+				// robot.robotSetLeds(127, 127);
+				// robot.robotSetLeds(0, 0);
+				// robot.MoveToTarget(0,100,0);
+				// robot.robotSetLeds(0, 0);
+				// robot.robotSetLeds(127, 127);
+				// robot.robotSetLeds(0, 0);
+				// robot.robotSetLeds(127, 127);
+				// robot.robotSetLeds(0, 0);
+				// robot.MoveToTarget(0,0,0);
+
 			};
 		};
 
@@ -962,9 +986,22 @@ public class MainActivity extends Activity implements OnTouchListener,
 		driveToBallAndCage(myBall);
 		Log.i(TAG, "(findAndDeliverPoint) Ball caged");
 		robot.writeLog("Ball caged");
-		robot.MoveToTarget(x, y);
+		robot.moveToTargetWithoutAngle(x, y, 3);
+		robot.moveByVelocitySlow(-5, false);
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		robot.robotSetBar(126);
-		robot.moveByVelocity(-20, false);
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		robot.moveByVelocity(-35, false);
 	}
 
 	/**
@@ -1102,15 +1139,19 @@ public class MainActivity extends Activity implements OnTouchListener,
 				"(driveToBallAndCage) moving to ball: " + ballTarget.toString());
 		robot.writeLog("(driveToBallAndCage) moving to ball: "
 				+ ballTarget.toString());
-		// robot.MoveToTarget(ballTarget.x, ballTarget.y,
-		// robot.getAngleToGoal(ballTarget.x, ballTarget.y), 30);
-		// ballTarget = detectOneBall().getPosGroundPlane();
-		// robot.writeLog("readjusting");
-		robot.MoveToTarget(ballTarget.x, ballTarget.y,
-				robot.getAngleToGoal(ballTarget.x, ballTarget.y), 7.5);
+		robot.moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 25);
+		ballTarget = detectOneBall().getPosGroundPlane();
+		robot.writeLog("readjusting");
+		robot.moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 7.5);
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robot.writeLog("(driveToBallAndCage) lowering bar");
-		robot.robotSetBar(0);
+		robot.robotSetBar(30);
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**

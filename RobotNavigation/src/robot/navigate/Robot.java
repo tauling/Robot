@@ -53,8 +53,10 @@ public class Robot {
 	// the robot for 100cm.
 
 	private double CorrFactMoveForwardByVel = (303.0 / 650.0) * (100.0 / 98.0)
-			* (101.0 / 98.0) * (103.0 / 102.0);
-	private double CorrFactAngleByDist = (360.0 / 268.0) * (360.0 / 343.0); // Should
+			* (101.0 / 98.0) * (103.0 / 102.0)*(101.0/103.0);
+	private double CorrFactMoveForwardByVelSlow = (303.0 / 650.0) * (100.0 / 98.0)
+			* (101.0 / 98.0) * (103.0 / 102.0) * (103.0/56.0);
+	private double CorrFactAngleByDist = (360.0 / 268.0) * (360.0 / 343.0) * (360.0/385.0); // Should
 																			// be
 	// set, such
 	// that
@@ -244,7 +246,7 @@ public class Robot {
 		new Thread(new WriteLogRunnable(value + "\n")).start();
 	}
 
-	// TODO write description; Fix
+	// TODO update description
 	public void turnByVelocity(int angle, char dir) {
 
 		writeLog("turnByVelocity " + angle);
@@ -278,6 +280,7 @@ public class Robot {
 		updateRotation((int) (movedTime * speed), 'r');
 	}
 
+	// TODO update description
 	/**
 	 * Drive by velocity, update position afterwards.
 	 * 
@@ -288,16 +291,44 @@ public class Robot {
 	 * @return true when there is no obstacle in front, false otherwise
 	 */
 	public Boolean moveByVelocity(double dist, boolean stopOnObstacle) {
+		return moveByVelocity(dist, stopOnObstacle, 15, CorrFactMoveForwardByVel);
+	}	
+	
+	
+	// TODO update description
+	/**
+	 * Drive by velocity, update position afterwards.
+	 * 
+	 * @param dist
+	 *            distance to drive [cm]
+	 * @param stopOnObstacle
+	 *            when true, stop before hitting obstacle
+	 * @return true when there is no obstacle in front, false otherwise
+	 */
+	public Boolean moveByVelocitySlow(double dist, boolean stopOnObstacle) {
+		return moveByVelocity(dist, stopOnObstacle, 11, CorrFactMoveForwardByVelSlow);
+	}
+	
+	//TODO update description
+	/**
+	 * Drive by velocity, update position afterwards.
+	 * 
+	 * @param dist
+	 *            distance to drive [cm]
+	 * @param stopOnObstacle
+	 *            when true, stop before hitting obstacle
+	 * @return true when there is no obstacle in front, false otherwise
+	 */
+	private Boolean moveByVelocity(double dist, boolean stopOnObstacle, int velocity, double corrFactMoveVel) {
 		double start = System.currentTimeMillis(); // [ms]
 		double curTime = start;
-		int velocity = 15;
 		// writeLog("startTime: " + (int) start);
-		double speed = (100.0 / (1000 * velocity)) / CorrFactMoveForwardByVel; // [cm/ms]
-		double corrTime = dist / speed; // [ms]
+		double speed = (100.0 / (1000 * velocity)) / corrFactMoveVel; // [cm/ms]
+		double corrTime = Math.abs(dist / speed); // [ms]
 		double end = start + corrTime;
 		boolean freeWay = true;
 		robotSetLeds(0, 127);
-		comReadWrite(new byte[] { 'i', (byte) velocity, (byte) velocity, '\r',
+		comReadWrite(new byte[] { 'i', (byte) (velocity * ((int) Math.signum(dist))), (byte) (velocity * ((int) Math.signum(dist))), '\r',
 				'\n' });
 		while (curTime <= end && (freeWay || !stopOnObstacle)) {
 			if (obstacleInFront()) {
@@ -309,7 +340,7 @@ public class Robot {
 		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' });
 		double movedTime = curTime - start;
 
-		updatePosition((int) (movedTime * speed));
+		updatePosition((int) (Math.signum(dist)*movedTime * speed));
 		return freeWay;
 	}
 
@@ -565,18 +596,25 @@ public class Robot {
 		updateRotation(angle, dir);
 		int degrees = angle;
 		degrees = (int) (CorrFactAngleByDist * degrees);
+//		int targetedAngleByOnce = 30; // TODO: Make global?
+		int maxDegreesByOnce = 40;
+//		if (angle > targetedAngleByOnce) {
+//			maxDegreesByOnce = Math.min(127, Math.abs(degrees/(angle/targetedAngleByOnce)));
+//		} else {
+//			maxDegreesByOnce = 127;
+//		}
 		switch (dir) {
 		case 'r':
 			degrees = -degrees;
 			break;
 		}
-		while (Math.abs(degrees) > 127) { // Byte stores values from -128 to
+		while (Math.abs(degrees) > maxDegreesByOnce) { // Byte stores values from -128 to
 			// 127
-			degrees -= (int) (Math.signum(degrees)) * 127;
+			degrees -= (int) (Math.signum(degrees)) * maxDegreesByOnce;
 			writeLog(comReadWrite(
 					new byte[] { 'l',
-							(byte) ((int) (Math.signum(degrees)) * 127), '\r',
-							'\n' }, waitTimeFact * 127));
+							(byte) ((int) (Math.signum(degrees)) * maxDegreesByOnce), '\r',
+							'\n' }, waitTimeFact * maxDegreesByOnce));
 		}
 		writeLog(comReadWrite(new byte[] { 'l', (byte) degrees, '\r', '\n' },
 				waitTimeFact * Math.abs(degrees)));
@@ -858,23 +896,39 @@ public class Robot {
 		robotSetLeds(127, 127);
 	}
 
-	public void MoveToTarget(double x, double y) {
-		MoveToTarget(x, y, getAngleToGoal(x, y));
+	// TODO add description
+	public void moveToTargetWithoutAngle(double x, double y, double offset) {
+		int totalAngleToGoal = getAngleToGoal(x,y) + getTg();
+		moveToTarget(x, y, totalAngleToGoal, offset, false);
 	}
 
-	public void MoveToTarget(double x, double y, double theta) {
-		MoveToTarget(x, y, theta, 0.0);
+	// TODO add description
+	public void moveToTarget(double x, double y) {
+		int totalAngleToGoal = getAngleToGoal(x,y) + getTg();
+		moveToTarget(x, y, totalAngleToGoal);
 	}
 
-	public void MoveToTarget(Position target) {
-		MoveToTarget(target.x, target.y, target.theta, 0.0);
+	// TODO add description
+	public void moveToTarget(double x, double y, double theta) {
+		moveToTarget(x, y, theta, 0.0);
 	}
 
-	public void MoveToTarget(double x, double y, double theta, double offset) {
+	// TODO add description
+	public void moveToTarget(Position target) {
+		moveToTarget(target.x, target.y, target.theta, 0.0);
+	}
+
+	// TODO add description
+	public void moveToTarget(double x, double y, double theta, double offset) {
+		moveToTarget(x,y,theta,offset,true);
+	}
+
+	// TODO add description
+	private void moveToTarget(double x, double y, double theta, double offset, boolean checkTol) {
 		int angle = 0, dist;
 		Boolean goalReached = false;
 		int TOL = 5;
-		while (!goalReached) {
+		do {
 
 			angle = getAngleToGoal(x, y);
 			dist = getDistanceToGoal(x, y);
@@ -889,7 +943,7 @@ public class Robot {
 			if (Math.abs((getDistanceToGoal(x, y) - offset)) < TOL) {
 				goalReached = true;
 			}
-		}
+		} while (!goalReached && checkTol);
 		turnRobotBalanced((int) theta - myPos.theta, 'r');
 		robotSetLeds(127, 127);
 	}
