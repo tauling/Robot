@@ -58,7 +58,8 @@ public class ColorBlobDetector {
 				mmContours.add(contour);
 			}
 		}
-
+		//try to free memory
+		tempImage.release();
 		return mmContours;
 	}
 
@@ -90,6 +91,8 @@ public class ColorBlobDetector {
 		MatOfPoint2f mCorners = new MatOfPoint2f();
 		boolean mPatternWasFound = Calib3d.findChessboardCorners(gray,
 				mPatternSize, mCorners);
+		////try to free memory
+		gray.release();
 		// Calculate homography:
 		if (mPatternWasFound) {
 			// Calib3d.drawChessboardCorners(mRgba, mPatternSize, mCorners,
