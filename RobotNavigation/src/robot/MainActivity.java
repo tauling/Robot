@@ -855,12 +855,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 							+ detectedBall.toString());
 				}
 			}
+			Log.i(TAG,
+					"(detectOneBall) returning ball with following ground coordinates: "
+							+ detectedBall.toString());
+			robot.writeLog("(detectOneBall) returning ball with following ground coordinates: "
+					+ detectedBall.toString());
 		}
-		Log.i(TAG,
-				"(detectOneBall) returning ball with following ground coordinates: "
-						+ detectedBall.toString());
-		robot.writeLog("(detectOneBall) returning ball with following ground coordinates: "
-				+ detectedBall.toString());
 
 		return detectedBall;
 	}

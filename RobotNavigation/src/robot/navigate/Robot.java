@@ -19,6 +19,15 @@ public class Robot {
 		this.com = com;
 	}
 
+	
+	// TODO Fix: Memory leakage problems when searching for two balls one after another: Crash.
+	
+	// TODO Beacons: Detection of multiple, single-colored objects, finding their bottom points, calculating and displaying their locations in the robot's egocentric ground-plane coordinates, as well as their distances to the robot, using a pre-calibrated homography matrix
+	
+    // TODO Beacons: Detection of multiple, bicolored objects, finding their bottom points, calculating and displaying their locations in the robot's egocentric ground-plane coordinates, as well as their distances to the robot, using a pre-calibrated homography matrix
+
+
+    
 	// -> Robot Calibration
 	private Integer ObsDetectBorderLR = 25; // Measurements in front of the
 											// robot
@@ -40,11 +49,11 @@ public class Robot {
 	// the robot for 100cm.
 
 	private double CorrFactMoveForwardByVel = (303.0 / 650.0) * (100.0 / 98.0)
-			* (101.0 / 98.0) * (103.0 / 102.0)*(100.0/103.0)*(100.0/97.0);
+			* (101.0 / 98.0) * (103.0 / 102.0)*(100.0/103.0)*(100.0/97.0)*(101.0/103.0);
 	private double CorrFactMoveForwardByVelSlow = (303.0 / 650.0) * (100.0 / 98.0)
 			* (101.0 / 98.0) * (103.0 / 102.0) * (103.0/56.0)*(100.0/103.0)*(100.0/99.0);
-	private double CorrFactAngleByDist = (360.0 / 268.0) * (360.0 / 343.0) * (360.0/380.0); // Should
-																			// be
+	private double CorrFactAngleByDist = (360.0 / 268.0) * (360.0 / 343.0) * (360.0/380.0)*(360.0/361.0); // Should
+	// be
 	// set, such
 	// that
 	// turnRobot(360)
