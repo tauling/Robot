@@ -31,35 +31,40 @@ public class ColorBlobDetector {
 
 	// TODO add comment
 	public List<MatOfPoint> findContours(Mat grayImage) {
-		List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-		String TAG = "OCVSample::Activity";
-		Log.i(TAG, "Typ " + grayImage.type());
-		Mat tempImage = new Mat();
-		grayImage.copyTo(tempImage);
-		Imgproc.findContours(tempImage, contours, mHierarchy,
-				Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-
-		// Find max contour area
-		double maxArea = 0;
-		Iterator<MatOfPoint> each = contours.iterator();
-		while (each.hasNext()) {
-			MatOfPoint wrapper = each.next();
-			double area = Imgproc.contourArea(wrapper);
-			if (area > maxArea)
-				maxArea = area;
-		}
-
-		// Filter contours by area and resize to fit the original image size
 		List<MatOfPoint> mmContours = new ArrayList<MatOfPoint>();
-		each = contours.iterator();
-		while (each.hasNext()) {
-			MatOfPoint contour = each.next();
-			if (Imgproc.contourArea(contour) > mMinContourArea * maxArea) {
-				mmContours.add(contour);
+		;
+		Mat tempImage = new Mat();
+		try {
+			List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+			String TAG = "OCVSample::Activity";
+			Log.i(TAG, "Typ " + grayImage.type());
+			grayImage.copyTo(tempImage);
+			Imgproc.findContours(tempImage, contours, mHierarchy,
+					Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+			// Find max contour area
+			double maxArea = 0;
+			Iterator<MatOfPoint> each = contours.iterator();
+			while (each.hasNext()) {
+				MatOfPoint wrapper = each.next();
+				double area = Imgproc.contourArea(wrapper);
+				if (area > maxArea)
+					maxArea = area;
 			}
+
+			// Filter contours by area and resize to fit the original image size
+			each = contours.iterator();
+			while (each.hasNext()) {
+				MatOfPoint contour = each.next();
+				if (Imgproc.contourArea(contour) > mMinContourArea * maxArea) {
+					mmContours.add(contour);
+				}
+			}
+
+		} catch (Exception e) {
+		} finally {
+			tempImage.release(); // free memory
 		}
-		//try to free memory
-		tempImage.release();
 		return mmContours;
 	}
 
@@ -91,8 +96,7 @@ public class ColorBlobDetector {
 		MatOfPoint2f mCorners = new MatOfPoint2f();
 		boolean mPatternWasFound = Calib3d.findChessboardCorners(gray,
 				mPatternSize, mCorners);
-		////try to free memory
-		gray.release();
+		gray.release(); // free memory
 		// Calculate homography:
 		if (mPatternWasFound) {
 			// Calib3d.drawChessboardCorners(mRgba, mPatternSize, mCorners,
@@ -110,45 +114,54 @@ public class ColorBlobDetector {
 		Mat mmHsvMat = new Mat();
 		Mat mmMask = new Mat();
 		Mat mmDilatedMask = new Mat();
-		// Color radius for range checking in HSV color space
-		Scalar mmColorRadius = new Scalar(30, 70, 70, 0);
-		double minH = (hsvColor.val[0] >= mmColorRadius.val[0]) ? hsvColor.val[0]
-				- mmColorRadius.val[0]
-				: 0;
-		double maxH = (hsvColor.val[0] + mmColorRadius.val[0] <= 255) ? hsvColor.val[0]
-				+ mmColorRadius.val[0]
-				: 255;
 
-		mmLowerBound.val[0] = minH;
-		mmUpperBound.val[0] = maxH;
+		try {
 
-		mmLowerBound.val[1] = hsvColor.val[1] - mmColorRadius.val[1];
-		mmUpperBound.val[1] = hsvColor.val[1] + mmColorRadius.val[1];
+			Scalar mmColorRadius = new Scalar(30, 70, 70, 0); // Color radius
+																// for range
+																// checking in
+																// HSV color
+																// space
+			double minH = (hsvColor.val[0] >= mmColorRadius.val[0]) ? hsvColor.val[0]
+					- mmColorRadius.val[0]
+					: 0;
+			double maxH = (hsvColor.val[0] + mmColorRadius.val[0] <= 255) ? hsvColor.val[0]
+					+ mmColorRadius.val[0]
+					: 255;
 
-		mmLowerBound.val[2] = hsvColor.val[2] - mmColorRadius.val[2];
-		mmUpperBound.val[2] = hsvColor.val[2] + mmColorRadius.val[2];
+			mmLowerBound.val[0] = minH;
+			mmUpperBound.val[0] = maxH;
 
-		mmLowerBound.val[3] = 0;
-		mmUpperBound.val[3] = 255;
+			mmLowerBound.val[1] = hsvColor.val[1] - mmColorRadius.val[1];
+			mmUpperBound.val[1] = hsvColor.val[1] + mmColorRadius.val[1];
 
-		Imgproc.pyrDown(rgbaImage, mmPyrDownMat);
-		Imgproc.pyrDown(mmPyrDownMat, mmPyrDownMat);
+			mmLowerBound.val[2] = hsvColor.val[2] - mmColorRadius.val[2];
+			mmUpperBound.val[2] = hsvColor.val[2] + mmColorRadius.val[2];
 
-		Imgproc.cvtColor(mmPyrDownMat, mmHsvMat, Imgproc.COLOR_RGB2HSV_FULL);
+			mmLowerBound.val[3] = 0;
+			mmUpperBound.val[3] = 255;
 
-		Core.inRange(mmHsvMat, mmLowerBound, mmUpperBound, mmMask);
-		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
-				new Size(10, 10));
+			Imgproc.pyrDown(rgbaImage, mmPyrDownMat);
+			Imgproc.pyrDown(mmPyrDownMat, mmPyrDownMat);
 
-		Imgproc.dilate(mmMask, mmDilatedMask, element);
-		Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
+			Imgproc.cvtColor(mmPyrDownMat, mmHsvMat, Imgproc.COLOR_RGB2HSV_FULL);
 
-		Imgproc.resize(mmDilatedMask, mmDilatedMask, rgbaImage.size());
-		//tries to 3 Mat objects
-		mmPyrDownMat.release();
-		mmHsvMat.release();
-		mmMask.release();
-		
+			Core.inRange(mmHsvMat, mmLowerBound, mmUpperBound, mmMask);
+			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
+					new Size(10, 10));
+
+			Imgproc.dilate(mmMask, mmDilatedMask, element);
+			Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
+
+			Imgproc.resize(mmDilatedMask, mmDilatedMask, rgbaImage.size());
+
+		} catch (Exception e) {
+		} finally {
+			mmPyrDownMat.release();
+			mmHsvMat.release();
+			mmMask.release();
+		}
+
 		return mmDilatedMask;
 	}
 
