@@ -144,7 +144,11 @@ public class ColorBlobDetector {
 		Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
 
 		Imgproc.resize(mmDilatedMask, mmDilatedMask, rgbaImage.size());
-
+		//tries to 3 Mat objects
+		mmPyrDownMat.release();
+		mmHsvMat.release();
+		mmMask.release();
+		
 		return mmDilatedMask;
 	}
 
