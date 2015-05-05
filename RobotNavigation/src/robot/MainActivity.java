@@ -52,6 +52,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// ColorBlobDetection.java.
 
 	// TODO: Resolve warnings in all xml-files.
+	
+	// TODO: target Position does not allow negative inputs in GUI
 
 	private TextView textLog;
 
@@ -793,9 +795,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 				"(findCirclesOnCamera) Searching circles on camera; Number of colors: "
 						+ myColors.size());
 		for (Scalar hsvColor : myColors) {
-			Mat grayImg = new Mat();
+			Mat grayImg;
+			do {
 			grayImg = mDetector.filter(mRgbaWork, hsvColor);
-
+			}
+			while (grayImg.empty());
 			List<MatOfPoint> contours = mDetector.findContours(grayImg);
 			Log.i(TAG,
 					"(findCirclesOnCamera) Found following number of contours: "
@@ -812,6 +816,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 				Log.i(TAG, "(findCirclesOnCamera) Found circle on camera at: "
 						+ center);
 			}
+			grayImg.release();
 		}
 
 		Log.i(TAG,
@@ -896,15 +901,16 @@ public class MainActivity extends Activity implements OnTouchListener,
 	public Ball detectOneBall() {
 		Log.i(TAG, "(detectOneBall) start");
 		robot.writeLog("(detectOneBall) start");
-		mRgbaWork = new Mat();
-		mRgbaOutput.copyTo(mRgbaWork);
 		Ball detectedBall = null;
 		if (turnAndFindABall()) {
 			Log.i(TAG, "(detectOneBall) Found ball");
 			robot.writeLog("(detectOneBall) Found ball");
 			for (Scalar hsvColor : myColors) {
-				Mat grayImg = new Mat();
-				grayImg = mDetector.filter(mRgbaWork, hsvColor);
+				Mat grayImg;
+				do {
+							grayImg = mDetector.filter(mRgbaWork, hsvColor);
+				}
+							while (grayImg.empty());
 				List<MatOfPoint> contours = mDetector.findContours(grayImg);
 				Log.e(TAG, "found areas: " + contours.size());
 				for (MatOfPoint area : contours) {
@@ -924,6 +930,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 					robot.writeLog("(detectOneBall) found ball with following ground coordinates: "
 							+ detectedBall.toString());
 				}
+				grayImg.release();
 			}
 			Log.i(TAG,
 					"(detectOneBall) returning ball with following ground coordinates: "
@@ -1017,6 +1024,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 				"(getGroundPlaneCoordinates) Found ground plane coordinates (global): "
 						+ pointGroundCoord.toString());
 
+		src.release();
+		dest.release();
 		return pointGroundCoord;
 	}
 
