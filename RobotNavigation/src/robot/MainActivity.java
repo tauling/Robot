@@ -21,9 +21,9 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import robot.generated.R;
-import robot.navigate.Ball;
 import robot.navigate.Robot;
 import robot.opencv.ColorBlobDetector;
+import robot.shapes.Ball;
 
 import jp.ksksue.driver.serial.FTDriver;
 import android.annotation.SuppressLint;
@@ -856,13 +856,24 @@ public class MainActivity extends Activity implements OnTouchListener,
 						+ center);
 			}
 		}
-
+		findDitto();
 		Log.i(TAG,
 				"(findSquaresOnCamera) Found squares: " + circleCenters.size());
 
 		return circleCenters;
 	}
 	
+	/**
+	 * compares alignment of all squares in global squareCenter-list and tries to find stacked squares
+	 * @param squareCenters2
+	 */
+	private void findDitto() {
+		if(squareCenters.size() > 0){
+			
+		}
+		
+	}
+
 	public Point squareHeight(List<MatOfPoint> contours, Point center) {
 		Double width = 0.0;
 		int count = 0;
@@ -875,22 +886,21 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 		width = width/count;
 		
-		Double height = 0.0;
+		Double halfHeight = 0.0;
 		count = 0;
+		Double borderLeft = center.x-width;
+		Double borderRight = center.x+width;
 		for(int j=0;j<contours.size();j++){
 			List<Point> pts = contours.get(j).toList();
-			Double borderLeft = center.x-width;
-			Double borderRight = center.x+width;
 			for(Point p:pts){
 				if(borderLeft <= p.x && p.x <= borderRight){
-					height += p.y;
+					halfHeight += distPointToPoint(p, center);
 					count++;
 				}
 			}
 		}
-		height = height/count;
 		
-		return new Point(center.x,center.y-height);
+		return new Point(center.x,center.y-halfHeight);
 	}
 
 	/**
