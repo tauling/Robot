@@ -93,6 +93,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 															// all found balls
 
 	List<Point> circleCenters = new ArrayList<Point>();
+	
+	List<Point> squareCenters = new ArrayList<Point>();
 
 	private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -823,6 +825,74 @@ public class MainActivity extends Activity implements OnTouchListener,
 				"(foundCirclesOnCamera) Found circles: " + circleCenters.size());
 
 		return circleCenters;
+	}
+	
+	public List<Point> findSquaresOnCamera() {
+		squareCenters = new ArrayList<Point>();
+		Log.i(TAG,
+				"(findSquaresOnCamera) Searching squares on camera; Number of colors: "
+						+ myColors.size());
+		for (Scalar hsvColor : myColors) {
+			Mat grayImg = new Mat();
+			grayImg = mDetector.filter(mRgbaWork, hsvColor);
+
+			List<MatOfPoint> contours = mDetector.findContours(grayImg);
+			Log.i(TAG,
+					"(findSquaresOnCamera) Found following number of contours: "
+							+ contours.size());
+
+			for (MatOfPoint area : contours) {
+
+				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
+				ballArea.add(area);
+				
+
+				Point center = computeCenterPt(ballArea);
+
+				Point lowPt = squareHeight(ballArea,center);
+				Log.i(TAG, "(findSquaresOnCamera) computed lowest point for square: "
+						+ lowPt);
+				
+				squareCenters.add(center);
+				Log.i(TAG, "(findSquaresOnCamera) Found square on camera at: "
+						+ center);
+			}
+		}
+
+		Log.i(TAG,
+				"(findSquaresOnCamera) Found squares: " + circleCenters.size());
+
+		return circleCenters;
+	}
+	
+	public Point squareHeight(List<MatOfPoint> contours, Point center) {
+		Double width = 0.0;
+		int count = 0;
+		for (int i = 0; i < contours.size(); i++) {
+			List<Point> pts = contours.get(i).toList();
+			for (Point p : pts) {
+				width += p.x;
+				count++;
+			}
+		}
+		width = width/count;
+		
+		Double height = 0.0;
+		count = 0;
+		for(int j=0;j<contours.size();j++){
+			List<Point> pts = contours.get(j).toList();
+			Double borderLeft = center.x-width;
+			Double borderRight = center.x+width;
+			for(Point p:pts){
+				if(borderLeft <= p.x && p.x <= borderRight){
+					height += p.y;
+					count++;
+				}
+			}
+		}
+		height = height/count;
+		
+		return new Point(center.x,center.y-height);
 	}
 
 	/**
