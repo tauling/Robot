@@ -24,7 +24,8 @@ import robot.generated.R;
 import robot.navigate.Robot;
 import robot.opencv.ColorBlobDetector;
 import robot.shapes.Ball;
-
+import robot.shapes.Circle;
+import robot.shapes.Square;
 import jp.ksksue.driver.serial.FTDriver;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -44,7 +45,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	// TODO: Add a function that allows to drive curves (and updates odometry)
 
-	// TODO: Probably add a function that allows to turns robot by velocity (and since depending on the angle different correctorfactors are needed, we need to do this via a switch case)
+	// TODO: Probably add a function that allows to turns robot by velocity (and
+	// since depending on the angle different correctorfactors are needed, we
+	// need to do this via a switch case)
 
 	// TODO: Explore workspace and remember positions of all balls
 
@@ -54,7 +57,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// ColorBlobDetection.java.
 
 	// TODO: Resolve warnings in all xml-files.
-	
+
 	// TODO: target Position does not allow negative inputs in GUI
 
 	private TextView textLog;
@@ -93,8 +96,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 															// all found balls
 
 	List<Point> circleCenters = new ArrayList<Point>();
-	
-	List<Point> squareCenters = new ArrayList<Point>();
+
+	List<Circle> circlesList = new ArrayList<Circle>();
+
+	List<Square> squareList = new ArrayList<Square>();
 
 	private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -590,11 +595,19 @@ public class MainActivity extends Activity implements OnTouchListener,
 										// either fix or remove this variable.
 		if (frameInterval >= executionInterval) {
 			findCirclesOnCamera();
+			//TODO: test (not tested!)
+			findSquaresOnCamera();
 			frameInterval = 0;
 		}
+		//draw circles on CameraFrame
 		if (!circleCenters.isEmpty()) {
 			for (Point circleCenter : circleCenters)
 				Core.circle(mRgbaOutput, circleCenter, 10, new Scalar(20), -1);
+		}
+		//draw squares on CameraFrame
+		if (!squareList.isEmpty()) {
+			for (Square s : squareList)
+				Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(), s.getUpperRightEdge(), new Scalar(20), -1);
 		}
 		frameInterval++;
 
@@ -799,9 +812,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		for (Scalar hsvColor : myColors) {
 			Mat grayImg;
 			do {
-			grayImg = mDetector.filter(mRgbaWork, hsvColor);
-			}
-			while (grayImg.empty());
+				grayImg = mDetector.filter(mRgbaWork, hsvColor);
+			} while (grayImg.empty());
 			List<MatOfPoint> contours = mDetector.findContours(grayImg);
 			Log.i(TAG,
 					"(findCirclesOnCamera) Found following number of contours: "
@@ -826,9 +838,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		return circleCenters;
 	}
-	
-	public List<Point> findSquaresOnCamera() {
-		squareCenters = new ArrayList<Point>();
+
+	//TODO: method should work on circlesList
+	public void findSquaresOnCamera() {
+		squareList = new ArrayList<Square>();
 		Log.i(TAG,
 				"(findSquaresOnCamera) Searching squares on camera; Number of colors: "
 						+ myColors.size());
@@ -845,38 +858,90 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
 				ballArea.add(area);
-				
 
 				Point center = computeCenterPt(ballArea);
-
-				Point lowPt = squareHeight(ballArea,center);
-				Log.i(TAG, "(findSquaresOnCamera) computed lowest point for square: "
-						+ lowPt);
 				
-				squareCenters.add(center);
-				Log.i(TAG, "(findSquaresOnCamera) Found square on camera at: "
-						+ center);
+				Point lowerEdgeLeft = computeLowerEdgeLeft(ballArea, center);
+
+				Double halfHeight = squareHalfHeight(ballArea, center);
+
+				Square foundSquare = new Square(center, halfHeight, lowerEdgeLeft);
+				Log.i(TAG, "(findSquaresOnCamera) found " + foundSquare);
+
+				squareList.add(foundSquare);
 			}
 		}
 		findDitto();
-		Log.i(TAG,
-				"(findSquaresOnCamera) Found squares: " + circleCenters.size());
-
-		return circleCenters;
+		Log.i(TAG, "(findSquaresOnCamera) Found squares: " + squareList.size());
 	}
-	
+
+	private Point computeLowerEdgeLeft(List<MatOfPoint> contours, Point center) {
+		if (contours.isEmpty()) {
+			return (new Point(-200.0, -200.0)); // TODO: Better to return null
+												// in this case?
+		}
+		Point lowerEdgeLeft = new Point();
+		for (int i = 0; i < contours.size(); i++) {
+			List<Point> pts = contours.get(i).toList();
+			for (Point p : pts) {
+				if(p.x < center.x && p.y < center.y)
+					lowerEdgeLeft = p;
+			}
+		}
+		return lowerEdgeLeft;
+	}
+
 	/**
-	 * compares alignment of all squares in global squareCenter-list and tries to find stacked squares
-	 * @param squareCenters2
+	 * computes the difference of 2 points along the x-axis
+	 * 
+	 * @param one
+	 *            point
+	 * @param another
+	 *            point
+	 * @return absolute difference value
+	 */
+	public Double compare2PtbyX(Point a, Point b) {
+		return Math.abs(a.x - b.x);
+	}
+
+	/**
+	 * compares alignment of all squares in global squareCenter-list and tries
+	 * to find stacked squares if two squares are stacked the method deletes one
+	 * of them and extends the first to the size of both
 	 */
 	private void findDitto() {
-		if(squareCenters.size() > 0){
-			
+		Double TOL = 20.0;
+		if (squareList.size() > 0) {
+			for (Square squareRef : squareList) {
+				for (Square squareCmp : squareList) {
+					// it's not possible to write compare method in
+					// point-class...
+					if (compare2PtbyX(squareRef.getCenter(),
+							squareCmp.getCenter()) <= TOL) {
+						Point newLowPt = new Point();
+						Point newCenterPt = new Point(squareRef.getCenter().x,
+								(squareRef.getCenter().y + squareCmp
+										.getCenter().y) / 2);
+						Point newLowerLeftEdge = new Point();
+						if (squareRef.getCenter().y > squareCmp.getCenter().y) {
+							newLowPt = squareCmp.getLowPt();
+							newLowerLeftEdge = squareCmp.getLowerLeftEdge();
+						} else {
+							newLowPt = squareRef.getLowPt();
+							newLowerLeftEdge = squareRef.getLowerLeftEdge();
+						}
+						// overwrite/extend one square to the size of both square and
+						// remove the second square form the list
+						squareRef = new Square(newCenterPt,newLowPt,newLowerLeftEdge);
+						squareList.remove(squareCmp);
+					}
+				}
+			}
 		}
-		
+
 	}
 
-	public Point squareHeight(List<MatOfPoint> contours, Point center) {
+	public Double squareHalfHeight(List<MatOfPoint> contours, Point center) {
 		Double width = 0.0;
 		int count = 0;
 		for (int i = 0; i < contours.size(); i++) {
@@ -886,23 +951,23 @@ public class MainActivity extends Activity implements OnTouchListener,
 				count++;
 			}
 		}
-		width = width/count;
-		
+		width = width / count;
+
 		Double halfHeight = 0.0;
 		count = 0;
-		Double borderLeft = center.x-width;
-		Double borderRight = center.x+width;
-		for(int j=0;j<contours.size();j++){
+		Double borderLeft = center.x - width;
+		Double borderRight = center.x + width;
+		for (int j = 0; j < contours.size(); j++) {
 			List<Point> pts = contours.get(j).toList();
-			for(Point p:pts){
-				if(borderLeft <= p.x && p.x <= borderRight){
+			for (Point p : pts) {
+				if (borderLeft <= p.x && p.x <= borderRight) {
 					halfHeight += distPointToPoint(p, center);
 					count++;
 				}
 			}
 		}
-		
-		return new Point(center.x,center.y-halfHeight);
+
+		return halfHeight;
 	}
 
 	/**
@@ -920,9 +985,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 			for (Scalar hsvColor : myColors) {
 				Mat grayImg;
 				do {
-							grayImg = mDetector.filter(mRgbaWork, hsvColor);
-				}
-							while (grayImg.empty());
+					grayImg = mDetector.filter(mRgbaWork, hsvColor);
+				} while (grayImg.empty());
 				List<MatOfPoint> contours = mDetector.findContours(grayImg);
 				Log.e(TAG, "found areas: " + contours.size());
 				for (MatOfPoint area : contours) {
