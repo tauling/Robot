@@ -147,8 +147,10 @@ public class ColorBlobDetector {
 			Imgproc.cvtColor(mmPyrDownMat, mmHsvMat, Imgproc.COLOR_RGB2HSV_FULL);
 
 			Core.inRange(mmHsvMat, mmLowerBound, mmUpperBound, mmMask);
-			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
-					new Size(10, 10));
+//			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
+//					new Size(10, 10));
+			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
+					new Size(10, 10));  // TODO: This should be a lot faster than working with a Circle; Test, if it's accurate enough.
 
 			Imgproc.dilate(mmMask, mmDilatedMask, element);
 			Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
