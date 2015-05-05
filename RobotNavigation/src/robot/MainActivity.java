@@ -44,6 +44,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	// TODO: Add a function that allows to drive curves (and updates odometry)
 
+	// TODO: Probably add a function that allows to turns robot by velocity (and since depending on the angle different correctorfactors are needed, we need to do this via a switch case)
+
 	// TODO: Explore workspace and remember positions of all balls
 
 	// TODO: Add comments for variables.
