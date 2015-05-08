@@ -14,16 +14,14 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import robot.generated.R;
-import robot.navigate.Ball;
 import robot.navigate.Robot;
-import robot.opencv.ColorBlobDetector;
+import robot.opencv.ImageProcessor;
 
 import jp.ksksue.driver.serial.FTDriver;
 import android.annotation.SuppressLint;
@@ -41,6 +39,8 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity implements OnTouchListener,
 		CvCameraViewListener2 {
+	
+	// TODO: Use LEDs to display connection to the robot.
 
 	// TODO: Add a function that allows to drive curves (and updates odometry)
 
@@ -57,46 +57,49 @@ public class MainActivity extends Activity implements OnTouchListener,
 	
 	// TODO: target Position does not allow negative inputs in GUI
 
-	private TextView textLog;
+	// TODO: beacons: Detection of multiple, single-colored objects, finding their bottom points, calculating and displaying their locations in the robot's egocentric ground-plane coordinates, as well as their distances to the robot, using a pre-calibrated homography matrix
+	
+	// TODO: beacons: Detection of multiple, multi-colored objects, finding their bottom points, calculating and displaying their locations in the robot's egocentric ground-plane coordinates, as well as their distances to the robot, using a pre-calibrated homography matrix
+	
+	// TODO: Do not allow the mobile phone to suspend
+	
+	
+	// GUI Elements
+	private TextView textLog; // Textview on GUI which contains the robot's log
+	private EditText editText1; // Textfield on GUI for entering x-coordinate of target
+	private EditText editText2; // Textfield on GUI for entering y-coordinate of target
+	private EditText editText3; // Textfield on GUI for entering theta-alignment at target
+	
+	// General variables
+	private static final String TAG = "RobotLog"; // Tag for log-messages sent to logcat
+	
+	// Used Classes
+	private Robot robot; // Used to control the robot.
+	private ImageProcessor imageProcessor; // Used for image processing.
 
-	private Robot robot;
-
-	private Mat homographyMatrix;
-
-	private EditText editText1;
-	private EditText editText2;
-	private EditText editText3;
-
-	private double targetX = 100.0; // TODO Use Position.java
-
-	private double targetY = 100.0;
-
-	private Integer targetTheta = 45;
-	private static final String TAG = "RobotLog";
-
-	private Mat mRgbaOutput;
-	private Mat mRgbaWork;
-	private Scalar mBlobColorHsv;
-	private ColorBlobDetector mDetector;
-
+	// Imageprocessing specific variables
+	private Mat homographyMatrix; // the homography matrix is used to map camera pixels to the ground plane (relative to the robot's cam)
 	private int frameInterval = 0; // Helper variable which is needed to
 									// calculate the ball centers only every
 									// 15th frame.
-
 	private int executionInterval = 15; // Every executionInterval frames, the
-										// objects are drawn into the camera
-										// frame
+	// objects are drawn into the camera
+	// frame
+	private Mat mRgbaOutput; // Current image for output (circles etc. can be added to this image); updated every cameraframe
+	private Mat mRgbaWork; // Current image for image processing (not to be modified!); updated every cameraframe
+	private List<Scalar> myColors = new ArrayList<Scalar>(); // Stores all currently recognized colors
 
-	private List<Scalar> myColors = new ArrayList<Scalar>();
-
-	private List<Ball> foundBalls = new ArrayList<Ball>(); // list which stores
-															// all found balls
-
-	List<Point> circleCenters = new ArrayList<Point>();
+	private CameraBridgeViewBase mOpenCvCameraView; // interaction between openCV and camera
 	
-	List<Point> squareCenters = new ArrayList<Point>();
+	// TODO: probably a better solution that allows to abstract the found objects (because in fact, we aren't even able to distuingish between circles and squares)
+	List<Point> circleCenters = new ArrayList<Point>(); // list of all circles that are currently visible on camera 
+	List<Point> squareCenters = new ArrayList<Point>(); // list of all squares that are currently visible on camera 
 
-	private CameraBridgeViewBase mOpenCvCameraView;
+	// Robot specific variables	
+	// TODO Use Position.java instead of targetX and targetY
+	private double targetX = 100.0; // target's x-coordinate 
+	private double targetY = 100.0; // target's y-coordinate
+	private int targetTheta = 45; // alignment at target point
 
 	/**
 	 * Connects to the robot when app is started and initializes the position of
@@ -118,7 +121,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		FTDriver com = new FTDriver((UsbManager) getSystemService(USB_SERVICE));
 
-		robot = new Robot(textLog, svLog, com);
+		robot = new Robot(textLog, svLog, com, TAG, imageProcessor);
 		robot.connect();
 
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
@@ -150,7 +153,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.moveRobot(100);
+				robot.moveByDistance(100);
 			};
 		};
 
@@ -187,7 +190,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			@Override
 			public void run() {
 				for (int i = 0; i < 12; i++)
-					robot.turnRobot(30, 'r');
+					robot.turnByDistance(30, 'r');
 			};
 		};
 
@@ -280,9 +283,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 				int x = 200;
 				int y = 200;
 				int theta = 45;
-				robot.turnRobotBalanced(90, 'r');
+				robot.turnByDistanceBalanced(90, 'r');
 				robot.moveByVelocity(100, true);
-				robot.turnRobotBalanced(135, 'l');
+				robot.turnByDistanceBalanced(135, 'l');
 				robot.driveToIntersectionMLine(150, x, y);
 				robot.robotSetLeds(0, 0);
 				robot.robotSetLeds(127, 127);
@@ -388,7 +391,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 					try {
 						robot.writeLog(i++
 								+ ". try: searching homography Matrix.");
-						homographyMatrix = mDetector
+						homographyMatrix = imageProcessor
 								.getHomographyMatrix(mRgbaOutput);
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
@@ -417,7 +420,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				findAndDeliverBall(targetX, targetY);
+				robot.findAndDeliverBall(targetX, targetY, mRgbaWork, myColors, homographyMatrix);
 				robot.moveToTarget(0.0, 0.0, 0);
 			};
 		};
@@ -425,7 +428,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 		t.start();
 	}
 
-	// TODO add comment
+	/**
+	 * Enables access to the camera and on touch events on the according view.
+	 */
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
 		@SuppressLint("ClickableViewAccessibility")
 		@Override
@@ -444,27 +449,45 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 	};
 
-	// TODO add comment
+	
+	/**
+	 * Closes camera view when application is closed or the system
+	 * tries to free memory.
+	 */
 	public void onDestroy() {
 		super.onDestroy();
 		if (mOpenCvCameraView != null)
 			mOpenCvCameraView.disableView();
 	}
 
-	// TODO add comment
+	/**
+	 * Initializes the camera view and associated image matrices
+	 * with the given width and height.
+	 * @param width width of the camera view  (in pixels)
+	 * @param height height of the camera view (in pixels)
+	 */
 	public void onCameraViewStarted(int width, int height) {
 		mRgbaWork = new Mat(height, width, CvType.CV_8UC4);
 		mRgbaOutput = new Mat(height, width, CvType.CV_8UC4);
-		mDetector = new ColorBlobDetector();
-		mBlobColorHsv = new Scalar(255);
+		imageProcessor = new ImageProcessor();
 	}
 
-	// TODO add comment
+	/**
+	 * clears memory in case camera view is stopped
+	 */
 	public void onCameraViewStopped() {
+		mRgbaWork.release();
 		mRgbaOutput.release();
 	}
 
-	// TODO add comment
+	/**
+	 * When camera view is touched, this method saves the color
+	 * of the touched pixel (and averaged surrounding pixels).
+	 * This color is then tracked for finding blobs in the view.
+	 * @param v touched view
+	 * @param event object that is used to report movement (position etc.)
+	 * @return false (no need for subsequent touch events)
+	 */
 	@SuppressLint("ClickableViewAccessibility")
 	public boolean onTouch(View v, MotionEvent event) {
 		int cols = mRgbaOutput.cols();
@@ -487,7 +510,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Mat touchedRegionHsv = new Mat();
 		Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv,
 				Imgproc.COLOR_RGB2HSV_FULL);
-		mBlobColorHsv = Core.sumElems(touchedRegionHsv);
+		Scalar mBlobColorHsv = Core.sumElems(touchedRegionHsv);
 		int pointCount = touchedRect.width * touchedRect.height;
 		for (int i = 0; i < mBlobColorHsv.val.length; i++)
 			mBlobColorHsv.val[i] /= pointCount;
@@ -495,101 +518,23 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Log.i(TAG, "saved colors: " + myColors.size());
 		touchedRegionRgba.release();
 		touchedRegionHsv.release();
-		return false; // don't need subsequent touch events
+		return false;
 	}
 
 	/**
-	 * computes center point of given contour
-	 * 
-	 * @param contours
-	 * @return Point (representing center point)
+	 * Gets called every camera frame. Updates the global image matrices
+	 * mRgbaOutput and mRgbaWork which are used for image processing and
+	 * image display.
+	 * @param inputFrame current camera frame
+	 * @return the image matrix to display
 	 */
-	public Point computeCenterPt(List<MatOfPoint> contours) {
-		if (contours.isEmpty()) {
-			return (new Point(-200.0, -200.0)); // TODO: Better to return null
-												// in this case?
-		}
-		double avgX = 0, avgY = 0;
-		int count = 0;
-		for (int i = 0; i < contours.size(); i++) {
-			List<Point> pts = contours.get(i).toList();
-			for (Point p : pts) {
-				avgX += p.x;
-				avgY += p.y;
-				count++;
-			}
-		}
-		Point ptCenter = new Point(avgX / count, avgY / count);
-		return ptCenter;
-	}
-
-	// TODO add comment
-	public double distPointToPoint(Point p1, Point p2) {
-		return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-	}
-
-	// TODO update comment
-	/**
-	 * measures distance from every point to center and computes average radius
-	 * 
-	 * @param contours
-	 * @param center
-	 *            point
-	 * @return radius
-	 */
-	public double computeRadius(List<MatOfPoint> contours, Point center) {
-		if (contours.isEmpty()) {
-			return 0;
-		}
-		center = computeCenterPt(contours);
-		double distToCenter = 0;
-		int nrElements = 0;
-		for (int i = 0; i < contours.size(); i++) {
-			List<Point> pts = contours.get(i).toList();
-			for (Point p : pts) {
-				distToCenter += distPointToPoint(p, center);
-			}
-			nrElements += pts.size();
-		}
-		distToCenter = distToCenter / nrElements;
-
-		return distToCenter;
-	}
-
-	// TODO needed? (gets called inside detectBalls)
-	// TODO if so, comment
-	/**
-	 * robot aligns his body to a surrendered ball
-	 * 
-	 * @param ball
-	 * @return TRUE, after he turned enough
-	 */
-	public Boolean alignToBall(Ball ball) {
-		Boolean aligned = false;
-		double centerXAxis = mRgbaOutput.width() / 2;
-		double TOL = 2.0;
-		while (!aligned) {
-			Point ballCenter = ball.getBallCenterCameraFrame();
-			double ballXAxis = ballCenter.x;
-			double diff = centerXAxis - ballXAxis;
-			if (Math.abs(diff) > TOL && diff < 0) {
-				robot.turnRobotBalanced(15, 'r');
-			} else if (Math.abs(diff) > TOL && diff < 0) {
-				robot.turnRobotBalanced(10, 'l');
-			}
-
-		}
-		return aligned;
-	}
-
-	// TODO add comment
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		mRgbaOutput = inputFrame.rgba();
 		mRgbaWork = inputFrame.rgba(); // TODO: does mRgbaWork refer to the same
 										// image as mRgbaOutput? In that case,
 										// either fix or remove this variable.
 		if (frameInterval >= executionInterval) {
-			findCirclesOnCamera();
+			imageProcessor.findCirclesOnCamera(mRgbaWork, myColors);
 			frameInterval = 0;
 		}
 		if (!circleCenters.isEmpty()) {
@@ -601,6 +546,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return mRgbaOutput;
 	}
 
+	/**
+	 * Disables camera view if Application switches into background.
+	 */
 	@Override
 	public void onPause() {
 		super.onPause();
@@ -608,6 +556,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 			mOpenCvCameraView.disableView();
 	}
 
+
+	/**
+	 * Enables camera view if Application resumes.
+	 */
 	@Override
 	public void onResume() {
 		super.onResume();
@@ -615,420 +567,5 @@ public class MainActivity extends Activity implements OnTouchListener,
 				mLoaderCallback);
 	}
 
-	// TODO Needed?
-	// TODO If so, comment
-	public Mat drawBalls(Mat mRgbaWithBalls) {
-
-		int counter = 0;
-		for (Ball ball : foundBalls) {
-
-			// Just for highlighting
-			Scalar color = null;
-			Scalar red = new Scalar(20);
-			Scalar black = new Scalar(128);
-			if (counter % 2 == 0) {
-				color = red;
-			} else {
-				color = black;
-			}
-
-			Point center = ball.getBallCenterCameraFrame();
-			int rad = (int) ball.getRadius();
-			Core.circle(mRgbaWithBalls, center, 10, new Scalar(20), -1);
-			Core.circle(mRgbaWithBalls, center, (int) rad, color, 5);
-			Point lowestPoint = new Point(center.x, center.y + rad);
-			Core.circle(mRgbaWithBalls, lowestPoint, 10, color, 5);
-			// Imgproc.drawContours(img, ballArea, -1, color, -1);
-
-			counter++;
-		}
-
-		return mRgbaWithBalls;
-	}
-
-	// TODO: needed?
-	// TODO: If so, move to colorblog-class
-	// TODO add comment
-	// TODO fix: this method is used to detect various balls; currently not
-	// working
-	public void detectBalls(Mat img) {
-		List<MatOfPoint> contours = mDetector.findContours(img);
-		Log.e(TAG, "found areas: " + contours.size());
-		for (MatOfPoint area : contours) {
-
-			List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
-			ballArea.add(area);
-
-			Point center = computeCenterPt(ballArea);
-			// Point pointGroundPlane = computePointGroundPlane();
-			Point pointGroundPlane = null; // TODO implement (don't forget to
-											// add the robot's pos coordinates)
-			double rad = computeRadius(ballArea, center);
-
-			Ball detectedBall = new Ball(center, pointGroundPlane, rad);
-
-			alignToBall(detectedBall);
-
-			Core.circle(mRgbaOutput, center, 10, new Scalar(20), -1);
-			Core.circle(mRgbaOutput, center, (int) rad, new Scalar(50), 5);
-			Point lowestPoint = new Point(center.x, center.y + rad);
-			Core.circle(mRgbaOutput, lowestPoint, 10, new Scalar(50), 5);
-
-			// add only new balls to myBalls-list
-			double TOL = 30;
-			Point detectedBallPos = detectedBall.getPosGroundPlane(); // refactor
-																		// variable
-																		// name
-			for (Ball b : foundBalls) {
-				Point bPos = b.getPosGroundPlane();
-				if (Math.abs(bPos.x - detectedBallPos.x) > TOL
-						|| Math.abs(bPos.y - detectedBallPos.y) > TOL) {
-					foundBalls.add(detectedBall);
-				} else {
-					// TODO update radius etc.
-				}
-			}
-		}
-	}
-
-	/**
-	 * robot aligns his body to a surrendered Point
-	 * 
-	 * @param point
-	 */
-	public void alignToPoint(Point p) {
-		Log.i(TAG, "(alignToPoint) p = " + p.toString());
-		robot.writeLog("(alignToPoint) p = " + p.toString());
-		Boolean aligned = false;
-		double centerXAxis = mRgbaOutput.width() / 2;
-		Log.i(TAG, "robot Camera xAxis: " + centerXAxis);
-		robot.writeLog("(alignToPoint) robot Camera xAxis: " + centerXAxis);
-		double TOL = 150.0;
-		double ballXAxis = p.x;
-		while (!aligned) {
-			ballXAxis = findCirclesOnCamera().get(0).x;
-			Log.i(TAG, "ball xAxis: " + ballXAxis);
-			double diff = centerXAxis - ballXAxis;
-			Log.i(TAG, "axis difference:" + diff);
-			if (Math.abs(diff) > TOL && diff < 0) {
-				robot.turnRobotBalanced(30, 'r');
-				Log.i(TAG, "(alignToPoint) turning right");
-			} else if (Math.abs(diff) > TOL && diff > 0) {
-				robot.turnRobotBalanced(25, 'l');
-				Log.i(TAG, "(alignToPoint) turning left");
-			} else {
-				aligned = true;
-			}
-		}
-		Log.i(TAG, "(alignToPoint) aligned");
-		robot.writeLog("(alignToPoint) aligned");
-	}
-
-	// TODO update description
-	/**
-	 * 1) find ball 2) cage ball 3) move caged ball to target
-	 */
-	public void findAndDeliverBall(double x, double y) {
-		Log.i(TAG, "(findAndDeliverPoint) Start");
-		robot.writeLog("(findAndDeliverPoint) Start");
-		Ball myBall = detectOneBall();
-		Log.i(TAG, "(findAndDeliverPoint) Ready to cage the ball");
-		robot.writeLog("(findAndDeliverPoint) Ready to cage the ball");
-		if (myBall != null) {
-			driveToBallAndCage(myBall);
-			Log.i(TAG, "(findAndDeliverPoint) Ball caged");
-			robot.writeLog("Ball caged");
-			robot.moveToTargetWithoutAngle(x, y, 5);
-			robot.moveByVelocitySlow(-16, false);
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				// do nothing
-			}
-			robot.robotSetBar(126);
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				// do nothing
-			}
-			robot.moveByVelocity(-35, false);
-		}
-	}
-
-	/**
-	 * Turns robot for a maximum of 360°, stops when ball is adjusted to the
-	 * center of the camera frame.
-	 * 
-	 * @return true if ball is found, false otherwise.
-	 */
-	public boolean turnAndFindABall() {
-
-		Boolean foundBall = false;
-		int turnedAngle = 0;
-		List<Point> circles = new ArrayList<Point>();
-		Log.i(TAG, "(turnAndFindABall) start");
-		while (turnedAngle < 360 && !foundBall) {
-			circles = findCirclesOnCamera();
-			if (circles.size() > 0) {
-				Log.i(TAG, "found circle x:" + circles.get(0).x + " y:"
-						+ circles.get(0).y);
-				alignToPoint(circles.get(0));
-				Log.i(TAG, "(turnAndFindABall) found a ball");
-				foundBall = true;
-			} else {
-				robot.turnRobotBalanced(25, 'r');
-				turnedAngle += 25;
-			}
-		}
-		Log.i(TAG, "(turnAndFindABall) Finished");
-		return foundBall;
-
-	}
-
-	/**
-	 * Finds the centers of all circles on camera.
-	 * 
-	 * @return a list of centers of circles that are currently present on the
-	 *         camera frame
-	 */
-	public List<Point> findCirclesOnCamera() {
-		circleCenters = new ArrayList<Point>();
-		Log.i(TAG,
-				"(findCirclesOnCamera) Searching circles on camera; Number of colors: "
-						+ myColors.size());
-		for (Scalar hsvColor : myColors) {
-			Mat grayImg;
-			do {
-			grayImg = mDetector.filter(mRgbaWork, hsvColor);
-			}
-			while (grayImg.empty());
-			List<MatOfPoint> contours = mDetector.findContours(grayImg);
-			Log.i(TAG,
-					"(findCirclesOnCamera) Found following number of contours: "
-							+ contours.size());
-
-			for (MatOfPoint area : contours) {
-
-				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
-				ballArea.add(area);
-
-				Point center = computeCenterPt(ballArea);
-
-				circleCenters.add(center);
-				Log.i(TAG, "(findCirclesOnCamera) Found circle on camera at: "
-						+ center);
-			}
-			grayImg.release();
-		}
-
-		Log.i(TAG,
-				"(foundCirclesOnCamera) Found circles: " + circleCenters.size());
-
-		return circleCenters;
-	}
-	
-	public List<Point> findSquaresOnCamera() {
-		squareCenters = new ArrayList<Point>();
-		Log.i(TAG,
-				"(findSquaresOnCamera) Searching squares on camera; Number of colors: "
-						+ myColors.size());
-		for (Scalar hsvColor : myColors) {
-			Mat grayImg = new Mat();
-			grayImg = mDetector.filter(mRgbaWork, hsvColor);
-
-			List<MatOfPoint> contours = mDetector.findContours(grayImg);
-			Log.i(TAG,
-					"(findSquaresOnCamera) Found following number of contours: "
-							+ contours.size());
-
-			for (MatOfPoint area : contours) {
-
-				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
-				ballArea.add(area);
-				
-
-				Point center = computeCenterPt(ballArea);
-
-				Point lowPt = squareHeight(ballArea,center);
-				Log.i(TAG, "(findSquaresOnCamera) computed lowest point for square: "
-						+ lowPt);
-				
-				squareCenters.add(center);
-				Log.i(TAG, "(findSquaresOnCamera) Found square on camera at: "
-						+ center);
-			}
-		}
-
-		Log.i(TAG,
-				"(findSquaresOnCamera) Found squares: " + circleCenters.size());
-
-		return circleCenters;
-	}
-	
-	public Point squareHeight(List<MatOfPoint> contours, Point center) {
-		Double width = 0.0;
-		int count = 0;
-		for (int i = 0; i < contours.size(); i++) {
-			List<Point> pts = contours.get(i).toList();
-			for (Point p : pts) {
-				width += p.x;
-				count++;
-			}
-		}
-		width = width/count;
-		
-		Double height = 0.0;
-		count = 0;
-		for(int j=0;j<contours.size();j++){
-			List<Point> pts = contours.get(j).toList();
-			Double borderLeft = center.x-width;
-			Double borderRight = center.x+width;
-			for(Point p:pts){
-				if(borderLeft <= p.x && p.x <= borderRight){
-					height += p.y;
-					count++;
-				}
-			}
-		}
-		height = height/count;
-		
-		return new Point(center.x,center.y-height);
-	}
-
-	/**
-	 * Detects a ball.
-	 * 
-	 * @return Ball object if found, null otherwise.
-	 */
-	public Ball detectOneBall() {
-		Log.i(TAG, "(detectOneBall) start");
-		robot.writeLog("(detectOneBall) start");
-		Ball detectedBall = null;
-		if (turnAndFindABall()) {
-			Log.i(TAG, "(detectOneBall) Found ball");
-			robot.writeLog("(detectOneBall) Found ball");
-			for (Scalar hsvColor : myColors) {
-				Mat grayImg;
-				do {
-							grayImg = mDetector.filter(mRgbaWork, hsvColor);
-				}
-							while (grayImg.empty());
-				List<MatOfPoint> contours = mDetector.findContours(grayImg);
-				Log.e(TAG, "found areas: " + contours.size());
-				for (MatOfPoint area : contours) {
-
-					List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
-					ballArea.add(area);
-
-					Point center = computeCenterPt(ballArea);
-					double rad = computeRadius(ballArea, center);
-					Point lowestPoint = new Point(center.x, center.y + rad);
-					Point pointGroundPlane = getGroundPlaneCoordinates(lowestPoint);
-
-					detectedBall = new Ball(center, pointGroundPlane, rad);
-					Log.i(TAG,
-							"(detectOneBall) found ball with following ground coordinates: "
-									+ detectedBall.toString());
-					robot.writeLog("(detectOneBall) found ball with following ground coordinates: "
-							+ detectedBall.toString());
-				}
-				grayImg.release();
-			}
-			Log.i(TAG,
-					"(detectOneBall) returning ball with following ground coordinates: "
-							+ detectedBall.toString());
-			robot.writeLog("(detectOneBall) returning ball with following ground coordinates: "
-					+ detectedBall.toString());
-		}
-
-		return detectedBall;
-	}
-
-	/**
-	 * Drives to the ball and cages it.
-	 * 
-	 * @param ball
-	 *            the ball to cage
-	 */
-	public void driveToBallAndCage(Ball ball) {
-		Log.i(TAG, "(driveToBallAndCage) start");
-		robot.writeLog("(driveToBallAndCage) start");
-		Point ballTarget = ball.getPosGroundPlane();
-		Log.i(TAG,
-				"(driveToBallAndCage) received groundPlane coordinates of ball: "
-						+ ballTarget.toString());
-		robot.writeLog("(driveToBallAndCage) received groundPlane coordinates of ball: "
-				+ ballTarget.toString());
-		Log.i(TAG,
-				"(driveToBallAndCage) moving to ball: " + ballTarget.toString());
-		robot.writeLog("(driveToBallAndCage) moving to ball: "
-				+ ballTarget.toString());
-		robot.moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 25);
-		ballTarget = detectOneBall().getPosGroundPlane();
-		robot.writeLog("readjusting");
-		robot.moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 5);
-		Log.i(TAG, "(driveToBallAndCage) lowering bar");
-		robot.writeLog("(driveToBallAndCage) lowering bar");
-		robot.robotSetBar(50);
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Takes a camera point and calculates its ground plane coordinates.
-	 * 
-	 * @param cameraPoint
-	 * @return ground plane coordinates of camera point
-	 */
-	public Point getGroundPlaneCoordinates(Point cameraPoint) {
-
-		Mat src = new Mat(1, 1, CvType.CV_32FC2);
-		Mat dest = new Mat(1, 1, CvType.CV_32FC2);
-		src.put(0, 0, new double[] { cameraPoint.x, cameraPoint.y }); // ps is a
-																		// point
-																		// in
-																		// image
-																		// coordinates
-		Core.perspectiveTransform(src, dest, homographyMatrix); // homography is
-																// your
-																// homography
-																// matrix
-		Point pointGroundCoord = new Point(dest.get(0, 0)[0] / 10, dest.get(0,
-				0)[1] / 10);
-		Log.i(TAG,
-				"(getGroundPlaneCoordinates) Found ground plane coordinates relative to robot: "
-						+ pointGroundCoord.toString());
-		double theta2 = Math.atan2(pointGroundCoord.x, pointGroundCoord.y);
-		Log.i(TAG,
-				"(getGroundPlaneCoordinates) Found ground plane coordinates relative to robot: "
-						+ pointGroundCoord.toString());
-		double dist = Math.sqrt(Math.pow(pointGroundCoord.x, 2)
-				+ Math.pow(pointGroundCoord.y, 2));
-		double dx = -dist
-				* Math.sin(2 * Math.PI
-						- (theta2 + Math.toRadians(robot.getTg())));
-		double dy = dist
-				* Math.cos(2 * Math.PI
-						- (theta2 + Math.toRadians(robot.getTg())));
-
-		Log.i(TAG, "(getGroundPlaneCoordinates) theta2: " + theta2 + " theta: "
-				+ robot.getTg() + " dist: " + dist + " dx: " + dx + " dy: "
-				+ dy);
-
-		pointGroundCoord.x = robot.getMyPosition().x + dx;
-		pointGroundCoord.y = robot.getMyPosition().y + dy;
-
-		Log.i(TAG,
-				"(getGroundPlaneCoordinates) Found ground plane coordinates (global): "
-						+ pointGroundCoord.toString());
-
-		src.release();
-		dest.release();
-		return pointGroundCoord;
-	}
 
 }
