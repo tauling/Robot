@@ -20,9 +20,11 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import robot.generated.R;
+import robot.shapes.Ball;
+import robot.shapes.Circle;
+import robot.shapes.Square;
 import robot.navigate.Robot;
 import robot.opencv.ImageProcessor;
-
 import jp.ksksue.driver.serial.FTDriver;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -44,7 +46,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	// TODO: Add a function that allows to drive curves (and updates odometry)
 
-	// TODO: Probably add a function that allows to turns robot by velocity (and since depending on the angle different correctorfactors are needed, we need to do this via a switch case)
+	// TODO: Probably add a function that allows to turns robot by velocity (and
+	// since depending on the angle different correctorfactors are needed, we
+	// need to do this via a switch case)
 
 	// TODO: Explore workspace and remember positions of all balls
 
@@ -54,7 +58,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// ColorBlobDetection.java.
 
 	// TODO: Resolve warnings in all xml-files.
-	
+
 	// TODO: target Position does not allow negative inputs in GUI
 
 	// TODO: beacons: Detection of multiple, single-colored objects, finding their bottom points, calculating and displaying their locations in the robot's egocentric ground-plane coordinates, as well as their distances to the robot, using a pre-calibrated homography matrix
@@ -92,8 +96,16 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private CameraBridgeViewBase mOpenCvCameraView; // interaction between openCV and camera
 	
 	// TODO: probably a better solution that allows to abstract the found objects (because in fact, we aren't even able to distuingish between circles and squares)
-	List<Point> circleCenters = new ArrayList<Point>(); // list of all circles that are currently visible on camera 
-	List<Point> squareCenters = new ArrayList<Point>(); // list of all squares that are currently visible on camera 
+
+	private List<Ball> foundBalls = new ArrayList<Ball>(); // list which stores
+															// all found balls
+
+	List<Point> circleCenters = new ArrayList<Point>();
+	
+	//TODO: write own method to update these lists
+	List<Circle> circlesList = new ArrayList<Circle>();
+
+	List<Square> squareList = new ArrayList<Square>();
 
 	// Robot specific variables	
 	// TODO Use Position.java instead of targetX and targetY
@@ -408,6 +420,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	public void ButtonEmptyBrain(View v) {
 
 		circleCenters = new ArrayList<Point>();
+		circlesList = new ArrayList<Circle>();
+		squareList = new ArrayList<Square>();
 		myColors = new ArrayList<Scalar>();
 		robot.resetPosition();
 		homographyMatrix = new Mat();
@@ -469,7 +483,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	public void onCameraViewStarted(int width, int height) {
 		mRgbaWork = new Mat(height, width, CvType.CV_8UC4);
 		mRgbaOutput = new Mat(height, width, CvType.CV_8UC4);
-		imageProcessor = new ImageProcessor();
+		imageProcessor = new ImageProcessor(TAG);
 	}
 
 	/**
@@ -534,15 +548,41 @@ public class MainActivity extends Activity implements OnTouchListener,
 										// image as mRgbaOutput? In that case,
 										// either fix or remove this variable.
 		if (frameInterval >= executionInterval) {
-			imageProcessor.findCirclesOnCamera(mRgbaWork, myColors);
+			circlesList = imageProcessor.findCirclesOnCamera2(mRgbaWork, myColors);
+			//TODO: test (not tested!)
+			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork, myColors);
 			frameInterval = 0;
 		}
+		//draw circles on CameraFrame
 		if (!circleCenters.isEmpty()) {
 			for (Point circleCenter : circleCenters)
 				Core.circle(mRgbaOutput, circleCenter, 10, new Scalar(20), -1);
 		}
+//		//draw circles on CameraFrame (from circleList)
+//		if(!circlesList.isEmpty()){
+//			for(Circle c:circlesList)
+//				Core.circle(mRgbaOutput, c.getCenter(), 10, new Scalar(20), -1);
+//		}
+		//draw squares on CameraFrame
+		if (!squareList.isEmpty()) {
+			Boolean colorToggle = true;
+			for (Square s : squareList){
+				if(colorToggle){
+					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(), s.getUpperRightEdge(), new Scalar(20), -1);
+					colorToggle = false;
+				}else{
+					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(), s.getUpperRightEdge(), new Scalar(0), -1);
+				}
+			}
+		}
 		frameInterval++;
-
+		
+		Mat grayImg = new Mat();
+		if(!myColors.isEmpty()){
+			for(Scalar s:myColors)
+				grayImg = imageProcessor.filter(mRgbaWork, s);
+			mRgbaOutput = grayImg;
+		}
 		return mRgbaOutput;
 	}
 
@@ -566,6 +606,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
 				mLoaderCallback);
 	}
+	
 
 
 }

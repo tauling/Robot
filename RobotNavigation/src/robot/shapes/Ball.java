@@ -1,4 +1,4 @@
-package robot.navigate;
+package robot.shapes;
 
 import org.opencv.core.Point;
 

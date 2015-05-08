@@ -13,6 +13,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 
 import robot.opencv.ImageProcessor;
+import robot.shapes.Ball;
 
 import jp.ksksue.driver.serial.FTDriver;
 import android.os.Handler;

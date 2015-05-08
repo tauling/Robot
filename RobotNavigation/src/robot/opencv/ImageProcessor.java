@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -14,7 +15,11 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
-import robot.navigate.Ball;
+import android.util.Log;
+
+import robot.shapes.Ball;
+import robot.shapes.Circle;
+import robot.shapes.Square;
 
 public class ImageProcessor {
 	
@@ -29,6 +34,16 @@ public class ImageProcessor {
 	Mat mDilatedMask = new Mat();
 	Mat mHierarchy = new Mat();
 
+	private String TAG; // Tag for log-messages sent to logcat
+	
+	/**
+	 * Constructor method.
+	 * 
+	 * @param TAG Used for messages to logcat.
+	 */
+	public ImageProcessor(String TAG) {
+		this.TAG = TAG;
+	}
 	
 	/**
 	 * Finds contours of the objects within the given grayImage.
@@ -311,33 +326,6 @@ public class ImageProcessor {
 		return circleCenters;
 	}
 	
-	// TODO needed?
-	// TODO If so, add comment
-	public List<Point> findSquaresOnCamera(Mat mRgbaWork, List<Scalar> myColors) {
-		List<Point> squareCenters = new ArrayList<Point>();
-		for (Scalar hsvColor : myColors) {
-			Mat grayImg = new Mat();
-			grayImg = filter(mRgbaWork, hsvColor);
-
-			List<MatOfPoint> contours = findContours(grayImg);
-
-			for (MatOfPoint area : contours) {
-
-				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
-				ballArea.add(area);
-				
-
-				Point center = computeCenterPt(ballArea);
-
-				Point lowPt = squareHeight(ballArea,center);
-				
-				squareCenters.add(center);
-			}
-		}
-
-		return squareCenters;
-	}
-	
 	
 	// TODO needed?
 	// TODO if so, add comment
@@ -371,6 +359,169 @@ public class ImageProcessor {
 		return new Point(center.x,center.y-height);
 	}
 	
+	// TODO Add comment
+	public List<Circle> findCirclesOnCamera2(Mat mRgbaWork, List<Scalar> myColors) {
+		List<Circle> circlesList = new ArrayList<Circle>();
+		for (Scalar hsvColor : myColors) {
+			Mat grayImg;
+			do {
+				grayImg = filter(mRgbaWork, hsvColor);
+			} while (grayImg.empty());
+			List<MatOfPoint> contours = findContours(grayImg);
 
+			for (MatOfPoint area : contours) {
+
+				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
+				ballArea.add(area);
+
+				Point center = computeCenterPt(ballArea);
+				
+				Double radius = computeRadius(ballArea, center);
+				
+				Circle foundCircle = new Circle(center, radius);
+
+				circlesList.add(foundCircle);
+			}
+			grayImg.release();
+		}
+		return circlesList;
+	}
+
+
+	//TODO: method should work on circlesList
+	// TODO Add comment
+	public List<Square> findSquaresOnCamera(Mat mRgbaWork, List<Scalar> myColors) {
+		List<Square> squareList = new ArrayList<Square>();
+		for (Scalar hsvColor : myColors) {
+			Mat grayImg = new Mat();
+			grayImg = filter(mRgbaWork, hsvColor);
+
+			List<MatOfPoint> contours = findContours(grayImg);
+
+			for (MatOfPoint area : contours) {
+
+				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
+				ballArea.add(area);
+
+				Point center = computeCenterPt(ballArea);
+				
+				Point lowerEdgeLeft = computeLowerEdgeLeft(ballArea, center);
+
+				Double halfHeight = squareHalfHeight(ballArea, center);
+
+				Square foundSquare = new Square(center, halfHeight, lowerEdgeLeft);
+
+				squareList.add(foundSquare);
+			}
+		}
+		squareList = findDitto(squareList);
+		Log.i(TAG, "(findSquaresOnCamera) Found squares: " + squareList.size());
+		return squareList;
+	}
+	
+
+
+	// TODO Add comment
+	private Point computeLowerEdgeLeft(List<MatOfPoint> contours, Point center) {
+		if (contours.isEmpty()) {
+			return (new Point(-200.0, -200.0)); // TODO: Better to return null
+												// in this case?
+		}
+		Double lowX = center.x;
+		Double lowY = center.y;
+		for (int i = 0; i < contours.size(); i++) {
+			List<Point> pts = contours.get(i).toList();
+			for (Point p : pts) {
+				if(p.x < lowX)
+					lowX = p.x;
+				if(p.y < lowY)
+					lowY = p.y;
+			}
+		}
+		Log.i(TAG, "lowest edge left at x:"+lowX+" y:"+lowY);
+		return new Point(lowX,lowY);
+	}
+
+	/**
+	 * computes the difference of 2 points along the x-axis
+	 * 
+	 * @param one
+	 *            point
+	 * @param another
+	 *            point
+	 * @return absolute difference value
+	 */
+	public Double compare2PtbyX(Point a, Point b) {
+		return Math.abs(a.x - b.x);
+	}
+
+	// TODO choose better name
+	// TODO update Description
+	/**
+	 * compares alignment of all squares in global squareCenter-list and tries
+	 * to find stacked squares if two squares are stacked the method deletes one
+	 * of them and extends the first to the size of both
+	 */
+	private List<Square> findDitto(List<Square> squareList) {
+		Double TOL = 20.0;
+		if (squareList.size() > 0) {
+			for (int i=0;i<squareList.size();i++) {
+				for (int j=0;j<squareList.size();j++) {
+					// it's not possible to write compare method in
+					// point-class...
+					if (compare2PtbyX(squareList.get(i).getCenter(),
+							squareList.get(j).getCenter()) <= TOL) {
+						Point newLowPt = new Point();
+						Point newCenterPt = new Point(squareList.get(i).getCenter().x,
+								(squareList.get(i).getCenter().y + squareList.get(j)
+										.getCenter().y) / 2);
+						Point newLowerLeftEdge = new Point();
+						if (squareList.get(i).getCenter().y > squareList.get(j).getCenter().y) {
+							newLowPt = squareList.get(j).getLowPt();
+							newLowerLeftEdge = squareList.get(j).getLowerLeftEdge();
+						} else {
+							newLowPt = squareList.get(i).getLowPt();
+							newLowerLeftEdge = squareList.get(i).getLowerLeftEdge();
+						}
+						// overwrite/extend one square to the size of both square and
+						// remove the second square form the list
+						squareList.add(new Square(newCenterPt,newLowPt,newLowerLeftEdge));
+						squareList.remove(squareList.get(j));
+						squareList.remove(squareList.get(i));
+					}
+				}
+			}
+		}
+		return squareList;
+	}
+
+	public Double squareHalfHeight(List<MatOfPoint> contours, Point center) {
+		Double width = 0.0;
+		int count = 0;
+		for (int i = 0; i < contours.size(); i++) {
+			List<Point> pts = contours.get(i).toList();
+			for (Point p : pts) {
+				width += p.x;
+				count++;
+			}
+		}
+		width = width / count;
+
+		Double halfHeight = 0.0;
+		count = 0;
+		Double borderLeft = center.x - width;
+		Double borderRight = center.x + width;
+		for (int j = 0; j < contours.size(); j++) {
+			List<Point> pts = contours.get(j).toList();
+			for (Point p : pts) {
+				if (borderLeft <= p.x && p.x <= borderRight) {
+					halfHeight += distPointToPoint(p, center);
+					count++;
+				}
+			}
+		}
+
+		return halfHeight/count;
+	}
 
 }
