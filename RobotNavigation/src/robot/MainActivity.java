@@ -1,5 +1,6 @@
 package robot;
 
+import java.security.spec.MGF1ParameterSpec;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -96,7 +97,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 															// all found balls
 
 	List<Point> circleCenters = new ArrayList<Point>();
-
+	//TODO: write own method to update these lists
 	List<Circle> circlesList = new ArrayList<Circle>();
 
 	List<Square> squareList = new ArrayList<Square>();
@@ -410,6 +411,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	public void ButtonEmptyBrain(View v) {
 
 		circleCenters = new ArrayList<Point>();
+		circlesList = new ArrayList<Circle>();
+		squareList = new ArrayList<Square>();
 		myColors = new ArrayList<Scalar>();
 		robot.resetPosition();
 		homographyMatrix = new Mat();
@@ -604,13 +607,31 @@ public class MainActivity extends Activity implements OnTouchListener,
 			for (Point circleCenter : circleCenters)
 				Core.circle(mRgbaOutput, circleCenter, 10, new Scalar(20), -1);
 		}
+//		//draw circles on CameraFrame (from circleList)
+//		if(!circlesList.isEmpty()){
+//			for(Circle c:circlesList)
+//				Core.circle(mRgbaOutput, c.getCenter(), 10, new Scalar(20), -1);
+//		}
 		//draw squares on CameraFrame
 		if (!squareList.isEmpty()) {
-			for (Square s : squareList)
-				Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(), s.getUpperRightEdge(), new Scalar(20), -1);
+			Boolean colorToggle = true;
+			for (Square s : squareList){
+				if(colorToggle){
+					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(), s.getUpperRightEdge(), new Scalar(20), -1);
+					colorToggle = false;
+				}else{
+					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(), s.getUpperRightEdge(), new Scalar(0), -1);
+				}
+			}
 		}
 		frameInterval++;
-
+		
+		Mat grayImg = new Mat();
+		if(!myColors.isEmpty()){
+			for(Scalar s:myColors)
+				grayImg = mDetector.filter(mRgbaWork, s);
+			mRgbaOutput = grayImg;
+		}
 		return mRgbaOutput;
 	}
 
@@ -838,6 +859,45 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		return circleCenters;
 	}
+	
+	public List<Circle> findCirclesOnCamera2() {
+		circlesList = new ArrayList<Circle>();
+		Log.i(TAG,
+				"(findCirclesOnCamera) Searching circles on camera; Number of colors: "
+						+ myColors.size());
+		for (Scalar hsvColor : myColors) {
+			Mat grayImg;
+			do {
+				grayImg = mDetector.filter(mRgbaWork, hsvColor);
+			} while (grayImg.empty());
+			List<MatOfPoint> contours = mDetector.findContours(grayImg);
+			Log.i(TAG,
+					"(findCirclesOnCamera) Found following number of contours: "
+							+ contours.size());
+
+			for (MatOfPoint area : contours) {
+
+				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
+				ballArea.add(area);
+
+				Point center = computeCenterPt(ballArea);
+				
+				Double radius = computeRadius(ballArea, center);
+				
+				Circle foundCircle = new Circle(center, radius);
+
+				circlesList.add(foundCircle);
+				Log.i(TAG, "(findCirclesOnCamera) Found circle on camera at: "
+						+ center);
+			}
+			grayImg.release();
+		}
+
+		Log.i(TAG,
+				"(foundCirclesOnCamera) Found circles: " + circlesList.size());
+
+		return circlesList;
+	}
 
 	//TODO: method should work on circlesList
 	public void findSquaresOnCamera() {
@@ -880,15 +940,19 @@ public class MainActivity extends Activity implements OnTouchListener,
 			return (new Point(-200.0, -200.0)); // TODO: Better to return null
 												// in this case?
 		}
-		Point lowerEdgeLeft = new Point();
+		Double lowX = center.x;
+		Double lowY = center.y;
 		for (int i = 0; i < contours.size(); i++) {
 			List<Point> pts = contours.get(i).toList();
 			for (Point p : pts) {
-				if(p.x < center.x && p.y < center.y)
-					lowerEdgeLeft = p;
+				if(p.x < lowX)
+					lowX = p.x;
+				if(p.y < lowY)
+					lowY = p.y;
 			}
 		}
-		return lowerEdgeLeft;
+		Log.i(TAG, "lowest edge left at x:"+lowX+" y:"+lowY);
+		return new Point(lowX,lowY);
 	}
 
 	/**
@@ -912,28 +976,29 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private void findDitto() {
 		Double TOL = 20.0;
 		if (squareList.size() > 0) {
-			for (Square squareRef : squareList) {
-				for (Square squareCmp : squareList) {
+			for (int i=0;i<squareList.size();i++) {
+				for (int j=0;j<squareList.size();j++) {
 					// it's not possible to write compare method in
 					// point-class...
-					if (compare2PtbyX(squareRef.getCenter(),
-							squareCmp.getCenter()) <= TOL) {
+					if (compare2PtbyX(squareList.get(i).getCenter(),
+							squareList.get(j).getCenter()) <= TOL) {
 						Point newLowPt = new Point();
-						Point newCenterPt = new Point(squareRef.getCenter().x,
-								(squareRef.getCenter().y + squareCmp
+						Point newCenterPt = new Point(squareList.get(i).getCenter().x,
+								(squareList.get(i).getCenter().y + squareList.get(j)
 										.getCenter().y) / 2);
 						Point newLowerLeftEdge = new Point();
-						if (squareRef.getCenter().y > squareCmp.getCenter().y) {
-							newLowPt = squareCmp.getLowPt();
-							newLowerLeftEdge = squareCmp.getLowerLeftEdge();
+						if (squareList.get(i).getCenter().y > squareList.get(j).getCenter().y) {
+							newLowPt = squareList.get(j).getLowPt();
+							newLowerLeftEdge = squareList.get(j).getLowerLeftEdge();
 						} else {
-							newLowPt = squareRef.getLowPt();
-							newLowerLeftEdge = squareRef.getLowerLeftEdge();
+							newLowPt = squareList.get(i).getLowPt();
+							newLowerLeftEdge = squareList.get(i).getLowerLeftEdge();
 						}
 						// overwrite/extend one square to the size of both square and
 						// remove the second square form the list
-						squareRef = new Square(newCenterPt,newLowPt,newLowerLeftEdge);
-						squareList.remove(squareCmp);
+						squareList.add(new Square(newCenterPt,newLowPt,newLowerLeftEdge));
+						squareList.remove(squareList.get(j));
+						squareList.remove(squareList.get(i));
 					}
 				}
 			}
@@ -967,7 +1032,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			}
 		}
 
-		return halfHeight;
+		return halfHeight/count;
 	}
 
 	/**
