@@ -39,7 +39,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.05"
                 android:onClick="buttonTest_onClick"
-                android:text="Tes1" />
+                android:text="@string/test1" />
 
             <Button
                 android:id="@+id/Button03"
@@ -48,15 +48,16 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.05"
                 android:onClick="buttonTest2_onClick"
-                android:text="Test2" />
+                android:text="@string/test2" />
 
             <Button
                 android:id="@+id/TestButton"
+                style="?android:attr/buttonStyleSmall"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.38"
+                android:layout_weight="0.05"
                 android:onClick="buttonTest3_onClick"
-                android:text="Test3" />
+                android:text="@string/test3" />
 
             <Button
                 android:id="@+id/button7"
@@ -65,7 +66,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.05"
                 android:onClick="buttonTest4_onClick"
-                android:text="Test4" />
+                android:text="@string/test4" />
 
             <GridLayout
                 android:layout_width="match_parent"
@@ -81,7 +82,7 @@
                     android:layout_gravity="start|top"
                     android:layout_row="4"
                     android:onClick="buttonMinus_onClick"
-                    android:text="-" />
+                    android:text="@string/minus" />
 
                 <Button
                     android:id="@+id/ButtonPlus"
@@ -91,14 +92,14 @@
                     android:layout_gravity="end|top"
                     android:layout_row="4"
                     android:onClick="buttonPlus_onClick"
-                    android:text="+" />
+                    android:text="@string/plus" />
 
                 <TextView
                     android:id="@+id/textView1"
                     android:layout_column="0"
                     android:layout_gravity="center_horizontal|top"
                     android:layout_row="2"
-                    android:text="Robot Bar"
+                    android:text="@string/bar"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
             </GridLayout>
 
@@ -113,8 +114,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="top|center_horizontal"
-                    android:layout_weight="0.38"
-                    android:text="Working Demos"
+                    android:text="@string/demos"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 <Button
@@ -122,18 +122,18 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_column="0"
-                    android:layout_gravity="left|top"
+                    android:layout_gravity="start|top"
                     android:layout_row="2"
                     android:onClick="buttonDriveAndRead_onClick"
-                    android:text="driveAndRead" />
+                    android:text="@string/dAR" />
 
                 <Button
                     android:id="@+id/button9"
                     android:layout_column="0"
-                    android:layout_gravity="left|top"
+                    android:layout_gravity="start|top"
                     android:layout_row="1"
                     android:onClick="buttonMoveToGoalN3_onClick"
-                    android:text="moveToGoalN3" />
+                    android:text="@string/mTGN" />
 
                 <Button
                     android:id="@+id/button10"
@@ -154,7 +154,7 @@
                 <Button
                     android:id="@+id/button12"
                     android:layout_column="3"
-                    android:layout_gravity="right|center_vertical"
+                    android:layout_gravity="end|center_vertical"
                     android:layout_row="1"
                     android:onClick="buttonEightTwo_onClick"
                     android:text="8_2" />
@@ -162,7 +162,7 @@
                 <Button
                     android:id="@+id/button13"
                     android:layout_column="1"
-                    android:layout_gravity="left|center_vertical"
+                    android:layout_gravity="start|center_vertical"
                     android:layout_row="2"
                     android:onClick="buttonMLineDemo_onClick"
                     android:text="m-line Demo" />
@@ -170,7 +170,7 @@
                 <Button
                     android:id="@+id/button17"
                     android:layout_column="2"
-                    android:layout_gravity="left"
+                    android:layout_gravity="start"
                     android:layout_row="2"
                     android:onClick="ButtonFindAndDeliverBall"
                     android:text="FindADeliverBall" />
@@ -178,7 +178,7 @@
                 <Button
                     android:id="@+id/button14"
                     android:layout_column="1"
-                    android:layout_gravity="left|center_vertical"
+                    android:layout_gravity="start|center_vertical"
                     android:layout_row="3"
                     android:onClick="buttonmoveToGoalN2_onClick"
                     android:text="moveToGoalN2" />
@@ -196,7 +196,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="top|center_horizontal"
-                    android:layout_weight="0.38"
                     android:text="Development"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -214,7 +213,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="top|center_horizontal"
-                    android:layout_weight="0.38"
                     android:text="Kalibrierung"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -224,8 +222,7 @@
                     android:layout_height="wrap_content"
                     android:layout_column="2"
                     android:layout_row="0"
-                    android:layout_gravity="left"
-                    android:layout_weight="0.04"
+                    android:layout_gravity="start"
                     android:onClick="buttonOneMeterDriveByVel_onClick"
                     android:text="1m by vel" />
 
@@ -235,7 +232,6 @@
                     android:layout_height="wrap_content"
                     android:layout_column="3"
                     android:layout_row="0"
-                    android:layout_weight="0.04"
                     android:onClick="buttonOneMeterDriveByVelSlow_onClick"
                     android:text="1m by vel slow" />
                 
@@ -244,7 +240,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="41dp"
                     android:layout_column="0"
-                    android:layout_gravity="left|top"
+                    android:layout_gravity="start|top"
                     android:layout_row="1"
                     android:onClick="buttonSensor_onClick"
                     android:text="Read Sensors" />
@@ -254,9 +250,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_column="1"
-                    android:layout_gravity="left|top"
+                    android:layout_gravity="start|top"
                     android:layout_row="1"
-                    android:layout_weight="0.04"
                     android:onClick="button360Deg_onClick"
                     android:text="360° by dist" />
 
@@ -266,14 +261,13 @@
                     android:layout_height="wrap_content"
                     android:layout_column="2"
                     android:layout_row="1"
-                    android:layout_weight="0.04"
                     android:onClick="button360DegByVel_onClick"
                     android:text="360° by vel" />
 
                 <Button
                     android:id="@+id/button2"
                     android:layout_column="3"
-                    android:layout_gravity="right|top"
+                    android:layout_gravity="end|top"
                     android:layout_row="1"
                     android:onClick="buttonFindSensorIDs_onClick"
                     android:text="SensorIDs" />
@@ -283,7 +277,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_column="1"
-                    android:layout_gravity="right|top"
+                    android:layout_gravity="end|top"
                     android:layout_row="0"
                     android:layout_weight="0.04"
                     android:onClick="buttonOneMeter_onClick"
