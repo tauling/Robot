@@ -582,12 +582,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 		frameInterval++;
 		
-		Mat grayImg = new Mat();
-		if(!myCircleColors.isEmpty()){
-			for(Scalar s:myCircleColors)
-				grayImg = imageProcessor.filter(mRgbaWork, s);
-			mRgbaOutput = grayImg;
-		}
+//		Mat grayImg = new Mat();
+//		if(!myColors.isEmpty()){
+//			for(Scalar s:myColors)
+//				grayImg = imageProcessor.filter(mRgbaWork, s);
+//			mRgbaOutput = grayImg;
+//		}
 		return mRgbaOutput;
 	}
 
@@ -612,10 +612,23 @@ public class MainActivity extends Activity implements OnTouchListener,
 				mLoaderCallback);
 	}
 	
+<<<<<<< HEAD
+	//TODO: implement
+	/**
+	 * 1)findTwoBeacons
+	 * 2)drive to goal and cage ball one the way 
+	 * 3)after goal position reached -> search for one ball and bring it to the goal (repeat this procedure until all balls are at the target)
+	 */
+	public void collectAllBalls(){
+		
+	}
+
+=======
 	// TODO: write method that updates global position using beacons every ~15 frames (in case at least two beacons are visible)
 	// TODO: add description
 	public void selfLocalization() {
 		
 	}
 	
+>>>>>>> c179b5ec65269f4753792f6fd0f83052adfaf5d1
 }
