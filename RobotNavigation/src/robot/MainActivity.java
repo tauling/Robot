@@ -54,9 +54,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	// TODO: Add comments for variables.
 
-	// TODO: Check if some methods should be moved to Robot.java or
-	// ColorBlobDetection.java.
-
 	// TODO: Resolve warnings in all xml-files.
 
 	// TODO: target Position does not allow negative inputs in GUI
@@ -95,7 +92,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// frame
 	private Mat mRgbaOutput; // Current image for output (circles etc. can be added to this image); updated every cameraframe
 	private Mat mRgbaWork; // Current image for image processing (not to be modified!); updated every cameraframe
-	private List<Scalar> myColors = new ArrayList<Scalar>(); // Stores all currently recognized colors
+	private List<Scalar> myCircleColors = new ArrayList<Scalar>(); // Stores all currently recognized colors for balls
+	private List<Scalar> myBeaconColors = new ArrayList<Scalar>(); // Stores all currently recognized colors for beacons
 
 	private CameraBridgeViewBase mOpenCvCameraView; // interaction between openCV and camera
 	
@@ -104,12 +102,15 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private List<Ball> foundBalls = new ArrayList<Ball>(); // list which stores
 															// all found balls
 
-	List<Point> circleCenters = new ArrayList<Point>();
+	List<Point> circleCenters = new ArrayList<Point>(); // TODO: Obsolete; Replace by circlesList
 	
 	//TODO: write own method to update these lists
-	List<Circle> circlesList = new ArrayList<Circle>();
+	List<Circle> circleList = new ArrayList<Circle>();
 
 	List<Square> squareList = new ArrayList<Square>();
+	
+	List<Square> beaconList = new ArrayList<Square>();
+	
 
 	// Robot specific variables	
 	// TODO Use Position.java instead of targetX and targetY
@@ -424,9 +425,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 	public void ButtonEmptyBrain(View v) {
 
 		circleCenters = new ArrayList<Point>();
-		circlesList = new ArrayList<Circle>();
+		circleList = new ArrayList<Circle>();
 		squareList = new ArrayList<Square>();
-		myColors = new ArrayList<Scalar>();
+		myCircleColors = new ArrayList<Scalar>();
 		robot.resetPosition();
 		homographyMatrix = new Mat();
 		textLog.setText("");
@@ -438,7 +439,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.findAndDeliverBall(targetX, targetY, mRgbaWork, myColors, homographyMatrix);
+				robot.findAndDeliverBall(targetX, targetY, mRgbaWork, myCircleColors, homographyMatrix);
 				robot.moveToTarget(0.0, 0.0, 0);
 			};
 		};
@@ -532,8 +533,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		int pointCount = touchedRect.width * touchedRect.height;
 		for (int i = 0; i < mBlobColorHsv.val.length; i++)
 			mBlobColorHsv.val[i] /= pointCount;
-		myColors.add(mBlobColorHsv);
-		Log.i(TAG, "saved colors: " + myColors.size());
+		myCircleColors.add(mBlobColorHsv);
+		Log.i(TAG, "saved colors: " + myCircleColors.size());
 		touchedRegionRgba.release();
 		touchedRegionHsv.release();
 		return false;
@@ -552,9 +553,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 										// image as mRgbaOutput? In that case,
 										// either fix or remove this variable.
 		if (frameInterval >= executionInterval) {
-			circlesList = imageProcessor.findCirclesOnCamera2(mRgbaWork, myColors);
+			circleList = imageProcessor.findCirclesOnCamera2(mRgbaWork, myCircleColors);
 			//TODO: test (not tested!)
-			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork, myColors);
+			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork, myCircleColors);
 			frameInterval = 0;
 		}
 		//draw circles on CameraFrame
@@ -582,8 +583,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		frameInterval++;
 		
 		Mat grayImg = new Mat();
-		if(!myColors.isEmpty()){
-			for(Scalar s:myColors)
+		if(!myCircleColors.isEmpty()){
+			for(Scalar s:myCircleColors)
 				grayImg = imageProcessor.filter(mRgbaWork, s);
 			mRgbaOutput = grayImg;
 		}
@@ -611,6 +612,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 				mLoaderCallback);
 	}
 	
-
-
+	// TODO: write method that updates global position using beacons every ~15 frames (in case at least two beacons are visible)
+	// TODO: add description
+	public void selfLocalization() {
+		
+	}
+	
 }

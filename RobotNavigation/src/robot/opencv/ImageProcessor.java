@@ -287,10 +287,6 @@ public class ImageProcessor {
 
 		return mRgbaWithBalls;
 	}
-	
-
-
-
 
 	// TODO: circleCenters should not be updated globally; add a second method that does this every 15 frames (within MainActivity)
 	/**
@@ -494,7 +490,9 @@ public class ImageProcessor {
 		}
 		return squareList;
 	}
-
+	
+	
+	// TODO: Needed? If so, add description
 	public Double squareHalfHeight(List<MatOfPoint> contours, Point center) {
 		Double width = 0.0;
 		int count = 0;
