@@ -61,11 +61,15 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	// TODO: target Position does not allow negative inputs in GUI
 
-	// TODO: beacons: Detection of multiple, single-colored objects, finding their bottom points, calculating and displaying their locations in the robot's egocentric ground-plane coordinates, as well as their distances to the robot, using a pre-calibrated homography matrix
+	// TODO: Ex3: beacons: Detection of multiple, single-colored objects, finding their bottom points, calculating and displaying their locations in the robot's egocentric ground-plane coordinates, as well as their distances to the robot, using a pre-calibrated homography matrix
 	
-	// TODO: beacons: Detection of multiple, multi-colored objects, finding their bottom points, calculating and displaying their locations in the robot's egocentric ground-plane coordinates, as well as their distances to the robot, using a pre-calibrated homography matrix
+	// TODO: Ex3: beacons: Detection of multiple, multi-colored objects, finding their bottom points, calculating and displaying their locations in the robot's egocentric ground-plane coordinates, as well as their distances to the robot, using a pre-calibrated homography matrix
 	
 	// TODO: Do not allow the mobile phone to suspend
+	
+	// TODO: Ex3: The robot is placed at an arbitrary location within a rectangular workspace of roughly 2.5m by 2.5m in size, surrounded by 8 beacons spaced 125cm apart and placed around the setup. Update the robot odometry based on these values.
+	
+	// TODO: Ex3: About 10 balls of known colors are placed at arbitrary locations within the workspace.
 	
 	
 	// GUI Elements
