@@ -463,10 +463,10 @@ public class ImageProcessor {
 	 * of them and extends the first to the size of both
 	 */
 	private List<Square> findDitto(List<Square> squareList) {
-		Double TOL = 20.0;
+		Double TOL = 50.0;
 		if (squareList.size() > 0) {
-			for (int i=0;i<squareList.size();i++) {
-				for (int j=0;j<squareList.size();j++) {
+			for (int i=0;i<squareList.size()-1;i++) {
+				for (int j=1;j<squareList.size();j++) {
 					// it's not possible to write compare method in
 					// point-class...
 					if (compare2PtbyX(squareList.get(i).getCenter(),

@@ -577,12 +577,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 		frameInterval++;
 		
-		Mat grayImg = new Mat();
-		if(!myColors.isEmpty()){
-			for(Scalar s:myColors)
-				grayImg = imageProcessor.filter(mRgbaWork, s);
-			mRgbaOutput = grayImg;
-		}
+//		Mat grayImg = new Mat();
+//		if(!myColors.isEmpty()){
+//			for(Scalar s:myColors)
+//				grayImg = imageProcessor.filter(mRgbaWork, s);
+//			mRgbaOutput = grayImg;
+//		}
 		return mRgbaOutput;
 	}
 
@@ -607,6 +607,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 				mLoaderCallback);
 	}
 	
-
+	//TODO: implement
+	/**
+	 * 1)findTwoBeacons
+	 * 2)drive to goal and cage ball one the way 
+	 * 3)after goal position reached -> search for one ball and bring it to the goal (repeat this procedure until all balls are at the target)
+	 */
+	public void collectAllBalls(){
+		
+	}
 
 }
