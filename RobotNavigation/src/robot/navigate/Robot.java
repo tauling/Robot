@@ -14,6 +14,7 @@ import org.opencv.core.Scalar;
 
 import robot.opencv.ImageProcessor;
 import robot.shapes.Ball;
+import robot.shapes.Square;
 
 import jp.ksksue.driver.serial.FTDriver;
 import android.os.Handler;
@@ -1315,4 +1316,61 @@ public class Robot {
 		}
 		writeLog("(alignToPoint) aligned");
 	}
+	
+	// TODO: implement
+	/**
+	 * Turns until two beacons are seen by the robot.
+	 * @return List of beacons.
+	 */
+	public List<Square> findTwoBeacons() {
+		return null;
+	}
+	
+	
+	// TODO: implement
+	/**
+	 * Uses beacons (with known positions) to update current position.
+	 * @param beacons list of currently seen beacons
+	 * @param homographyMatrix matrix which was received with the checkboard pattern
+	 */
+	public void updateGlobalPosition(List<Square> beacons, Mat homographyMatrix) {
+		
+	}
+	
+	
+	// TODO: implement
+	/**
+	 * Takes two visible beacons as input, calculates the global position using these
+	 * two beacons.
+	 * @param beacon1 first visible beacon
+	 * @param beacon2 second visible beacon
+	 * @param homographyMatrix matrix which was received with the checkboard pattern
+	 * @return current globalPosition
+	 */
+	private Position findPosition(Square beacon1, Square beacon2, Mat homographyMatrix) {
+		return null;
+		
+	}
+	
+	// TODO implement first increment: collect one ball which is lying on the robot's way
+	// TODO implement second increment: collect more balls which are lying on the robot's way
+	/**
+	 * Moves to a given target point. Collects balls that are lying on the way to the
+	 * target.
+	 * @param targetPoint
+	 */
+	public void moveToTargetCollBalls(Position targetPoint) {
+		
+	}
+	
+	
+	// TODO implement
+	/**
+	 * Turns and looks for a ball with a clear line of sight.
+	 * @return found ball; null when no ball is found
+	 */
+	public Ball findNearBall() {
+		return null;
+	}
+	
 }
