@@ -378,7 +378,7 @@ public class ImageProcessor {
 				squareList.add(foundSquare);
 			}
 		}
-		squareList = findDitto(squareList);
+		squareList = findBeacon(squareList);
 		Log.i(TAG, "(findSquaresOnCamera) Found squares: " + squareList.size());
 		return squareList;
 	}
@@ -426,7 +426,7 @@ public class ImageProcessor {
 	 * to find stacked squares if two squares are stacked the method deletes one
 	 * of them and extends the first to the size of both
 	 */
-	private List<Square> findDitto(List<Square> squareList) {
+	private List<Square> findBeacon(List<Square> squareList) {
 		Double TOL = 50.0;
 		if (squareList.size() > 0) {
 			for (int i=0;i<squareList.size()-1;i++) {

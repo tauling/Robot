@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -612,7 +613,21 @@ public class MainActivity extends Activity implements OnTouchListener,
 				mLoaderCallback);
 	}
 	
-<<<<<<< HEAD
+	// TODO: implement
+	/**
+	 * Turns until two beacons are seen by the robot.
+	 * @return List of beacons.
+	 */
+	public List<Square> findTwoBeacons() {
+		List<Square> beacons = imageProcessor.findSquaresOnCamera(mRgbaWork, myBeaconColors);
+		while(beacons.size() < 2){
+			//TODO: check angle value
+			robot.turnByDistance(15, 'r');
+			beacons = imageProcessor.findSquaresOnCamera(mRgbaWork, myBeaconColors);
+		}
+		return beacons;
+	}
+	
 	//TODO: implement
 	/**
 	 * 1)findTwoBeacons
@@ -620,15 +635,43 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * 3)after goal position reached -> search for one ball and bring it to the goal (repeat this procedure until all balls are at the target)
 	 */
 	public void collectAllBalls(){
+		findTwoBeacons();
 		
 	}
+	
+	// TODO implement
+	//moved from robot because we need the updated ball-list after the robot rotated
+	/**
+	 * Turns and looks for a ball with a clear line of sight.
+	 * 
+	 * robot should turn until he sees at least one ball, in case he founds occasionally more than one he chooses the nearest to return
+	 * 
+	 * @return found ball; null when no ball is found
+	 */
+	public Ball findNearestBall() {
+		while(foundBalls.size() < 1){
+			robot.turnByDistanceBalanced(15, 'r');
+			//here is maybe a delay necessary 
+		}
+		Map<Double, Ball> ballGaps = new HashMap<Double,Ball>();
+		for(Ball b:foundBalls){
+			Point groundPoint = b.getPosGroundPlane();
+			Double distToBall = Math.sqrt(Math.pow(groundPoint.x-robot.myPos.x, 2)+Math.pow(groundPoint.y-robot.myPos.y, 2));
+			ballGaps.put(distToBall, b);
+		}
+		Entry<Double, Ball> nearestBall = null;
+		for (Entry<Double, Ball> entry : ballGaps.entrySet()) {
+		    if (nearestBall == null || nearestBall.getKey() > entry.getKey()) {
+		        nearestBall = entry;
+		    }
+		}
+		return nearestBall.getValue();
+	}
 
-=======
 	// TODO: write method that updates global position using beacons every ~15 frames (in case at least two beacons are visible)
 	// TODO: add description
 	public void selfLocalization() {
 		
 	}
 	
->>>>>>> c179b5ec65269f4753792f6fd0f83052adfaf5d1
 }

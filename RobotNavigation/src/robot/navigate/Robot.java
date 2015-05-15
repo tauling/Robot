@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -15,7 +16,6 @@ import org.opencv.core.Scalar;
 import robot.opencv.ImageProcessor;
 import robot.shapes.Ball;
 import robot.shapes.Square;
-
 import jp.ksksue.driver.serial.FTDriver;
 import android.os.Handler;
 import android.util.Log;
@@ -1315,17 +1315,7 @@ public class Robot {
 			}
 		}
 		writeLog("(alignToPoint) aligned");
-	}
-	
-	// TODO: implement
-	/**
-	 * Turns until two beacons are seen by the robot.
-	 * @return List of beacons.
-	 */
-	public List<Square> findTwoBeacons() {
-		return null;
-	}
-	
+	}	
 	
 	// TODO: implement
 	/**
@@ -1357,20 +1347,19 @@ public class Robot {
 	/**
 	 * Moves to a given target point. Collects balls that are lying on the way to the
 	 * target.
+	 * 
+	 * firstly turn robot to target
+	 * 
+	 * method uses list of balls and tries to determine which one is the nearest to catch on the way to the goal, that the 
+	 * one to cage first...
+	 * 
 	 * @param targetPoint
 	 */
-	public void moveToTargetCollBalls(Position targetPoint) {
+	public void moveToTargetCollBalls(Position targetPoint, List<Ball> balls) {
+		turnByDistanceBalanced(getAngleToTarget(targetPoint.x, targetPoint.y),'r');
 		
-	}
-	
-	
-	// TODO implement
-	/**
-	 * Turns and looks for a ball with a clear line of sight.
-	 * @return found ball; null when no ball is found
-	 */
-	public Ball findNearBall() {
-		return null;
+		driveToBallAndCage(findNearestBall(), mRgbaWork, myColors, homographyMatrix);
+		moveToTarget(targetPoint);
 	}
 	
 }
