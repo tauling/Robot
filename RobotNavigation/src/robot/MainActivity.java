@@ -612,7 +612,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 				mLoaderCallback);
 	}
 	
-<<<<<<< HEAD
 	//TODO: implement
 	/**
 	 * 1)findTwoBeacons
@@ -623,12 +622,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 		
 	}
 
-=======
 	// TODO: write method that updates global position using beacons every ~15 frames (in case at least two beacons are visible)
 	// TODO: add description
 	public void selfLocalization() {
 		
 	}
 	
->>>>>>> c179b5ec65269f4753792f6fd0f83052adfaf5d1
 }
