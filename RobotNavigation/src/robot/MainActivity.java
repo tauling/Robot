@@ -581,6 +581,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 				}
 			}
 		}
+		
+		//test getColorSalar-method with one point 
+		Point pt = new Point(200,200);
+		robot.writeLog("color at point: "+pt+imageProcessor.getColorSalar(mRgbaWork, pt));
 		frameInterval++;
 		
 //		Mat grayImg = new Mat();
@@ -636,36 +640,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public void collectAllBalls(){
 		findTwoBeacons();
-		
-	}
-	
-	// TODO implement
-	//moved from robot because we need the updated ball-list after the robot rotated
-	/**
-	 * Turns and looks for a ball with a clear line of sight.
-	 * 
-	 * robot should turn until he sees at least one ball, in case he founds occasionally more than one he chooses the nearest to return
-	 * 
-	 * @return found ball; null when no ball is found
-	 */
-	public Ball findNearestBall() {
-		while(foundBalls.size() < 1){
-			robot.turnByDistanceBalanced(15, 'r');
-			//here is maybe a delay necessary 
-		}
-		Map<Double, Ball> ballGaps = new HashMap<Double,Ball>();
-		for(Ball b:foundBalls){
-			Point groundPoint = b.getPosGroundPlane();
-			Double distToBall = Math.sqrt(Math.pow(groundPoint.x-robot.myPos.x, 2)+Math.pow(groundPoint.y-robot.myPos.y, 2));
-			ballGaps.put(distToBall, b);
-		}
-		Entry<Double, Ball> nearestBall = null;
-		for (Entry<Double, Ball> entry : ballGaps.entrySet()) {
-		    if (nearestBall == null || nearestBall.getKey() > entry.getKey()) {
-		        nearestBall = entry;
-		    }
-		}
-		return nearestBall.getValue();
 	}
 
 	// TODO: write method that updates global position using beacons every ~15 frames (in case at least two beacons are visible)

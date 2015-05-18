@@ -1350,16 +1350,46 @@ public class Robot {
 	 * 
 	 * firstly turn robot to target
 	 * 
-	 * method uses list of balls and tries to determine which one is the nearest to catch on the way to the goal, that the 
+	 * method uses list of balls and tries to determine which one is the nearest to catch on the way to the goal, that's the 
 	 * one to cage first...
 	 * 
 	 * @param targetPoint
 	 */
-	public void moveToTargetCollBalls(Position targetPoint, List<Ball> balls) {
+	public void moveToTargetCollBalls(Position targetPoint, List<Ball> balls,Mat mRgbaWork, List<Scalar> myColors, Mat homographyMatrix) {
 		turnByDistanceBalanced(getAngleToTarget(targetPoint.x, targetPoint.y),'r');
 		
-		driveToBallAndCage(findNearestBall(), mRgbaWork, myColors, homographyMatrix);
+		//TODO: write similar method, which doesn't overwrite surrendered ball
+		driveToBallAndCage(findNearestBall(balls), mRgbaWork, myColors, homographyMatrix);
 		moveToTarget(targetPoint);
+	}
+	
+	// TODO implement
+	//moved from robot because we need the updated ball-list after the robot rotated
+	/**
+	 * Turns and looks for a ball with a clear line of sight.
+	 * 
+	 * robot should turn until he sees at least one ball, in case he founds occasionally more than one he chooses the nearest to return
+	 * 
+	 * @return found ball; null when no ball is found
+	 */
+	public Ball findNearestBall(List<Ball> foundBalls) {
+		while(foundBalls.size() < 1){
+			turnByDistanceBalanced(15, 'r');
+			//here is maybe a delay necessary 
+		}
+		Map<Double, Ball> ballGaps = new HashMap<Double,Ball>();
+		for(Ball b:foundBalls){
+			Point groundPoint = b.getPosGroundPlane();
+			Double distToBall = Math.sqrt(Math.pow(groundPoint.x-myPos.x, 2)+Math.pow(groundPoint.y-myPos.y, 2));
+			ballGaps.put(distToBall, b);
+		}
+		Entry<Double, Ball> nearestBall = null;
+		for (Entry<Double, Ball> entry : ballGaps.entrySet()) {
+		    if (nearestBall == null || nearestBall.getKey() > entry.getKey()) {
+		        nearestBall = entry;
+		    }
+		}
+		return nearestBall.getValue();
 	}
 	
 }

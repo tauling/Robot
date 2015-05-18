@@ -378,7 +378,6 @@ public class ImageProcessor {
 				squareList.add(foundSquare);
 			}
 		}
-		squareList = findBeacon(squareList);
 		Log.i(TAG, "(findSquaresOnCamera) Found squares: " + squareList.size());
 		return squareList;
 	}
@@ -418,6 +417,11 @@ public class ImageProcessor {
 	public Double compare2PtbyX(Point a, Point b) {
 		return Math.abs(a.x - b.x);
 	}
+	
+	public Scalar getColorSalar(Mat mRgbaWork, Point pt){
+		double[] color = mRgbaWork.get((int)pt.x,(int) pt.y);
+		return new Scalar(color);
+	}
 
 	// TODO choose better name
 	// TODO update Description
@@ -426,7 +430,8 @@ public class ImageProcessor {
 	 * to find stacked squares if two squares are stacked the method deletes one
 	 * of them and extends the first to the size of both
 	 */
-	private List<Square> findBeacon(List<Square> squareList) {
+	private List<Beacon> findBeacon(List<Square> squareList, List<Beacon> beaconList) {
+		beaconList = new ArrayList<Beacon>();
 		Double TOL = 50.0;
 		if (squareList.size() > 0) {
 			for (int i=0;i<squareList.size()-1;i++) {
@@ -447,16 +452,14 @@ public class ImageProcessor {
 							newLowPt = squareList.get(i).getLowPt();
 							newLowerLeftEdge = squareList.get(i).getLowerLeftEdge();
 						}
-						// overwrite/extend one square to the size of both square and
+						// overwrite/extend one square to the size of both squares and
 						// remove the second square form the list
-						squareList.add(new Square(newCenterPt,newLowPt,newLowerLeftEdge));
-						squareList.remove(squareList.get(j));
-						squareList.remove(squareList.get(i));
+						beaconList.add(new Square(newCenterPt,newLowPt,newLowerLeftEdge));
 					}
 				}
 			}
 		}
-		return squareList;
+		return beaconList;
 	}
 	
 	
