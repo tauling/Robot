@@ -22,8 +22,10 @@ import org.opencv.imgproc.Imgproc;
 
 import robot.generated.R;
 import robot.shapes.Ball;
+import robot.shapes.Beacon;
 import robot.shapes.Circle;
 import robot.shapes.Square;
+import robot.navigate.Position;
 import robot.navigate.Robot;
 import robot.opencv.ImageProcessor;
 import jp.ksksue.driver.serial.FTDriver;
@@ -142,7 +144,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	List<Square> squareList = new ArrayList<Square>();
 
-	List<Square> beaconList = new ArrayList<Square>();
+	List<Beacon> beaconList = new ArrayList<Beacon>();
 
 	// Robot specific variables
 	// TODO Use Position.java instead of targetX and targetY
@@ -459,6 +461,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		circleCenters = new ArrayList<Point>();
 		circleList = new ArrayList<Circle>();
 		squareList = new ArrayList<Square>();
+		beaconList = new ArrayList<Beacon>();
 		myCircleColors = new ArrayList<Scalar>();
 		robot.resetPosition();
 		homographyMatrix = new Mat();
@@ -598,6 +601,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			// TODO: test (not tested!)
 			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
 					myCircleColors);
+			beaconList = imageProcessor.findBeacon(squareList);
 			frameInterval = 0;
 		}
 		// draw circles on CameraFrame
@@ -611,22 +615,33 @@ public class MainActivity extends Activity implements OnTouchListener,
 		// Core.circle(mRgbaOutput, c.getCenter(), 10, new Scalar(20), -1);
 		// }
 		// draw squares on CameraFrame
-		if (!squareList.isEmpty()) {
-			Boolean colorToggle = true;
-			for (Square s : squareList) {
-				if (colorToggle) {
-					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-							s.getUpperRightEdge(), new Scalar(20), -1);
-					colorToggle = false;
-				} else {
-					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-							s.getUpperRightEdge(), new Scalar(0), -1);
-				}
+		
+		//out dated, we only draw beacons from now on
+//		if (!squareList.isEmpty()) {
+//			Boolean colorToggle = true;
+//			for (Square s : squareList) {
+//				if (colorToggle) {
+//					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+//							s.getUpperRightEdge(), new Scalar(20), -1);
+//					colorToggle = false;
+//				} else {
+//					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+//							s.getUpperRightEdge(), new Scalar(0), -1);
+//				}
+//			}
+//		}
+		
+		//draw Beacons 
+		if(!beaconList.isEmpty()){
+			for(Beacon b : beaconList){
+				Core.rectangle(mRgbaOutput, b.getLowerLeftEdge(),
+						b.getUpperRightEdge(), new Scalar(20), -1);
 			}
 		}
 		
 		//test getColorSalar-method with one point 
 		Point pt = new Point(200,200);
+			Core.circle(mRgbaOutput, pt, 10, new Scalar(20), -1);
 		robot.writeLog("color at point: "+pt+imageProcessor.getColorSalar(mRgbaWork, pt));
 		frameInterval++;
 
@@ -685,6 +700,16 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public void collectAllBalls() {
 		findTwoBeacons();
+		Position targetPoint = new Position(targetX,targetY,targetTheta);
+		robot.moveToTargetCollBalls(targetPoint, foundBalls, mRgbaWork, myBeaconColors, homographyMatrix);
+		
+		try{
+			robot.findNearestBall(foundBalls);
+		}catch(NullPointerException e){
+			robot.writeLog("finish :D");
+		}finally{
+			robot.robotSetLeds(100, 100);
+		}
 	}
 
 	// TODO: write method that updates global position using beacons every ~15

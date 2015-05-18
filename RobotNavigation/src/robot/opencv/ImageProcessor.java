@@ -430,8 +430,8 @@ public class ImageProcessor {
 	 * to find stacked squares if two squares are stacked the method deletes one
 	 * of them and extends the first to the size of both
 	 */
-	private List<Beacon> findBeacon(List<Square> squareList, List<Beacon> beaconList) {
-		beaconList = new ArrayList<Beacon>();
+	public List<Beacon> findBeacon(List<Square> squareList) {
+		List<Beacon> beaconList = new ArrayList<Beacon>();
 		Double TOL = 50.0;
 		if (squareList.size() > 0) {
 			for (int i=0;i<squareList.size()-1;i++) {
@@ -448,21 +448,20 @@ public class ImageProcessor {
 						if (squareList.get(i).getCenter().y > squareList.get(j).getCenter().y) {
 							newLowPt = squareList.get(j).getLowPt();
 							newLowerLeftEdge = squareList.get(j).getLowerLeftEdge();
+							beaconList.add(new Beacon(newCenterPt, newLowPt, newLowerLeftEdge, squareList.get(j).getColorID(), squareList.get(i).getColorID()));
 						} else {
 							newLowPt = squareList.get(i).getLowPt();
 							newLowerLeftEdge = squareList.get(i).getLowerLeftEdge();
+							beaconList.add(new Beacon(newCenterPt, newLowPt, newLowerLeftEdge, squareList.get(j).getColorID(), squareList.get(i).getColorID()));
 						}
 						// overwrite/extend one square to the size of both squares and
 						// remove the second square form the list
-						Integer upperColorID = null;
-						beaconList.add(new Beacon(newCenterPt, newLowPt, newLowerLeftEdge, upperColorID, upperColorID));
 					}
 				}
 			}
 		}
 		return beaconList;
 	}
-	
 	
 	// TODO: Needed? If so, add description
 	// TODO: Rename and finalize (see TODOs within method)
