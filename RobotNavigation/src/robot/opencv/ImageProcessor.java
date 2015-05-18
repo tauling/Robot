@@ -2,8 +2,10 @@ package robot.opencv;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -15,9 +17,11 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+
 import android.util.Log;
 
 import robot.shapes.Ball;
+import robot.shapes.Beacon;
 import robot.shapes.Circle;
 import robot.shapes.Square;
 
@@ -26,13 +30,6 @@ public class ImageProcessor {
 	// TODO Check if offsets for homography are needed
 	
 	private static double mMinContourArea = 0.1; // Minimum contour area in percent for contours filtering
-
-	// Cache
-	Mat mPyrDownMat = new Mat();
-	Mat mHsvMat = new Mat();
-	Mat mMask = new Mat();
-	Mat mDilatedMask = new Mat();
-	Mat mHierarchy = new Mat();
 
 	private String TAG; // Tag for log-messages sent to logcat
 	
@@ -54,6 +51,8 @@ public class ImageProcessor {
 		List<MatOfPoint> mmContours = new ArrayList<MatOfPoint>();
 		;
 		Mat tempImage = new Mat();
+		Mat mHierarchy = new Mat();	
+		
 		try {
 			List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 			grayImage.copyTo(tempImage);
@@ -356,14 +355,15 @@ public class ImageProcessor {
 	// TODO Add comment
 	public List<Square> findSquaresOnCamera(Mat mRgbaWork, List<Scalar> myColors) {
 		List<Square> squareList = new ArrayList<Square>();
+		int i = 0;
 		for (Scalar hsvColor : myColors) {
+			i++;
 			Mat grayImg = new Mat();
 			grayImg = filter(mRgbaWork, hsvColor);
 
 			List<MatOfPoint> contours = findContours(grayImg);
 
 			for (MatOfPoint area : contours) {
-
 				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();  // TODO rename
 				ballArea.add(area);
 
@@ -373,7 +373,7 @@ public class ImageProcessor {
 				
 				Point lowerEdgeLeft = computeLowerEdgeLeft(ballArea, center); // TODO: Use result of squareHalfHeight (which should be renamed first)
 
-				Square foundSquare = new Square(center, halfHeight, lowerEdgeLeft);
+				Square foundSquare = new Square(center, halfHeight, lowerEdgeLeft, i);
 
 				squareList.add(foundSquare);
 			}
@@ -454,7 +454,8 @@ public class ImageProcessor {
 						}
 						// overwrite/extend one square to the size of both squares and
 						// remove the second square form the list
-						beaconList.add(new Square(newCenterPt,newLowPt,newLowerLeftEdge));
+						Integer upperColorID = null;
+						beaconList.add(new Beacon(newCenterPt, newLowPt, newLowerLeftEdge, upperColorID, upperColorID));
 					}
 				}
 			}
