@@ -1,7 +1,9 @@
 package robot.navigate;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -14,6 +16,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 
 import robot.opencv.ImageProcessor;
+import robot.opencv.maps;
 import robot.shapes.Ball;
 import robot.shapes.Square;
 import jp.ksksue.driver.serial.FTDriver;
@@ -25,13 +28,13 @@ import android.widget.TextView;
 public class Robot {
 
 	// TODO Check if some methods could be changed to private
-	
+
 	private TextView textLog; // Textview which displays the log within app.
 	private ScrollView svLog; // Allows to scroll the textLog
 	private String TAG; // Tag for log-messages sent to logcat
-	
+
 	private ImageProcessor imageProcessor; // Used for image processing.
-    
+
 	// -> Robot Calibration
 	private Integer ObsDetectBorderLR = 25; // Measurements in front of the
 											// robot
@@ -44,26 +47,26 @@ public class Robot {
 											// range of middle sensor is 20 to
 											// 80cm)
 
-	private double CorrFactMoveForwardByDist = (1391.0)/(1000.0); // Should be
+	private double CorrFactMoveForwardByDist = (1391.0) / (1000.0); // Should be
 	// set,
 	// such that
 	// moveByDistance(100) moves
 	// the
 	// the robot for 100cm.
 
-	private double CorrFactMoveForwardByVel = (486.0/1000.0);// Should be
+	private double CorrFactMoveForwardByVel = (486.0 / 1000.0);// Should be
 	// set,
 	// such that
 	// moveByVelocity(100) moves
 	// the
 	// the robot for 100cm.
-	private double CorrFactMoveForwardByVelSlow = (893.0/1000.0); // Should
+	private double CorrFactMoveForwardByVelSlow = (893.0 / 1000.0); // Should
 	// be
 	// such that
 	// moveByVelocitySlow(100) moves
 	// the
 	// the robot for 100cm.
-	private double CorrFactAngleByDist = (1332.0/1000.0); // Should
+	private double CorrFactAngleByDist = (1332.0 / 1000.0); // Should
 	// be
 	// set, such
 	// that
@@ -97,29 +100,53 @@ public class Robot {
 										// sensor
 	// measures distances correctly in its working
 	// range.
+	
+	static final Map<Integer, Position> BeaconPosition; // maps colorID combo (10*upperColorID + lowerColorID) to the position in real world coordinates
+	static {
+	  Map<Integer, Position> tmp = new LinkedHashMap<Integer, Position>();
+	  tmp.put(01, new Position(-125.0,125.0,0));
+	  tmp.put(03, new Position(0,125.0,0));
+	  tmp.put(10, new Position(125.0,125.0,0));
+	  tmp.put(20, new Position(-125.0,0,0));
+	  tmp.put(02, new Position(125.0,0,0));
+	  tmp.put(12, new Position(-125.0,-125.0,0));
+	  tmp.put(30, new Position(0,-125.0,0));
+	  tmp.put(21, new Position(125.0,-125.0,0));
+	  BeaconPosition = Collections.unmodifiableMap(tmp);
+	}
 
 	// <- Robot Calibration
-	
-	// TODO Check the use of WriteLog; too many comments in textLog while playing with the robot.
 
-	private Position myPos = new Position(0, 0, 0); // Current position of the robot.
+	// TODO Check the use of WriteLog; too many comments in textLog while
+	// playing with the robot.
 
-	private int balancedAngle = 0; // Helper variable used to track the difference between total left and right turns.
+	private Position myPos = new Position(0, 0, 0); // Current position of the
+													// robot.
+
+	private int balancedAngle = 0; // Helper variable used to track the
+									// difference between total left and right
+									// turns.
 
 	private FTDriver com; // Connection to the serial bus.
-	private Handler mhandler = new Handler(); // Thread handler to display logs asynchronously
+	private Handler mhandler = new Handler(); // Thread handler to display logs
+												// asynchronously
 
-	
 	/**
 	 * Constructor method.
 	 * 
-	 * @param textLog Textview used for logging.
-	 * @param svLog Scrollview to enable scrolling on textLog
-	 * @param com Connection to the serial bus.
-	 * @param TAG Used for messages to logcat.
-	 * @param imageProcessor used for image processing.
+	 * @param textLog
+	 *            Textview used for logging.
+	 * @param svLog
+	 *            Scrollview to enable scrolling on textLog
+	 * @param com
+	 *            Connection to the serial bus.
+	 * @param TAG
+	 *            Used for messages to logcat.
+	 * @param imageProcessor
+	 *            used for image processing.
 	 */
-	public Robot(TextView textLog, ScrollView svLog, FTDriver com, String TAG, ImageProcessor imageProcessor) {
+	public Robot(TextView textLog, ScrollView svLog, FTDriver com, String TAG,
+			ImageProcessor imageProcessor) {
 		this.textLog = textLog;
 		this.svLog = svLog;
 		this.com = com;
@@ -127,12 +154,12 @@ public class Robot {
 		this.TAG = TAG;
 	}
 
-
 	/**
 	 * 
 	 * @author Gregor
-	 *
-	 * Helper class which allows asynchronous access to the textview for logging purposes.
+	 * 
+	 *         Helper class which allows asynchronous access to the textview for
+	 *         logging purposes.
 	 */
 	private class WriteLogRunnable implements Runnable {
 
@@ -140,7 +167,9 @@ public class Robot {
 
 		/**
 		 * Constructor
-		 * @param text which is written to log
+		 * 
+		 * @param text
+		 *            which is written to log
 		 */
 		public WriteLogRunnable(String text) {
 			this.text = text;
@@ -177,9 +206,9 @@ public class Robot {
 				(byte) Math.max(Math.min(blue, 127), 0), '\r', '\n' }));
 	}
 
-	
 	/**
 	 * set bar with value between 0 and 260
+	 * 
 	 * @param value
 	 */
 	public void robotSetBar(int value) {
@@ -189,7 +218,6 @@ public class Robot {
 		comReadWrite(new byte[] { 'o', (byte) value, '\r', '\n' });
 	}
 
-	
 	/**
 	 * Establishes connection to the robot.
 	 */
@@ -201,11 +229,11 @@ public class Robot {
 		}
 	}
 
-	
 	/**
 	 * transfers given bytes via the serial connection.
 	 * 
-	 * @param data bytecode that is sent to the robot
+	 * @param data
+	 *            bytecode that is sent to the robot
 	 */
 	private void comWrite(byte[] data) {
 		if (com.isConnected()) {
@@ -215,7 +243,6 @@ public class Robot {
 		}
 	}
 
-	
 	/**
 	 * Reads from the serial buffer. Due to buffering, the read command is
 	 * issued 3 times at minimum and continuously as long as there are bytes to
@@ -237,7 +264,6 @@ public class Robot {
 		return s;
 	}
 
-	
 	/**
 	 * Write data to serial interface, wait 300 ms and read answer.
 	 * 
@@ -249,7 +275,6 @@ public class Robot {
 		return comReadWrite(data, 300);
 	}
 
-	
 	/**
 	 * Write data to serial interface, wait for the specified time and read
 	 * answer.
@@ -269,7 +294,6 @@ public class Robot {
 		return comRead();
 	}
 
-	
 	/**
 	 * Add the given text to the log file; also writes the length of the text
 	 * into the log-file.
@@ -283,7 +307,6 @@ public class Robot {
 		}
 	}
 
-	
 	/**
 	 * Add the given integer to the log file.
 	 * 
@@ -293,7 +316,6 @@ public class Robot {
 		writeLog((long) value);
 	}
 
-	
 	/**
 	 * Add the given long integer to the log file.
 	 * 
@@ -303,7 +325,6 @@ public class Robot {
 		new Thread(new WriteLogRunnable(value + "\n")).start();
 	}
 
-	
 	// TODO update description
 	// TODO needed?
 	// TODO If so, update with different correcting factors depending on angle
@@ -337,7 +358,6 @@ public class Robot {
 		updateRotation((int) (movedTime * speed), 'r');
 	}
 
-	
 	/**
 	 * Drive by velocity (fast), update position afterwards.
 	 * 
@@ -348,10 +368,10 @@ public class Robot {
 	 * @return true when there is no obstacle in front, false otherwise
 	 */
 	public Boolean moveByVelocity(double dist, boolean stopOnObstacle) {
-		return moveByVelocity(dist, stopOnObstacle, 15, CorrFactMoveForwardByVel);
-	}	
-	
-	
+		return moveByVelocity(dist, stopOnObstacle, 15,
+				CorrFactMoveForwardByVel);
+	}
+
 	/**
 	 * Drive by velocity (slow), update position afterwards.
 	 * 
@@ -362,10 +382,10 @@ public class Robot {
 	 * @return true when there is no obstacle in front, false otherwise
 	 */
 	public Boolean moveByVelocitySlow(double dist, boolean stopOnObstacle) {
-		return moveByVelocity(dist, stopOnObstacle, 11, CorrFactMoveForwardByVelSlow);
+		return moveByVelocity(dist, stopOnObstacle, 11,
+				CorrFactMoveForwardByVelSlow);
 	}
-	
-	
+
 	/**
 	 * Drive by velocity, update position afterwards.
 	 * 
@@ -373,11 +393,15 @@ public class Robot {
 	 *            distance to drive [cm]
 	 * @param stopOnObstacle
 	 *            when true, stop before hitting obstacle
-	 * @param velocity velocity of the robot
-	 * @param corrFactMoveVel depending on the velocity, different correcting factors are needed (calibrate!)
+	 * @param velocity
+	 *            velocity of the robot
+	 * @param corrFactMoveVel
+	 *            depending on the velocity, different correcting factors are
+	 *            needed (calibrate!)
 	 * @return true when there is no obstacle in front, false otherwise
 	 */
-	private Boolean moveByVelocity(double dist, boolean stopOnObstacle, int velocity, double corrFactMoveVel) {
+	private Boolean moveByVelocity(double dist, boolean stopOnObstacle,
+			int velocity, double corrFactMoveVel) {
 		double start = System.currentTimeMillis(); // [ms]
 		double curTime = start;
 		double speed = (100.0 / (1000 * velocity)) / corrFactMoveVel; // [cm/ms]
@@ -385,8 +409,9 @@ public class Robot {
 		double end = start + corrTime;
 		boolean freeWay = true;
 		robotSetLeds(0, 127);
-		comReadWrite(new byte[] { 'i', (byte) (velocity * ((int) Math.signum(dist))), (byte) (velocity * ((int) Math.signum(dist))), '\r',
-				'\n' });
+		comReadWrite(new byte[] { 'i',
+				(byte) (velocity * ((int) Math.signum(dist))),
+				(byte) (velocity * ((int) Math.signum(dist))), '\r', '\n' });
 		while (curTime <= end && (freeWay || !stopOnObstacle)) {
 			if (obstacleInFront()) {
 				freeWay = false;
@@ -397,11 +422,10 @@ public class Robot {
 		comReadWrite(new byte[] { 'i', (byte) 0, (byte) 0, '\r', '\n' });
 		double movedTime = curTime - start;
 
-		updatePosition((int) (Math.signum(dist)*movedTime * speed));
+		updatePosition((int) (Math.signum(dist) * movedTime * speed));
 		return freeWay;
 	}
 
-	
 	/**
 	 * updates global Position parameters after Robot moved one stepLength
 	 * 
@@ -419,8 +443,11 @@ public class Robot {
 
 	/**
 	 * Calculates the angle to the target (global coordinates).
-	 * @param x x-coordinate of the target
-	 * @param y y-coordinate of the target
+	 * 
+	 * @param x
+	 *            x-coordinate of the target
+	 * @param y
+	 *            y-coordinate of the target
 	 * @return angle to the target (global coordinates)
 	 */
 	private int getAngleToTarget(double x, double y) {
@@ -429,11 +456,13 @@ public class Robot {
 		return reduceAngle(angle - myPos.theta);
 	}
 
-	
 	/**
 	 * Calculates the distance between the robot and the target.
-	 * @param x x-coordinate of the target
-	 * @param y y-coordinate of the target
+	 * 
+	 * @param x
+	 *            x-coordinate of the target
+	 * @param y
+	 *            y-coordinate of the target
 	 * @return distance between robot and target in cm
 	 */
 	private int getDistanceToTarget(double x, double y) {
@@ -443,7 +472,9 @@ public class Robot {
 
 	/**
 	 * Raises and lowers the bar.
-	 * @param d "+" for rising bar; "-" for lowering bar.
+	 * 
+	 * @param d
+	 *            "+" for rising bar; "-" for lowering bar.
 	 */
 	public void moveBar(char d) {
 
@@ -462,7 +493,9 @@ public class Robot {
 
 	/**
 	 * Ensures that angle is always a value between 0 and 360°.
-	 * @param angle angle to reduce
+	 * 
+	 * @param angle
+	 *            angle to reduce
 	 * @return angle between 0 and 360°
 	 */
 	private int reduceAngle(int angle) {
@@ -476,7 +509,6 @@ public class Robot {
 		return angle;
 	}
 
-	
 	/**
 	 * update the robots own position information (only angle)
 	 * 
@@ -504,7 +536,8 @@ public class Robot {
 	/**
 	 * move robot by a specific distance
 	 * 
-	 * @param dist distance in centimeters
+	 * @param dist
+	 *            distance in centimeters
 	 */
 	public void moveByDistance(int dist) {
 		int corrDist = (int) (dist * CorrFactMoveForwardByDist);
@@ -523,7 +556,6 @@ public class Robot {
 		updatePosition(dist);
 	}
 
-	
 	/**
 	 * Moves forward until a) max_dist is reached; b) an obstacle is found; c)
 	 * robot is on m-line again
@@ -545,9 +577,9 @@ public class Robot {
 				/ ((((double) goal_y) / goal_x) - (Math.tan(Math
 						.toRadians(myPos.theta))));
 		double y_ofIntersection = x_ofIntersection * ((double) goal_y) / goal_x;
-		double dist = Math
-				.min(getDistanceToTarget(x_ofIntersection, y_ofIntersection),
-						max_dist);
+		double dist = Math.min(
+				getDistanceToTarget(x_ofIntersection, y_ofIntersection),
+				max_dist);
 
 		Boolean[] ret = new Boolean[2];
 
@@ -562,7 +594,6 @@ public class Robot {
 		return ret;
 	}
 
-	
 	/**
 	 * tells the robot to move along a square
 	 * 
@@ -628,7 +659,6 @@ public class Robot {
 		return ret;
 	}
 
-	
 	/**
 	 * Tells the robot to turn
 	 * 
@@ -662,7 +692,6 @@ public class Robot {
 		}
 	}
 
-	
 	/**
 	 * Tells the robot to turn
 	 * 
@@ -677,31 +706,34 @@ public class Robot {
 		updateRotation(angle, dir);
 		int degrees = angle;
 		degrees = (int) (CorrFactAngleByDist * degrees);
-//		int targetedAngleByOnce = 30; // TODO: Make global? Check if needed; could improve accuracy
+		// int targetedAngleByOnce = 30; // TODO: Make global? Check if needed;
+		// could improve accuracy
 		int maxDegreesByOnce = 40;
-//		if (angle > targetedAngleByOnce) {
-//			maxDegreesByOnce = Math.min(127, Math.abs(degrees/(angle/targetedAngleByOnce)));
-//		} else {
-//			maxDegreesByOnce = 127;
-//		}
+		// if (angle > targetedAngleByOnce) {
+		// maxDegreesByOnce = Math.min(127,
+		// Math.abs(degrees/(angle/targetedAngleByOnce)));
+		// } else {
+		// maxDegreesByOnce = 127;
+		// }
 		switch (dir) {
 		case 'r':
 			degrees = -degrees;
 			break;
 		}
-		while (Math.abs(degrees) > maxDegreesByOnce) { // Byte stores values from -128 to
+		while (Math.abs(degrees) > maxDegreesByOnce) { // Byte stores values
+														// from -128 to
 			// 127
 			degrees -= (int) (Math.signum(degrees)) * maxDegreesByOnce;
 			writeLog(comReadWrite(
-					new byte[] { 'l',
-							(byte) ((int) (Math.signum(degrees)) * maxDegreesByOnce), '\r',
-							'\n' }, waitTimeFact * maxDegreesByOnce));
+					new byte[] {
+							'l',
+							(byte) ((int) (Math.signum(degrees)) * maxDegreesByOnce),
+							'\r', '\n' }, waitTimeFact * maxDegreesByOnce));
 		}
 		writeLog(comReadWrite(new byte[] { 'l', (byte) degrees, '\r', '\n' },
 				waitTimeFact * Math.abs(degrees)));
 	}
 
-	
 	/**
 	 * returns values of all sensors including ID. The ID is then used to
 	 * associate the available physical sensors with the ID
@@ -723,7 +755,6 @@ public class Robot {
 		}
 	}
 
-	
 	/**
 	 * returns distances of all sensors in cm
 	 */
@@ -800,8 +831,8 @@ public class Robot {
 	}
 
 	/**
-	 * methods tests whether an obstacle is within the range of the 3 front sensors
-	 * or not
+	 * methods tests whether an obstacle is within the range of the 3 front
+	 * sensors or not
 	 * 
 	 * @return true - obstacle detected; false - free way
 	 */
@@ -821,7 +852,6 @@ public class Robot {
 		}
 		return detected;
 	}
-	
 
 	/**
 	 * Uses move robot by distance to drive to a given goal destination while
@@ -872,9 +902,9 @@ public class Robot {
 				turnByDistanceBalanced((int) Math.signum((Math.random() - 0.5))
 						* (90 + (int) (Math.random() * 45)), 'r');
 				measurement = getDistance();
-				moveByDistance(Math.min(measurement.get("frontRight") - 5, Math.min(
-						measurement.get("frontLeft") - 5,
-						Math.min(measurement.get("frontMiddle") - 5, 50))));
+				moveByDistance(Math.min(measurement.get("frontRight") - 5, Math
+						.min(measurement.get("frontLeft") - 5, Math.min(
+								measurement.get("frontMiddle") - 5, 50))));
 			}
 			if (Math.sqrt(Math.pow(x - myPos.x, 2) + Math.pow(y - myPos.y, 2)) < stepLength + 1) {
 				goalReached = true;
@@ -936,37 +966,46 @@ public class Robot {
 		robotSetLeds(127, 127);
 	}
 
-	
 	/**
-	 * Approaches target point (x, y) and stops offset centimeters before the target.
-	 * Does not change angle once it stops. Does not check whether or not the
-	 * robot stops within the tolerance (otherwise it might kick out a ball near target
-	 * point)!
-	 * @param x x-coordinate of the target [cm]
-	 * @param y y-coordinate of the target [cm]
-	 * @param offset offset to the target [cm]
+	 * Approaches target point (x, y) and stops offset centimeters before the
+	 * target. Does not change angle once it stops. Does not check whether or
+	 * not the robot stops within the tolerance (otherwise it might kick out a
+	 * ball near target point)!
+	 * 
+	 * @param x
+	 *            x-coordinate of the target [cm]
+	 * @param y
+	 *            y-coordinate of the target [cm]
+	 * @param offset
+	 *            offset to the target [cm]
 	 */
 	public void moveToTargetWithoutAngle(double x, double y, double offset) {
-		int totalAngleToGoal = getAngleToTarget(x,y) + getMyPosition().theta;
+		int totalAngleToGoal = getAngleToTarget(x, y) + getMyPosition().theta;
 		moveToTarget(x, y, totalAngleToGoal, offset, false);
 	}
 
 	/**
-	 * Drives to the target point (x, y).
-	 * Does not change angle once it stops.
-	 * @param x x-coordinate of the target [cm]
-	 * @param y y-coordinate of the target [cm]
+	 * Drives to the target point (x, y). Does not change angle once it stops.
+	 * 
+	 * @param x
+	 *            x-coordinate of the target [cm]
+	 * @param y
+	 *            y-coordinate of the target [cm]
 	 */
 	public void moveToTarget(double x, double y) {
-		int totalAngleToGoal = getAngleToTarget(x,y) + getMyPosition().theta;
+		int totalAngleToGoal = getAngleToTarget(x, y) + getMyPosition().theta;
 		moveToTarget(x, y, totalAngleToGoal);
 	}
 
 	/**
 	 * Drives to the target point (x, y, theta).
-	 * @param x x-coordinate of the target [cm]
-	 * @param y y-coordinate of the target [cm]
-	 * @param theta angle at target point (global coordinates)
+	 * 
+	 * @param x
+	 *            x-coordinate of the target [cm]
+	 * @param y
+	 *            y-coordinate of the target [cm]
+	 * @param theta
+	 *            angle at target point (global coordinates)
 	 */
 	public void moveToTarget(double x, double y, double theta) {
 		moveToTarget(x, y, theta, 0.0);
@@ -974,34 +1013,49 @@ public class Robot {
 
 	/**
 	 * Drives to the target point (x, y, theta).
-	 * @param target (x, y, theta) of the target point.
+	 * 
+	 * @param target
+	 *            (x, y, theta) of the target point.
 	 */
 	public void moveToTarget(Position target) {
 		moveToTarget(target.x, target.y, target.theta, 0.0);
 	}
 
-
 	/**
-	 * Approaches target point (x, y, theta) and stops offset centimeters before the target.
-	 * @param x x-coordinate of the target [cm]
-	 * @param y y-coordinate of the target [cm]
-	 * @param theta angle at target point (global coordinates)
-	 * @param offset offset to the target [cm]
+	 * Approaches target point (x, y, theta) and stops offset centimeters before
+	 * the target.
+	 * 
+	 * @param x
+	 *            x-coordinate of the target [cm]
+	 * @param y
+	 *            y-coordinate of the target [cm]
+	 * @param theta
+	 *            angle at target point (global coordinates)
+	 * @param offset
+	 *            offset to the target [cm]
 	 */
 	public void moveToTarget(double x, double y, double theta, double offset) {
-		moveToTarget(x,y,theta,offset,true);
+		moveToTarget(x, y, theta, offset, true);
 	}
 
-
 	/**
-	 * Approaches target point (x, y, theta) and stops offset centimeters before the target.
-	 * @param x x-coordinate of the target [cm]
-	 * @param y y-coordinate of the target [cm]
-	 * @param theta angle at target point (global coordinates)
-	 * @param offset offset to the target [cm]
-	 * @param checkTOL when enabled, it is ensured that the robot ends up at the target within the given tolerance
+	 * Approaches target point (x, y, theta) and stops offset centimeters before
+	 * the target.
+	 * 
+	 * @param x
+	 *            x-coordinate of the target [cm]
+	 * @param y
+	 *            y-coordinate of the target [cm]
+	 * @param theta
+	 *            angle at target point (global coordinates)
+	 * @param offset
+	 *            offset to the target [cm]
+	 * @param checkTOL
+	 *            when enabled, it is ensured that the robot ends up at the
+	 *            target within the given tolerance
 	 */
-	private void moveToTarget(double x, double y, double theta, double offset, boolean checkTol) {
+	private void moveToTarget(double x, double y, double theta, double offset,
+			boolean checkTol) {
 		int angle = 0, dist;
 		Boolean goalReached = false;
 		int TOL = 5;
@@ -1033,20 +1087,21 @@ public class Robot {
 
 	/**
 	 * Returns the robot's current position.
+	 * 
 	 * @return current robot's position.
 	 */
 	public Position getMyPosition() {
 		return myPos;
 	}
 
-	
 	// TODO needed? (gets called inside detectBalls)
 	// TODO if so, update comment
 	/**
 	 * robot aligns his body to a surrendered ball
 	 * 
 	 * @param ball
-	 * @param imageWidth width of the camera frame's image
+	 * @param imageWidth
+	 *            width of the camera frame's image
 	 * @return TRUE, after he turned enough
 	 */
 	public Boolean alignToBall(Ball ball, double imageWidth) {
@@ -1067,16 +1122,22 @@ public class Robot {
 		return aligned;
 	}
 
-
 	/**
 	 * Detects a ball, cages it, and moves it to the given target point.
-	 * @param targetX x-coordinate of the target point
-	 * @param targetY y-coordinate of the target point
-	 * @param mRgbaWork image to work on
-	 * @param myColors colors which are recognized by the robot.
-	 * @param homographyMatrix used to map camera pixels to ground plane coordinates
+	 * 
+	 * @param targetX
+	 *            x-coordinate of the target point
+	 * @param targetY
+	 *            y-coordinate of the target point
+	 * @param mRgbaWork
+	 *            image to work on
+	 * @param myColors
+	 *            colors which are recognized by the robot.
+	 * @param homographyMatrix
+	 *            used to map camera pixels to ground plane coordinates
 	 */
-	public void findAndDeliverBall(double targetX, double targetY, Mat mRgbaWork, List<Scalar> myColors, Mat homographyMatrix) {
+	public void findAndDeliverBall(double targetX, double targetY,
+			Mat mRgbaWork, List<Scalar> myColors, Mat homographyMatrix) {
 		Ball myBall = detectOneBall(mRgbaWork, myColors, homographyMatrix);
 		if (myBall != null) {
 			driveToBallAndCage(myBall, mRgbaWork, myColors, homographyMatrix);
@@ -1099,8 +1160,10 @@ public class Robot {
 	 * Turns robot for a maximum of 360°, stops when ball is adjusted to the
 	 * center of the camera frame.
 	 * 
-	 * @param mRgbaWork image to work on
-	 * @param myColors list of colors that are recognized by the robot
+	 * @param mRgbaWork
+	 *            image to work on
+	 * @param myColors
+	 *            list of colors that are recognized by the robot
 	 * 
 	 * @return true if ball is found, false otherwise.
 	 */
@@ -1127,20 +1190,24 @@ public class Robot {
 
 	}
 
-
 	/**
 	 * Drives to the ball and cages it.
 	 * 
 	 * @param ball
 	 *            the ball to cage
-	 * @param mRgbaWork image to work on
-	 * @param myColors colors that are recognized by the robot
-	 * @param homographyMatrix used to map from camera pixels to ground plane coordinates
+	 * @param mRgbaWork
+	 *            image to work on
+	 * @param myColors
+	 *            colors that are recognized by the robot
+	 * @param homographyMatrix
+	 *            used to map from camera pixels to ground plane coordinates
 	 */
-	public void driveToBallAndCage(Ball ball, Mat mRgbaWork, List<Scalar> myColors, Mat homographyMatrix) {
+	public void driveToBallAndCage(Ball ball, Mat mRgbaWork,
+			List<Scalar> myColors, Mat homographyMatrix) {
 		Point ballTarget = ball.getPosGroundPlane();
 		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 25);
-		ballTarget = detectOneBall(mRgbaWork, myColors, homographyMatrix).getPosGroundPlane();
+		ballTarget = detectOneBall(mRgbaWork, myColors, homographyMatrix)
+				.getPosGroundPlane();
 		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 5);
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robotSetBar(50);
@@ -1149,7 +1216,7 @@ public class Robot {
 		} catch (InterruptedException e) {
 		}
 	}
-	
+
 	// TODO: needed?
 	// TODO add comment
 	// TODO fix: this method is used to detect various balls; currently not
@@ -1194,26 +1261,30 @@ public class Robot {
 			}
 		}
 	}
-	
 
 	/**
 	 * Detects a ball with given colors in given camera frame.
-	 * @param mRgbaWork input image 
-	 * @param myColors colors to look for
-	 * @param homographyMatrix used to map camera pixels to ground plane coordinates
+	 * 
+	 * @param mRgbaWork
+	 *            input image
+	 * @param myColors
+	 *            colors to look for
+	 * @param homographyMatrix
+	 *            used to map camera pixels to ground plane coordinates
 	 * 
 	 * @return Ball object if found, null otherwise.
 	 */
-	public Ball detectOneBall(Mat mRgbaWork, List<Scalar> myColors, Mat homographyMatrix) {
+	public Ball detectOneBall(Mat mRgbaWork, List<Scalar> myColors,
+			Mat homographyMatrix) {
 		Ball detectedBall = null;
 		if (turnAndFindABall(mRgbaWork, myColors)) {
 			for (Scalar hsvColor : myColors) {
 				Mat grayImg;
 				do {
 					grayImg = imageProcessor.filter(mRgbaWork, hsvColor);
-				}
-					while (grayImg.empty());
-				List<MatOfPoint> contours = imageProcessor.findContours(grayImg);
+				} while (grayImg.empty());
+				List<MatOfPoint> contours = imageProcessor
+						.findContours(grayImg);
 				Log.e(TAG, "found areas: " + contours.size());
 				for (MatOfPoint area : contours) {
 
@@ -1223,7 +1294,8 @@ public class Robot {
 					Point center = imageProcessor.computeCenterPt(ballArea);
 					double rad = imageProcessor.computeRadius(ballArea, center);
 					Point lowestPoint = new Point(center.x, center.y + rad);
-					Point pointGroundPlane = getGroundPlaneCoordinates(lowestPoint, homographyMatrix);
+					Point pointGroundPlane = getGroundPlaneCoordinates(
+							lowestPoint, homographyMatrix);
 
 					detectedBall = new Ball(center, pointGroundPlane, rad);
 				}
@@ -1233,16 +1305,18 @@ public class Robot {
 
 		return detectedBall;
 	}
-	
-	
+
 	/**
 	 * Takes a camera point and calculates its ground plane coordinates.
 	 * 
-	 * @param cameraPoint the pixel to map to the ground plane
-	 * @param homographyMatrix the matrix that maps camera pixels to the ground plane
+	 * @param cameraPoint
+	 *            the pixel to map to the ground plane
+	 * @param homographyMatrix
+	 *            the matrix that maps camera pixels to the ground plane
 	 * @return ground plane coordinates of camera point
 	 */
-	public Point getGroundPlaneCoordinates(Point cameraPoint, Mat homographyMatrix) {
+	public Point getGroundPlaneCoordinates(Point cameraPoint,
+			Mat homographyMatrix) {
 
 		Mat src = new Mat(1, 1, CvType.CV_32FC2);
 		Mat dest = new Mat(1, 1, CvType.CV_32FC2);
@@ -1258,10 +1332,10 @@ public class Robot {
 		Point pointGroundCoord = new Point(dest.get(0, 0)[0] / 10, dest.get(0,
 				0)[1] / 10);
 		writeLog("(getGroundPlaneCoordinates) Found ground plane coordinates relative to robot: "
-						+ pointGroundCoord.toString());
+				+ pointGroundCoord.toString());
 		double theta2 = Math.atan2(pointGroundCoord.x, pointGroundCoord.y);
 		writeLog("(getGroundPlaneCoordinates) Found ground plane coordinates relative to robot: "
-						+ pointGroundCoord.toString());
+				+ pointGroundCoord.toString());
 		double dist = Math.sqrt(Math.pow(pointGroundCoord.x, 2)
 				+ Math.pow(pointGroundCoord.y, 2));
 		double dx = -dist
@@ -1272,29 +1346,31 @@ public class Robot {
 						- (theta2 + Math.toRadians(getMyPosition().theta)));
 
 		writeLog("(getGroundPlaneCoordinates) theta2: " + theta2 + " theta: "
-				+ getMyPosition().theta + " dist: " + dist + " dx: " + dx + " dy: "
-				+ dy);
+				+ getMyPosition().theta + " dist: " + dist + " dx: " + dx
+				+ " dy: " + dy);
 
 		pointGroundCoord.x = getMyPosition().x + dx;
 		pointGroundCoord.y = getMyPosition().y + dy;
 
 		writeLog("(getGroundPlaneCoordinates) Found ground plane coordinates (global): "
-						+ pointGroundCoord.toString());
+				+ pointGroundCoord.toString());
 
 		src.release();
 		dest.release();
 		return pointGroundCoord;
 	}
 
-	
 	// TODO: Fix: Is just able to work with one blob on the image.
 	// TODO: In case of no fix: Update this description.
 	/**
 	 * robot aligns his body to a surrendered Point
 	 * 
-	 * @param point camera pixel to align to (horizontally)
-	 * @param mRgbaWork image which is used to adjust alignment.
-	 * @param Colors which are recognized by the robot.
+	 * @param point
+	 *            camera pixel to align to (horizontally)
+	 * @param mRgbaWork
+	 *            image which is used to adjust alignment.
+	 * @param Colors
+	 *            which are recognized by the robot.
 	 */
 	public void alignToPoint(Point p, Mat mRgbaWork, List<Scalar> myColors) {
 		writeLog("(alignToPoint) p = " + p.toString());
@@ -1304,7 +1380,8 @@ public class Robot {
 		double TOL = 150.0;
 		double ballXAxis = p.x;
 		while (!aligned) {
-			ballXAxis = imageProcessor.findCirclesOnCamera(mRgbaWork, myColors).get(0).x;
+			ballXAxis = imageProcessor.findCirclesOnCamera(mRgbaWork, myColors)
+					.get(0).x;
 			double diff = centerXAxis - ballXAxis;
 			if (Math.abs(diff) > TOL && diff < 0) {
 				turnByDistanceBalanced(30, 'r');
@@ -1315,51 +1392,62 @@ public class Robot {
 			}
 		}
 		writeLog("(alignToPoint) aligned");
-	}	
-	
+	}
+
 	// TODO: implement
 	/**
 	 * Uses beacons (with known positions) to update current position.
-	 * @param beacons list of currently seen beacons
-	 * @param homographyMatrix matrix which was received with the checkboard pattern
+	 * 
+	 * @param beacons
+	 *            list of currently seen beacons
+	 * @param homographyMatrix
+	 *            matrix which was received with the checkboard pattern
 	 */
 	public void updateGlobalPosition(List<Square> beacons, Mat homographyMatrix) {
-		
+
 	}
-	
-	
+
 	// TODO: implement
 	/**
-	 * Takes two visible beacons as input, calculates the global position using these
-	 * two beacons.
-	 * @param beacon1 first visible beacon
-	 * @param beacon2 second visible beacon
-	 * @param homographyMatrix matrix which was received with the checkboard pattern
+	 * Takes two visible beacons as input, calculates the global position using
+	 * these two beacons.
+	 * 
+	 * @param beacon1
+	 *            first visible beacon
+	 * @param beacon2
+	 *            second visible beacon
+	 * @param homographyMatrix
+	 *            matrix which was received with the checkboard pattern
 	 * @return current globalPosition
 	 */
-	private Position findPosition(Square beacon1, Square beacon2, Mat homographyMatrix) {
+	private Position findPosition(Square beacon1, Square beacon2,
+			Mat homographyMatrix) {
 		return null;
-		
+
 	}
-	
-	// TODO implement first increment: collect one ball which is lying on the robot's way
-	// TODO implement second increment: collect more balls which are lying on the robot's way
+
+	// TODO implement first increment: collect one ball which is lying on the
+	// robot's way
+	// TODO implement second increment: collect more balls which are lying on
+	// the robot's way
 	/**
-	 * Moves to a given target point. Collects balls that are lying on the way to the
-	 * target.
+	 * Moves to a given target point. Collects balls that are lying on the way
+	 * to the target.
 	 * 
 	 * firstly turn robot to target
 	 * 
-	 * method uses list of balls and tries to determine which one is the nearest to catch on the way to the goal, that the 
-	 * one to cage first...
+	 * method uses list of balls and tries to determine which one is the nearest
+	 * to catch on the way to the goal, that the one to cage first...
 	 * 
 	 * @param targetPoint
 	 */
 	public void moveToTargetCollBalls(Position targetPoint, List<Ball> balls) {
-		turnByDistanceBalanced(getAngleToTarget(targetPoint.x, targetPoint.y),'r');
-		
-		driveToBallAndCage(findNearestBall(), mRgbaWork, myColors, homographyMatrix);
+		turnByDistanceBalanced(getAngleToTarget(targetPoint.x, targetPoint.y),
+				'r');
+
+		driveToBallAndCage(findNearestBall(), mRgbaWork, myColors,
+				homographyMatrix);
 		moveToTarget(targetPoint);
 	}
-	
+
 }

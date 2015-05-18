@@ -42,7 +42,7 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity implements OnTouchListener,
 		CvCameraViewListener2 {
-	
+
 	// TODO: Use LEDs to display connection to the robot.
 
 	// TODO: Add a function that allows to drive curves (and updates odometry)
@@ -59,63 +59,94 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	// TODO: target Position does not allow negative inputs in GUI
 
-	// TODO: Ex3: beacons: Detection of multiple, single-colored objects, finding their bottom points, calculating and displaying their locations in the robot's egocentric ground-plane coordinates, as well as their distances to the robot, using a pre-calibrated homography matrix
-	
-	// TODO: Ex3: beacons: Detection of multiple, multi-colored objects, finding their bottom points, calculating and displaying their locations in the robot's egocentric ground-plane coordinates, as well as their distances to the robot, using a pre-calibrated homography matrix
-	
+	// TODO: Ex3: beacons: Detection of multiple, single-colored objects,
+	// finding their bottom points, calculating and displaying their locations
+	// in the robot's egocentric ground-plane coordinates, as well as their
+	// distances to the robot, using a pre-calibrated homography matrix
+
+	// TODO: Ex3: beacons: Detection of multiple, multi-colored objects, finding
+	// their bottom points, calculating and displaying their locations in the
+	// robot's egocentric ground-plane coordinates, as well as their distances
+	// to the robot, using a pre-calibrated homography matrix
+
 	// TODO: Do not allow the mobile phone to suspend
-	
-	// TODO: Ex3: The robot is placed at an arbitrary location within a rectangular workspace of roughly 2.5m by 2.5m in size, surrounded by 8 beacons spaced 125cm apart and placed around the setup. Update the robot odometry based on these values.
-	
-	// TODO: Ex3: About 10 balls of known colors are placed at arbitrary locations within the workspace.
-	
-	
+
+	// TODO: Ex3: The robot is placed at an arbitrary location within a
+	// rectangular workspace of roughly 2.5m by 2.5m in size, surrounded by 8
+	// beacons spaced 125cm apart and placed around the setup. Update the robot
+	// odometry based on these values.
+
+	// TODO: Ex3: About 10 balls of known colors are placed at arbitrary
+	// locations within the workspace.
+
 	// GUI Elements
 	private TextView textLog; // Textview on GUI which contains the robot's log
-	private EditText editText1; // Textfield on GUI for entering x-coordinate of target
-	private EditText editText2; // Textfield on GUI for entering y-coordinate of target
-	private EditText editText3; // Textfield on GUI for entering theta-alignment at target
-	
+	private EditText editText1; // Textfield on GUI for entering x-coordinate of
+								// target
+	private EditText editText2; // Textfield on GUI for entering y-coordinate of
+								// target
+	private EditText editText3; // Textfield on GUI for entering theta-alignment
+								// at target
+
 	// General variables
-	private static final String TAG = "RobotLog"; // Tag for log-messages sent to logcat
-	
+	private static final String TAG = "RobotLog"; // Tag for log-messages sent
+													// to logcat
+
 	// Used Classes
 	private Robot robot; // Used to control the robot.
 	private ImageProcessor imageProcessor; // Used for image processing.
 
 	// Imageprocessing specific variables
-	private Mat homographyMatrix; // the homography matrix is used to map camera pixels to the ground plane (relative to the robot's cam)
+	private Mat homographyMatrix; // the homography matrix is used to map camera
+									// pixels to the ground plane (relative to
+									// the robot's cam)
 	private int frameInterval = 0; // Helper variable which is needed to
 									// calculate the ball centers only every
 									// 15th frame.
 	private int executionInterval = 15; // Every executionInterval frames, the
 	// objects are drawn into the camera
 	// frame
-	private Mat mRgbaOutput; // Current image for output (circles etc. can be added to this image); updated every cameraframe
-	private Mat mRgbaWork; // Current image for image processing (not to be modified!); updated every cameraframe
-	private List<Scalar> myCircleColors = new ArrayList<Scalar>(); // Stores all currently recognized colors for balls
-	private List<Scalar> myBeaconColors = new ArrayList<Scalar>(); // Stores all currently recognized colors for beacons
+	private Mat mRgbaOutput; // Current image for output (circles etc. can be
+								// added to this image); updated every
+								// cameraframe
+	private Mat mRgbaWork; // Current image for image processing (not to be
+							// modified!); updated every cameraframe
+	private List<Scalar> myCircleColors = new ArrayList<Scalar>(); // Stores all
+																	// currently
+																	// recognized
+																	// colors
+																	// for balls
+	private List<Scalar> myBeaconColors = new ArrayList<Scalar>(); // Stores all
+																	// currently
+																	// recognized
+																	// colors
+																	// for
+																	// beacons
 
-	private CameraBridgeViewBase mOpenCvCameraView; // interaction between openCV and camera
-	
-	// TODO: probably a better solution that allows to abstract the found objects (because in fact, we aren't even able to distuingish between circles and squares)
+	private CameraBridgeViewBase mOpenCvCameraView; // interaction between
+													// openCV and camera
+
+	// TODO: probably a better solution that allows to abstract the found
+	// objects (because in fact, we aren't even able to distuingish between
+	// circles and squares)
 
 	private List<Ball> foundBalls = new ArrayList<Ball>(); // list which stores
 															// all found balls
 
-	List<Point> circleCenters = new ArrayList<Point>(); // TODO: Obsolete; Replace by circlesList
-	
-	//TODO: write own method to update these lists
+	List<Point> circleCenters = new ArrayList<Point>(); // TODO: Obsolete;
+														// Replace by
+														// circlesList
+
+	// TODO: write own method to update these lists
 	List<Circle> circleList = new ArrayList<Circle>();
 
 	List<Square> squareList = new ArrayList<Square>();
-	
-	List<Square> beaconList = new ArrayList<Square>();
-	
 
-	// Robot specific variables	
+	List<Square> beaconList = new ArrayList<Square>();
+
+	// Robot specific variables
 	// TODO Use Position.java instead of targetX and targetY
-	private double targetX = 100.0; // target's x-coordinate 
+	private double targetX = 100.0; // target's x-coordinate
 	private double targetY = 100.0; // target's y-coordinate
 	private int targetTheta = 45; // alignment at target point
 
@@ -440,7 +471,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.findAndDeliverBall(targetX, targetY, mRgbaWork, myCircleColors, homographyMatrix);
+				robot.findAndDeliverBall(targetX, targetY, mRgbaWork,
+						myCircleColors, homographyMatrix);
 				robot.moveToTarget(0.0, 0.0, 0);
 			};
 		};
@@ -469,10 +501,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 	};
 
-	
 	/**
-	 * Closes camera view when application is closed or the system
-	 * tries to free memory.
+	 * Closes camera view when application is closed or the system tries to free
+	 * memory.
 	 */
 	public void onDestroy() {
 		super.onDestroy();
@@ -481,10 +512,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	/**
-	 * Initializes the camera view and associated image matrices
-	 * with the given width and height.
-	 * @param width width of the camera view  (in pixels)
-	 * @param height height of the camera view (in pixels)
+	 * Initializes the camera view and associated image matrices with the given
+	 * width and height.
+	 * 
+	 * @param width
+	 *            width of the camera view (in pixels)
+	 * @param height
+	 *            height of the camera view (in pixels)
 	 */
 	public void onCameraViewStarted(int width, int height) {
 		mRgbaWork = new Mat(height, width, CvType.CV_8UC4);
@@ -501,11 +535,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	/**
-	 * When camera view is touched, this method saves the color
-	 * of the touched pixel (and averaged surrounding pixels).
-	 * This color is then tracked for finding blobs in the view.
-	 * @param v touched view
-	 * @param event object that is used to report movement (position etc.)
+	 * When camera view is touched, this method saves the color of the touched
+	 * pixel (and averaged surrounding pixels). This color is then tracked for
+	 * finding blobs in the view.
+	 * 
+	 * @param v
+	 *            touched view
+	 * @param event
+	 *            object that is used to report movement (position etc.)
 	 * @return false (no need for subsequent touch events)
 	 */
 	@SuppressLint("ClickableViewAccessibility")
@@ -543,9 +580,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	/**
 	 * Gets called every camera frame. Updates the global image matrices
-	 * mRgbaOutput and mRgbaWork which are used for image processing and
-	 * image display.
-	 * @param inputFrame current camera frame
+	 * mRgbaOutput and mRgbaWork which are used for image processing and image
+	 * display.
+	 * 
+	 * @param inputFrame
+	 *            current camera frame
 	 * @return the image matrix to display
 	 */
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
@@ -554,41 +593,45 @@ public class MainActivity extends Activity implements OnTouchListener,
 										// image as mRgbaOutput? In that case,
 										// either fix or remove this variable.
 		if (frameInterval >= executionInterval) {
-			circleList = imageProcessor.findCirclesOnCamera2(mRgbaWork, myCircleColors);
-			//TODO: test (not tested!)
-			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork, myCircleColors);
+			circleList = imageProcessor.findCirclesOnCamera2(mRgbaWork,
+					myCircleColors);
+			// TODO: test (not tested!)
+			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
+					myCircleColors);
 			frameInterval = 0;
 		}
-		//draw circles on CameraFrame
+		// draw circles on CameraFrame
 		if (!circleCenters.isEmpty()) {
 			for (Point circleCenter : circleCenters)
 				Core.circle(mRgbaOutput, circleCenter, 10, new Scalar(20), -1);
 		}
-//		//draw circles on CameraFrame (from circleList)
-//		if(!circlesList.isEmpty()){
-//			for(Circle c:circlesList)
-//				Core.circle(mRgbaOutput, c.getCenter(), 10, new Scalar(20), -1);
-//		}
-		//draw squares on CameraFrame
+		// //draw circles on CameraFrame (from circleList)
+		// if(!circlesList.isEmpty()){
+		// for(Circle c:circlesList)
+		// Core.circle(mRgbaOutput, c.getCenter(), 10, new Scalar(20), -1);
+		// }
+		// draw squares on CameraFrame
 		if (!squareList.isEmpty()) {
 			Boolean colorToggle = true;
-			for (Square s : squareList){
-				if(colorToggle){
-					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(), s.getUpperRightEdge(), new Scalar(20), -1);
+			for (Square s : squareList) {
+				if (colorToggle) {
+					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+							s.getUpperRightEdge(), new Scalar(20), -1);
 					colorToggle = false;
-				}else{
-					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(), s.getUpperRightEdge(), new Scalar(0), -1);
+				} else {
+					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+							s.getUpperRightEdge(), new Scalar(0), -1);
 				}
 			}
 		}
 		frameInterval++;
-		
-//		Mat grayImg = new Mat();
-//		if(!myColors.isEmpty()){
-//			for(Scalar s:myColors)
-//				grayImg = imageProcessor.filter(mRgbaWork, s);
-//			mRgbaOutput = grayImg;
-//		}
+
+		// Mat grayImg = new Mat();
+		// if(!myColors.isEmpty()){
+		// for(Scalar s:myColors)
+		// grayImg = imageProcessor.filter(mRgbaWork, s);
+		// mRgbaOutput = grayImg;
+		// }
 		return mRgbaOutput;
 	}
 
@@ -602,7 +645,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 			mOpenCvCameraView.disableView();
 	}
 
-
 	/**
 	 * Enables camera view if Application resumes.
 	 */
@@ -612,66 +654,74 @@ public class MainActivity extends Activity implements OnTouchListener,
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
 				mLoaderCallback);
 	}
-	
+
 	// TODO: implement
 	/**
 	 * Turns until two beacons are seen by the robot.
+	 * 
 	 * @return List of beacons.
 	 */
 	public List<Square> findTwoBeacons() {
-		List<Square> beacons = imageProcessor.findSquaresOnCamera(mRgbaWork, myBeaconColors);
-		while(beacons.size() < 2){
-			//TODO: check angle value
+		List<Square> beacons = imageProcessor.findSquaresOnCamera(mRgbaWork,
+				myBeaconColors);
+		while (beacons.size() < 2) {
+			// TODO: check angle value
 			robot.turnByDistance(15, 'r');
-			beacons = imageProcessor.findSquaresOnCamera(mRgbaWork, myBeaconColors);
+			beacons = imageProcessor.findSquaresOnCamera(mRgbaWork,
+					myBeaconColors);
 		}
 		return beacons;
 	}
-	
-	//TODO: implement
+
+	// TODO: implement
 	/**
-	 * 1)findTwoBeacons
-	 * 2)drive to goal and cage ball one the way 
-	 * 3)after goal position reached -> search for one ball and bring it to the goal (repeat this procedure until all balls are at the target)
+	 * 1)findTwoBeacons 2)drive to goal and cage ball one the way 3)after goal
+	 * position reached -> search for one ball and bring it to the goal (repeat
+	 * this procedure until all balls are at the target)
 	 */
-	public void collectAllBalls(){
+	public void collectAllBalls() {
 		findTwoBeacons();
-		
+
 	}
-	
+
 	// TODO implement
-	//moved from robot because we need the updated ball-list after the robot rotated
+	// moved from robot because we need the updated ball-list after the robot
+	// rotated
 	/**
 	 * Turns and looks for a ball with a clear line of sight.
 	 * 
-	 * robot should turn until he sees at least one ball, in case he founds occasionally more than one he chooses the nearest to return
+	 * robot should turn until he sees at least one ball, in case he founds
+	 * occasionally more than one he chooses the nearest to return
 	 * 
 	 * @return found ball; null when no ball is found
 	 */
 	public Ball findNearestBall() {
-		while(foundBalls.size() < 1){
+		while (foundBalls.size() < 1) {
 			robot.turnByDistanceBalanced(15, 'r');
-			//here is maybe a delay necessary 
+			// here is maybe a delay necessary
 		}
-		Map<Double, Ball> ballGaps = new HashMap<Double,Ball>();
-		for(Ball b:foundBalls){
+		Map<Double, Ball> ballGaps = new HashMap<Double, Ball>();
+		for (Ball b : foundBalls) {
 			Point groundPoint = b.getPosGroundPlane();
-			Double distToBall = Math.sqrt(Math.pow(groundPoint.x-robot.myPos.x, 2)+Math.pow(groundPoint.y-robot.myPos.y, 2));
+			Double distToBall = Math.sqrt(Math.pow(groundPoint.x
+					- robot.myPos.x, 2)
+					+ Math.pow(groundPoint.y - robot.myPos.y, 2));
 			ballGaps.put(distToBall, b);
 		}
 		Entry<Double, Ball> nearestBall = null;
 		for (Entry<Double, Ball> entry : ballGaps.entrySet()) {
-		    if (nearestBall == null || nearestBall.getKey() > entry.getKey()) {
-		        nearestBall = entry;
-		    }
+			if (nearestBall == null || nearestBall.getKey() > entry.getKey()) {
+				nearestBall = entry;
+			}
 		}
 		return nearestBall.getValue();
 	}
 
-	// TODO: write method that updates global position using beacons every ~15 frames (in case at least two beacons are visible)
+	// TODO: write method that updates global position using beacons every ~15
+	// frames (in case at least two beacons are visible)
 	// TODO: add description
 	public void selfLocalization() {
-		
+
 	}
-	
+
 }
