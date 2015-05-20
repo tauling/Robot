@@ -14,4 +14,5 @@
 	<string name="demos">Working Demos</string>
 	<string name="dAR">driveAndRead</string>
 	<string name="mTGN">moveToGoalN3</string>
+	<string name="toggleColor">toggleColorInput</string>
 </resources>
