@@ -1,5 +1,6 @@
 package robot;
 
+import java.io.ObjectOutputStream.PutField;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +32,7 @@ import robot.opencv.ImageProcessor;
 import jp.ksksue.driver.serial.FTDriver;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.Color;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -93,6 +95,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// General variables
 	private static final String TAG = "RobotLog"; // Tag for log-messages sent
 													// to logcat
+	private static final int CV_FONT_HERSHEY_COMPLEX = 0;
 
 	// Used Classes
 	private Robot robot; // Used to control the robot.
@@ -113,6 +116,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 								// cameraframe
 	private Mat mRgbaWork; // Current image for image processing (not to be
 							// modified!); updated every cameraframe
+	
+	private Integer onTouchOption = 0; //0 -> read CircleColors; 1 -> read BeaconColors
+	
 	private List<Scalar> myCircleColors = new ArrayList<Scalar>(); // Stores all
 																	// currently
 																	// recognized
@@ -468,6 +474,32 @@ public class MainActivity extends Activity implements OnTouchListener,
 		textLog.setText("");
 
 	}
+	
+	/**
+	 * in the default case the OnTouch method adds a selected color to the circle list
+	 * 
+	 * this method allows you to switch the color target to the beacon list and vice versa 
+	 * 
+	 * 
+	 * @param v
+	 */
+	public void ButtontoggleInputColor(View v){
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				if(onTouchOption == 0){
+					onTouchOption = 1; //read Beacon Color
+					robot.writeLog("onTouch reads now beacon colors");
+				}else{ 
+					onTouchOption = 0; //read Circle Color
+					robot.writeLog("onTouch reads now circle colors");
+				}
+			};
+		};
+
+		t.start();
+	}
 
 	public void ButtonFindAndDeliverBall(View v) {
 		Thread t = new Thread() {
@@ -574,7 +606,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 		int pointCount = touchedRect.width * touchedRect.height;
 		for (int i = 0; i < mBlobColorHsv.val.length; i++)
 			mBlobColorHsv.val[i] /= pointCount;
-		myCircleColors.add(mBlobColorHsv);
+		if(onTouchOption == 0){
+			myCircleColors.add(mBlobColorHsv);
+		}else{
+			myBeaconColors.add(mBlobColorHsv);
+		}
+		Core.putText(mRgbaOutput, mBlobColorHsv.toString(),new Point(200,200), CV_FONT_HERSHEY_COMPLEX,3,new Scalar(0,0,255),1,8,false);
 		Log.i(TAG, "saved colors: " + myCircleColors.size());
 		touchedRegionRgba.release();
 		touchedRegionHsv.release();
