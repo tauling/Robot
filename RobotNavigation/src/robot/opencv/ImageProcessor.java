@@ -2,8 +2,10 @@ package robot.opencv;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -16,8 +18,8 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import android.util.Log;
-
 import robot.shapes.Ball;
+import robot.shapes.Beacon;
 import robot.shapes.Circle;
 import robot.shapes.Square;
 
@@ -26,13 +28,6 @@ public class ImageProcessor {
 	// TODO Check if offsets for homography are needed
 	
 	private static double mMinContourArea = 0.1; // Minimum contour area in percent for contours filtering
-
-	// Cache
-	Mat mPyrDownMat = new Mat();
-	Mat mHsvMat = new Mat();
-	Mat mMask = new Mat();
-	Mat mDilatedMask = new Mat();
-	Mat mHierarchy = new Mat();
 
 	private String TAG; // Tag for log-messages sent to logcat
 	
@@ -54,6 +49,8 @@ public class ImageProcessor {
 		List<MatOfPoint> mmContours = new ArrayList<MatOfPoint>();
 		;
 		Mat tempImage = new Mat();
+		Mat mHierarchy = new Mat();	
+		
 		try {
 			List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 			grayImage.copyTo(tempImage);
@@ -356,14 +353,15 @@ public class ImageProcessor {
 	// TODO Add comment
 	public List<Square> findSquaresOnCamera(Mat mRgbaWork, List<Scalar> myColors) {
 		List<Square> squareList = new ArrayList<Square>();
+		int i = 0;
 		for (Scalar hsvColor : myColors) {
+			i++;
 			Mat grayImg = new Mat();
 			grayImg = filter(mRgbaWork, hsvColor);
 
 			List<MatOfPoint> contours = findContours(grayImg);
 
 			for (MatOfPoint area : contours) {
-
 				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();  // TODO rename
 				ballArea.add(area);
 
@@ -373,12 +371,11 @@ public class ImageProcessor {
 				
 				Point lowerEdgeLeft = computeLowerEdgeLeft(ballArea, center); // TODO: Use result of squareHalfHeight (which should be renamed first)
 
-				Square foundSquare = new Square(center, halfHeight, lowerEdgeLeft);
+				Square foundSquare = new Square(center, halfHeight, lowerEdgeLeft, i);
 
 				squareList.add(foundSquare);
 			}
 		}
-		squareList = findBeacon(squareList);
 		Log.i(TAG, "(findSquaresOnCamera) Found squares: " + squareList.size());
 		return squareList;
 	}
@@ -405,7 +402,55 @@ public class ImageProcessor {
 		Log.i(TAG, "lowest edge left at x:"+lowX+" y:"+lowY);
 		return new Point(lowX,lowY);
 	}
+	
+	public Scalar getColorSalar(Mat mRgbaWork, Point pt){
+		double[] color = mRgbaWork.get((int)pt.x,(int) pt.y);
+		return new Scalar(color);
+	}
 
+	// TODO choose better name
+	// TODO update Description
+	/**
+	 * compares alignment of all squares in global squareCenter-list and tries
+	 * to find stacked squares if two squares are stacked the method deletes one
+	 * of them and extends the first to the size of both
+	 */
+	public List<Beacon> findBeacon(List<Square> squareList) {
+		List<Beacon> beaconList = new ArrayList<Beacon>();
+		Double TOL = 50.0;
+		if (squareList.size() > 0) {
+			for (int i=0;i<squareList.size()-1;i++) {
+				for (int j=1;j<squareList.size();j++) {
+					// it's not possible to write compare method in
+					// point-class...
+					Square squareA = squareList.get(i);
+					Square squareB = squareList.get(j);
+					if (compare2PtbyX(squareA.getCenter(),
+							squareB.getCenter()) <= TOL && compare2PtbyY(squareA.getCenter(),
+									squareB.getCenter()) <= TOL) {
+						Point newLowerLeftEdge = new Point();
+						Point newCenterPt = new Point();
+						Double newHalfHeight = (squareA.getCenter().x+squareB.getCenter().x)/2.0;
+						if (squareA.getCenter().y > squareB.getCenter().y) {
+							//squareA is above squareB
+							newCenterPt = new Point(squareA.getCenter().x,squareA.getCenter().y-(2*squareA.getHalfHeight()));
+							newLowerLeftEdge = new Point(squareA.getLowerLeftEdge().x,squareA.getLowerLeftEdge().y-(2*squareA.getHalfHeight()));
+							beaconList.add(new Beacon(newCenterPt, newHalfHeight, newLowerLeftEdge, squareB.getColorID(), squareA.getColorID()));
+						} else {
+							//squareB is above squareA						
+							newCenterPt = new Point(squareB.getCenter().x,squareB.getCenter().y-(2*squareB.getHalfHeight()));
+							newLowerLeftEdge = new Point(squareB.getLowerLeftEdge().x,squareB.getLowerLeftEdge().y-(2*squareB.getHalfHeight()));
+							beaconList.add(new Beacon(newCenterPt, newHalfHeight, newLowerLeftEdge, squareA.getColorID(), squareB.getColorID()));
+						}
+						// overwrite/extend one square to the size of both squares and
+						// remove the second square form the list
+					}
+				}
+			}
+		}
+		return beaconList;
+	}
+	
 	/**
 	 * computes the difference of 2 points along the x-axis
 	 * 
@@ -418,52 +463,17 @@ public class ImageProcessor {
 	public Double compare2PtbyX(Point a, Point b) {
 		return Math.abs(a.x - b.x);
 	}
-
-	// TODO choose better name
-	// TODO update Description
+	
 	/**
-	 * compares alignment of all squares in global squareCenter-list and tries
-	 * to find stacked squares if two squares are stacked the method deletes one
-	 * of them and extends the first to the size of both
+	 * like compare2PtbyX, but only the y-axis
+	 * @param center
+	 * @param center2
+	 * @return
 	 */
-	private List<Square> findBeacon(List<Square> squareList) {
-		Double TOL = 50.0;
-		if (squareList.size() > 0) {
-			for (int i=0;i<squareList.size()-1;i++) {
-				for (int j=1;j<squareList.size();j++) {
-					// it's not possible to write compare method in
-					// point-class...
-					if (compare2PtbyX(squareList.get(i).getCenter(),
-							squareList.get(j).getCenter()) <= TOL) {
-						Point newLowPt = new Point();
-						Square squareA = squareList.get(i);
-						Square squareB = squareList.get(j);
-						Point newLowerLeftEdge = new Point();
-						Point newCenterPt = new Point();
-						if (squareA.getCenter().y > squareB.getCenter().y) {
-							//squareA is above squareB
-							newLowPt =  new Point(squareA.getLowPt().x-(2*squareA.getHalfHeight()),squareA.getLowPt().y);
-							newCenterPt = new Point(squareA.getCenter().x-(2*squareA.getHalfHeight()),squareA.getCenter().y);
-							newLowerLeftEdge = new Point(squareA.getLowerLeftEdge().x-(2*squareA.getHalfHeight()),squareA.getLowerLeftEdge().y);
-						} else {
-							//squareB is above squareA						
-							newLowPt = new Point(squareB.getLowPt().x-(2*squareB.getHalfHeight()),squareB.getLowPt().y);
-							newCenterPt = new Point(squareB.getCenter().x-(2*squareB.getHalfHeight()),squareB.getCenter().y);
-							newLowerLeftEdge = new Point(squareB.getLowerLeftEdge().x-(2*squareB.getHalfHeight()),squareB.getLowerLeftEdge().y);
-						}
-						// overwrite/extend one square to the size of both square and
-						// remove the second square form the list
-						squareList.add(new Square(newCenterPt,newLowPt,newLowerLeftEdge));
-						squareList.remove(squareB);
-						squareList.remove(squareA);
-					}
-				}
-			}
-		}
-		return squareList;
+	private Double compare2PtbyY(Point a, Point b) {
+		return Math.abs(a.y - b.y);
 	}
-	
-	
+
 	// TODO: Needed? If so, add description
 	// TODO: Rename and finalize (see TODOs within method)
 	public Double squareHalfHeight(List<MatOfPoint> contours, Point center) {
