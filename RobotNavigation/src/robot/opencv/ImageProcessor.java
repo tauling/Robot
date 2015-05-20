@@ -436,22 +436,26 @@ public class ImageProcessor {
 					if (compare2PtbyX(squareList.get(i).getCenter(),
 							squareList.get(j).getCenter()) <= TOL) {
 						Point newLowPt = new Point();
-						Point newCenterPt = new Point(squareList.get(i).getCenter().x,
-								(squareList.get(i).getCenter().y + squareList.get(j)
-										.getCenter().y) / 2);
+						Square squareA = squareList.get(i);
+						Square squareB = squareList.get(j);
 						Point newLowerLeftEdge = new Point();
-						if (squareList.get(i).getCenter().y > squareList.get(j).getCenter().y) {
-							newLowPt = squareList.get(j).getLowPt();
-							newLowerLeftEdge = squareList.get(j).getLowerLeftEdge();
+						Point newCenterPt = new Point();
+						if (squareA.getCenter().y > squareB.getCenter().y) {
+							//squareA is above squareB
+							newLowPt =  new Point(squareA.getLowPt().x-(2*squareA.getHalfHeight()),squareA.getLowPt().y);
+							newCenterPt = new Point(squareA.getCenter().x-(2*squareA.getHalfHeight()),squareA.getCenter().y);
+							newLowerLeftEdge = new Point(squareA.getLowerLeftEdge().x-(2*squareA.getHalfHeight()),squareA.getLowerLeftEdge().y);
 						} else {
-							newLowPt = squareList.get(i).getLowPt();
-							newLowerLeftEdge = squareList.get(i).getLowerLeftEdge();
+							//squareB is above squareA						
+							newLowPt = new Point(squareB.getLowPt().x-(2*squareB.getHalfHeight()),squareB.getLowPt().y);
+							newCenterPt = new Point(squareB.getCenter().x-(2*squareB.getHalfHeight()),squareB.getCenter().y);
+							newLowerLeftEdge = new Point(squareB.getLowerLeftEdge().x-(2*squareB.getHalfHeight()),squareB.getLowerLeftEdge().y);
 						}
 						// overwrite/extend one square to the size of both square and
 						// remove the second square form the list
 						squareList.add(new Square(newCenterPt,newLowPt,newLowerLeftEdge));
-						squareList.remove(squareList.get(j));
-						squareList.remove(squareList.get(i));
+						squareList.remove(squareB);
+						squareList.remove(squareA);
 					}
 				}
 			}
