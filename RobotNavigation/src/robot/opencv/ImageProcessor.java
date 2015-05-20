@@ -417,7 +417,7 @@ public class ImageProcessor {
 	 */
 	public List<Beacon> findBeacon(List<Square> squareList) {
 		List<Beacon> beaconList = new ArrayList<Beacon>();
-		Double TOL = 50.0;
+		Double TOL = 20.0;
 		if (squareList.size() > 0) {
 			for (int i=0;i<squareList.size()-1;i++) {
 				for (int j=1;j<squareList.size();j++) {

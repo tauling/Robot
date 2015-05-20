@@ -15,7 +15,7 @@ public class Square extends Shape {
 		this.lowPt = new Point(center.x, center.y - halfHeight);
 		this.lowerLeftEdge = lowerEdgeLeft;
 		this.halfWidth = center.x-lowerEdgeLeft.x;
-		this.halfHeight = halfHeight;
+		this.halfHeight = center.y-lowerEdgeLeft.y;
 		this.upperRightEdge = new Point(lowerEdgeLeft.x+2*halfWidth,lowerEdgeLeft.y+2*halfHeight);
 	}
 	
