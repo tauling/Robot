@@ -116,9 +116,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 								// cameraframe
 	private Mat mRgbaWork; // Current image for image processing (not to be
 							// modified!); updated every cameraframe
-	
-	private Integer onTouchOption = 0; //0 -> read CircleColors; 1 -> read BeaconColors
-	
+
+	private Integer onTouchOption = 0; // 0 -> read CircleColors; 1 -> read
+										// BeaconColors
+
 	private List<Scalar> myCircleColors = new ArrayList<Scalar>(); // Stores all
 																	// currently
 																	// recognized
@@ -469,30 +470,33 @@ public class MainActivity extends Activity implements OnTouchListener,
 		squareList = new ArrayList<Square>();
 		beaconList = new ArrayList<Beacon>();
 		myCircleColors = new ArrayList<Scalar>();
+		myBeaconColors = new ArrayList<Scalar>();
 		robot.resetPosition();
 		homographyMatrix = new Mat();
 		textLog.setText("");
 
 	}
-	
+
 	/**
-	 * in the default case the OnTouch method adds a selected color to the circle list
+	 * in the default case the OnTouch method adds a selected color to the
+	 * circle list
 	 * 
-	 * this method allows you to switch the color target to the beacon list and vice versa 
+	 * this method allows you to switch the color target to the beacon list and
+	 * vice versa
 	 * 
 	 * 
 	 * @param v
 	 */
-	public void ButtontoggleInputColor(View v){
+	public void ButtontoggleInputColor(View v) {
 		Thread t = new Thread() {
 
 			@Override
 			public void run() {
-				if(onTouchOption == 0){
-					onTouchOption = 1; //read Beacon Color
+				if (onTouchOption == 0) {
+					onTouchOption = 1; // read Beacon Color
 					robot.writeLog("onTouch reads now beacon colors");
-				}else{ 
-					onTouchOption = 0; //read Circle Color
+				} else {
+					onTouchOption = 0; // read Circle Color
 					robot.writeLog("onTouch reads now circle colors");
 				}
 			};
@@ -606,12 +610,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 		int pointCount = touchedRect.width * touchedRect.height;
 		for (int i = 0; i < mBlobColorHsv.val.length; i++)
 			mBlobColorHsv.val[i] /= pointCount;
-		if(onTouchOption == 0){
+		if (onTouchOption == 0) {
 			myCircleColors.add(mBlobColorHsv);
-		}else{
+		} else {
 			myBeaconColors.add(mBlobColorHsv);
 		}
-		Core.putText(mRgbaOutput, mBlobColorHsv.toString(),new Point(200,200), CV_FONT_HERSHEY_COMPLEX,3,new Scalar(0,0,255),1,8,false);
 		Log.i(TAG, "saved colors: " + myCircleColors.size());
 		touchedRegionRgba.release();
 		touchedRegionHsv.release();
@@ -637,53 +640,69 @@ public class MainActivity extends Activity implements OnTouchListener,
 					myCircleColors);
 			// TODO: test (not tested!)
 			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
-					myCircleColors);
-			beaconList = imageProcessor.findBeacon(squareList);
+					myBeaconColors);
+			beaconList = imageProcessor.findBeaconOrdered(squareList);
 			frameInterval = 0;
 		}
-		// draw circles on CameraFrame
-		if (!circleCenters.isEmpty()) {
-			for (Point circleCenter : circleCenters)
-				Core.circle(mRgbaOutput, circleCenter, 10, new Scalar(20), -1);
-		}
-		// //draw circles on CameraFrame (from circleList)
-		// if(!circlesList.isEmpty()){
-		// for(Circle c:circlesList)
-		// Core.circle(mRgbaOutput, c.getCenter(), 10, new Scalar(20), -1);
-		// }
-		// draw squares on CameraFrame
-		
-		//out dated, we only draw beacons from now on
-//		if (!squareList.isEmpty()) {
-//			Boolean colorToggle = true;
-//			for (Square s : squareList) {
-//				if (colorToggle) {
-//					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-//							s.getUpperRightEdge(), new Scalar(20), -1);
-//					colorToggle = false;
-//				} else {
-//					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-//							s.getUpperRightEdge(), new Scalar(0), -1);
-//				}
-//			}
-//		}
-		
-		//draw Beacons 
-		if(!beaconList.isEmpty()){
-			for(Beacon b : beaconList){
+		// draw Beacons
+		if (!beaconList.isEmpty()) {
+			for (Beacon b : beaconList) {
 				Core.rectangle(mRgbaOutput, b.getLowerLeftEdge(),
-						b.getUpperRightEdge(), new Scalar(20), -1);
+						b.getUpperRightEdge(), new Scalar(120), -1);
 			}
 		}
-		
-		frameInterval++;
 
-		// Mat grayImg = new Mat();
-		// if(!myColors.isEmpty()){
-		// for(Scalar s:myColors)
-		// grayImg = imageProcessor.filter(mRgbaWork, s);
-		// mRgbaOutput = grayImg;
-		// }
+		// draw squares on CameraFrame
+
+//		Mat grayImg = new Mat();
+//		if (!myBeaconColors.isEmpty()) {
+//			for (Scalar s : myBeaconColors)
+//				grayImg = imageProcessor.filter(mRgbaWork, s);
+//			mRgbaOutput = grayImg;
+//		}
+
+		// out dated, we only draw beacons from now on
+		if (!squareList.isEmpty()) {
+			Boolean colorToggle = true;
+			for (Square s : squareList) {
+				if (colorToggle) {
+					 Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+					 s.getUpperRightEdge(), new Scalar(20), -1);
+					Core.putText(mRgbaOutput, "center", s.getCenter(),
+							CV_FONT_HERSHEY_COMPLEX, 0.5,
+							new Scalar(0, 0, 255), 1, 8, false);
+					Core.circle(mRgbaOutput, s.getCenter(), 10, new Scalar(180));
+					Core.circle(mRgbaOutput, s.getLowerLeftEdge(), 10,
+							new Scalar(180));
+					Core.circle(mRgbaOutput, s.getUpperRightEdge(), 10,
+							new Scalar(180));
+					Core.circle(mRgbaOutput, s.getLowPt(), 10, new Scalar(70));
+					Core.putText(mRgbaOutput, s.toString(),
+							s.getLowerLeftEdge(), CV_FONT_HERSHEY_COMPLEX, 0.5,
+							new Scalar(0, 0, 255), 1, 8, false);
+					colorToggle = false;
+				} else {
+					 Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+					 s.getUpperRightEdge(), new Scalar(20), -1);
+					Core.putText(mRgbaOutput, "center", s.getCenter(),
+							CV_FONT_HERSHEY_COMPLEX, 0.5,
+							new Scalar(0, 0, 255), 1, 8, false);
+					Core.circle(mRgbaOutput, s.getCenter(), 10, new Scalar(180));
+					Core.circle(mRgbaOutput, s.getLowerLeftEdge(), 10,
+							new Scalar(180));
+					Core.circle(mRgbaOutput, s.getUpperRightEdge(), 10,
+							new Scalar(180));
+					Core.circle(mRgbaOutput, s.getLowPt(), 10, new Scalar(70));
+					Core.putText(mRgbaOutput, s.toString(),
+							s.getLowerLeftEdge(), CV_FONT_HERSHEY_COMPLEX, 0.5,
+							new Scalar(0, 0, 255), 1, 8, false);
+
+				}
+				robot.writeLog(s.toString());
+			}
+		}
+
+		frameInterval++;
 		return mRgbaOutput;
 	}
 
@@ -733,14 +752,15 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public void collectAllBalls() {
 		findTwoBeacons();
-		Position targetPoint = new Position(targetX,targetY,targetTheta);
-		robot.moveToTargetCollBalls(targetPoint, foundBalls, mRgbaWork, myBeaconColors, homographyMatrix);
-		
-		try{
+		Position targetPoint = new Position(targetX, targetY, targetTheta);
+		robot.moveToTargetCollBalls(targetPoint, foundBalls, mRgbaWork,
+				myBeaconColors, homographyMatrix);
+
+		try {
 			robot.findNearestBall(foundBalls);
-		}catch(NullPointerException e){
+		} catch (NullPointerException e) {
 			robot.writeLog("finish :D");
-		}finally{
+		} finally {
 			robot.robotSetLeds(100, 100);
 		}
 	}

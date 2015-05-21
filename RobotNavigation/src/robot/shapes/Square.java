@@ -2,7 +2,7 @@ package robot.shapes;
 
 import org.opencv.core.Point;
 
-public class Square extends Shape {
+public class Square extends Shape implements Comparable{
 	private Point lowerLeftEdge;
 	private Point upperRightEdge;
 	private Double halfWidth;
@@ -12,11 +12,11 @@ public class Square extends Shape {
 	public Square(Point center, Double halfHeight, Point lowerEdgeLeft, int colorID) {
 		this.colorID = colorID;
 		this.center = center;
-		this.lowPt = new Point(center.x, center.y - halfHeight);
 		this.lowerLeftEdge = lowerEdgeLeft;
 		this.halfWidth = center.x-lowerEdgeLeft.x;
-		this.halfHeight = center.y-lowerEdgeLeft.y;
-		this.upperRightEdge = new Point(lowerEdgeLeft.x+2*halfWidth,lowerEdgeLeft.y+2*halfHeight);
+		this.halfHeight = lowerEdgeLeft.y-center.y;
+		this.lowPt = new Point(center.x, center.y + this.halfHeight);
+		this.upperRightEdge = new Point(lowerEdgeLeft.x+2*halfWidth,center.y-this.halfHeight);
 	}
 	
 	public Square(Point center, Point lowPt, Point lowerEdgeLeft, int colorID) {
@@ -25,13 +25,13 @@ public class Square extends Shape {
 		this.lowPt = lowPt;
 		this.lowerLeftEdge = lowerEdgeLeft;
 		this.halfWidth = center.x-lowerEdgeLeft.x;
-		this.halfHeight = center.y -lowPt.y;
-		this.upperRightEdge = new Point(lowerEdgeLeft.x+2*halfWidth,lowerEdgeLeft.y+2*halfHeight);
+		this.halfHeight = lowerEdgeLeft.y-center.y;
+		this.upperRightEdge = new Point(lowerEdgeLeft.x+2*halfWidth,center.y-halfHeight);
 	}
 
 	@Override
 	public String toString() {
-		return "square, center: " + this.center + " lowest point:" + this.lowPt;
+		return "square, center: {" + (int)this.center.x+","+ (int)this.center.y+ "} lowest point:" + this.lowPt;
 	}
 
 	public Point getLowerLeftEdge() {
@@ -52,6 +52,20 @@ public class Square extends Shape {
 	
 	public int getColorID() {
 		return colorID;
+	}
+
+	public int compareTo(Square otherSquare) {
+		 if (this.getCenter().y<otherSquare.getCenter().y){
+	            return -1;
+	        }else{
+	            return 1;
+	        }
+	}
+
+	@Override
+	public int compareTo(Object another) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }
