@@ -411,7 +411,7 @@ public class ImageProcessor {
 		Double halfWidth = squareSize[0];
 		Double halfHeight = squareSize[1];
 
-		Log.i(TAG, "halfWidth:"+halfWidth+" halfHeight:"+halfHeight);
+		Log.i(TAG, "halfWidth:" + halfWidth + " halfHeight:" + halfHeight);
 		Point lowestEdgeLeft = new Point(center.x - halfWidth, center.y
 				+ halfHeight);
 
@@ -486,73 +486,73 @@ public class ImageProcessor {
 		}
 		return beaconList;
 	}
-	
+
 	// TODO choose better name
-		// TODO update Description
-		/**
-		 * compares alignment of all squares in global squareCenter-list and tries
-		 * to find stacked squares if two squares are stacked the method deletes one
-		 * of them and extends the first to the size of both
-		 */
-		@SuppressWarnings("unchecked")
-		public List<Beacon> findBeaconOrdered(List<Square> squareList) {
-			Collections.sort(squareList);
-			Collections.reverse(squareList);
-			List<Beacon> beaconList = new ArrayList<Beacon>();
-			Double TOLx = 40.0;
-			Double TOLy = 20.0;
-			if (squareList.size() > 0) {
-				for (int i = 0; i < squareList.size() - 1; i++) {
-					for (int j = 1; j < squareList.size(); j++) {
-						// it's not possible to write compare method in
-						// point-class...
-						Square squareA = squareList.get(i);
-						Square squareB = squareList.get(j);
-						if (compare2PtbyX(squareA.getLowPt(), squareB.getLowPt()) <= TOLx
-								&& compare2PtbyY(squareA.getLowPt(),
-										squareB.getLowPt()) <= TOLy) {
-							Point newLowerLeftEdge = new Point();
-							Point newCenterPt = new Point();
-							Double newHalfHeight = (squareA.getCenter().y + squareB
-									.getCenter().y) / 2.0;
-							if (squareA.getCenter().y > squareB.getCenter().y) {
-								// squareA is above squareB
-								newCenterPt = new Point(squareA.getCenter().x,
-										squareA.getCenter().y
-												- (2 * squareA.getHalfHeight()));
-								newLowerLeftEdge = new Point(
-										squareA.getLowerLeftEdge().x,
-										squareA.getLowerLeftEdge().y
-												- (2 * squareA.getHalfHeight()));
-								beaconList
-										.add(new Beacon(newCenterPt, newHalfHeight,
-												newLowerLeftEdge, squareB
-														.getColorID(), squareA
-														.getColorID()));
-							} else {
-								// squareB is above squareA
-								newCenterPt = new Point(squareB.getCenter().x,
-										squareB.getCenter().y
-												- (2 * squareB.getHalfHeight()));
-								newLowerLeftEdge = new Point(
-										squareB.getLowerLeftEdge().x,
-										squareB.getLowerLeftEdge().y
-												- (2 * squareB.getHalfHeight()));
-								beaconList
-										.add(new Beacon(newCenterPt, newHalfHeight,
-												newLowerLeftEdge, squareA
-														.getColorID(), squareB
-														.getColorID()));
-							}
-							// overwrite/extend one square to the size of both
-							// squares and
-							// remove the second square form the list
+	// TODO update Description
+	/**
+	 * compares alignment of all squares in global squareCenter-list and tries
+	 * to find stacked squares if two squares are stacked the method deletes one
+	 * of them and extends the first to the size of both
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Beacon> findBeaconOrdered(List<Square> squareList) {
+		Collections.sort(squareList);
+		Collections.reverse(squareList);
+		List<Beacon> beaconList = new ArrayList<Beacon>();
+		Double TOLx = 40.0;
+		Double TOLy = 20.0;
+		if (squareList.size() > 0) {
+			for (int i = 0; i < squareList.size() - 1; i++) {
+				for (int j = 1; j < squareList.size(); j++) {
+					// it's not possible to write compare method in
+					// point-class...
+					Square squareA = squareList.get(i);
+					Square squareB = squareList.get(j);
+					if (compare2PtbyX(squareA.getLowPt(), squareB.getLowPt()) <= TOLx
+							&& compare2PtbyY(squareA.getLowPt(),
+									squareB.getLowPt()) <= TOLy) {
+						Point newLowerLeftEdge = new Point();
+						Point newCenterPt = new Point();
+						Double newHalfHeight = (squareA.getCenter().y + squareB
+								.getCenter().y) / 2.0;
+						if (squareA.getCenter().y > squareB.getCenter().y) {
+							// squareA is above squareB
+							newCenterPt = new Point(squareA.getCenter().x,
+									squareA.getCenter().y
+											- (2 * squareA.getHalfHeight()));
+							newLowerLeftEdge = new Point(
+									squareA.getLowerLeftEdge().x,
+									squareA.getLowerLeftEdge().y
+											- (2 * squareA.getHalfHeight()));
+							beaconList
+									.add(new Beacon(newCenterPt, newHalfHeight,
+											newLowerLeftEdge, squareB
+													.getColorID(), squareA
+													.getColorID()));
+						} else {
+							// squareB is above squareA
+							newCenterPt = new Point(squareB.getCenter().x,
+									squareB.getCenter().y
+											- (2 * squareB.getHalfHeight()));
+							newLowerLeftEdge = new Point(
+									squareB.getLowerLeftEdge().x,
+									squareB.getLowerLeftEdge().y
+											- (2 * squareB.getHalfHeight()));
+							beaconList
+									.add(new Beacon(newCenterPt, newHalfHeight,
+											newLowerLeftEdge, squareA
+													.getColorID(), squareB
+													.getColorID()));
 						}
+						// overwrite/extend one square to the size of both
+						// squares and
+						// remove the second square form the list
 					}
 				}
 			}
-			return beaconList;
 		}
+		return beaconList;
+	}
 
 	/**
 	 * computes the difference of 2 points along the x-axis
