@@ -1272,14 +1272,11 @@ public class Robot {
 		List<MatOfPoint> contours = imageProcessor.findContours(img);
 		for (MatOfPoint area : contours) {
 
-			List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
-			ballArea.add(area);
-
-			Point center = imageProcessor.computeCenterPt(ballArea);
+			Point center = imageProcessor.computeCenterPt(area);
 			// Point pointGroundPlane = computePointGroundPlane();
 			Point pointGroundPlane = null; // TODO implement (don't forget to
 											// add the robot's pos coordinates)
-			double rad = imageProcessor.computeRadius(ballArea, center);
+			double rad = imageProcessor.computeRadius(area, center);
 
 			Ball detectedBall = new Ball(center, pointGroundPlane, rad);
 
@@ -1333,11 +1330,8 @@ public class Robot {
 				Log.e(TAG, "found areas: " + contours.size());
 				for (MatOfPoint area : contours) {
 
-					List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
-					ballArea.add(area);
-
-					Point center = imageProcessor.computeCenterPt(ballArea);
-					double rad = imageProcessor.computeRadius(ballArea, center);
+					Point center = imageProcessor.computeCenterPt(area);
+					double rad = imageProcessor.computeRadius(area, center);
 					Point lowestPoint = new Point(center.x, center.y + rad);
 					Point pointGroundPlane = getGroundPlaneCoordinates(
 							lowestPoint, homographyMatrix);
