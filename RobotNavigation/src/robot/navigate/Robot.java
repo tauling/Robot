@@ -17,6 +17,7 @@ import org.opencv.core.Scalar;
 
 import robot.opencv.ImageProcessor;
 import robot.shapes.Ball;
+import robot.shapes.Beacon;
 import robot.shapes.Square;
 import jp.ksksue.driver.serial.FTDriver;
 import android.os.Handler;
@@ -99,19 +100,64 @@ public class Robot {
 										// sensor
 	// measures distances correctly in its working
 	// range.
-	
-	static final Map<Integer, Position> BeaconPosition; // maps colorID combo (10*upperColorID + lowerColorID) to the position in real world coordinates
+
+	static final Map<Integer, Point> BeaconPosition; // maps colorID combo
+														// (10*upperColorID +
+														// lowerColorID) to the
+														// position in real
+														// world coordinates
+	static final Map<Integer, Integer> BeaconID;// maps colorID combo
+												// (10*upperColorID +
+												// lowerColorID) to the ID
+	static final Map<Integer, Integer> BeaconsAngleOffs; // maps beaconID-combo
+															// to angles which
+															// have to be added
+															// to the
+															// calculation for
+															// gaining the real
+															// world coordinates
+
 	static {
-	  Map<Integer, Position> tmp = new LinkedHashMap<Integer, Position>();
-	  tmp.put(01, new Position(-125.0,125.0,0));
-	  tmp.put(03, new Position(0,125.0,0));
-	  tmp.put(10, new Position(125.0,125.0,0));
-	  tmp.put(20, new Position(-125.0,0,0));
-	  tmp.put(02, new Position(125.0,0,0));
-	  tmp.put(12, new Position(-125.0,-125.0,0));
-	  tmp.put(30, new Position(0,-125.0,0));
-	  tmp.put(21, new Position(125.0,-125.0,0));
-	  BeaconPosition = Collections.unmodifiableMap(tmp);
+		Map<Integer, Point> tmpPosition = new LinkedHashMap<Integer, Point>();
+		tmpPosition.put(01, new Point(-125.0, 125.0));
+		tmpPosition.put(10, new Point(0, 125.0));
+		tmpPosition.put(02, new Point(125.0, 125.0));
+		tmpPosition.put(31, new Point(-125.0, 0));
+		tmpPosition.put(13, new Point(125.0, 0));
+		tmpPosition.put(30, new Point(-125.0, -125.0));
+		tmpPosition.put(03, new Point(0, -125.0));
+		tmpPosition.put(20, new Point(125.0, -125.0));
+		BeaconPosition = Collections.unmodifiableMap(tmpPosition);
+
+		Map<Integer, Integer> tmpID = new LinkedHashMap<Integer, Integer>();
+		tmpID.put(01, 1);
+		tmpID.put(10, 2);
+		tmpID.put(02, 3);
+		tmpID.put(31, 4);
+		tmpID.put(13, 5);
+		tmpID.put(30, 6);
+		tmpID.put(03, 7);
+		tmpID.put(20, 8);
+		BeaconID = Collections.unmodifiableMap(tmpID);
+
+		Map<Integer, Integer> tmpAngles = new LinkedHashMap<Integer, Integer>();
+		tmpAngles.put(12, 90);
+		tmpAngles.put(13, 90);
+		tmpAngles.put(23, 90);
+		tmpAngles.put(35, 180);
+		tmpAngles.put(38, 180);
+		tmpAngles.put(58, 180);
+		tmpAngles.put(67, 270);
+		tmpAngles.put(68, 270);
+		tmpAngles.put(78, 270);
+		tmpAngles.put(14, 0);
+		tmpAngles.put(16, 0);
+		tmpAngles.put(46, 0);
+		tmpAngles.put(24, 45);
+		tmpAngles.put(25, 135);
+		tmpAngles.put(57, 225);
+		tmpAngles.put(47, 315);
+		BeaconsAngleOffs = Collections.unmodifiableMap(tmpAngles);
 	}
 
 	// <- Robot Calibration
@@ -1316,6 +1362,36 @@ public class Robot {
 	 */
 	public Point getGroundPlaneCoordinates(Point cameraPoint,
 			Mat homographyMatrix) {
+		double[] polarCoord = getGroundPlaneCoordinatesRelRobot(cameraPoint,
+				homographyMatrix);
+		double theta = polarCoord[1];
+		double dist = polarCoord[0];
+		double dx = -dist
+				* Math.sin(2 * Math.PI
+						- (theta + Math.toRadians(getMyPosition().theta)));
+		double dy = dist
+				* Math.cos(2 * Math.PI
+						- (theta + Math.toRadians(getMyPosition().theta)));
+
+		Point pointGroundCoord = new Point();
+		pointGroundCoord.x = getMyPosition().x + dx;
+		pointGroundCoord.y = getMyPosition().y + dy;
+
+		return pointGroundCoord;
+	}
+
+	/**
+	 * Takes a camera point and calculates its ground plane coordinates relative
+	 * to the robot.
+	 * 
+	 * @param cameraPoint
+	 *            the pixel to map to the ground plane
+	 * @param homographyMatrix
+	 *            the matrix that maps camera pixels to the ground plane
+	 * @return ground plane coordinates of camera point relative to robot
+	 */
+	public double[] getGroundPlaneCoordinatesRelRobot(Point cameraPoint,
+			Mat homographyMatrix) {
 
 		Mat src = new Mat(1, 1, CvType.CV_32FC2);
 		Mat dest = new Mat(1, 1, CvType.CV_32FC2);
@@ -1330,33 +1406,18 @@ public class Robot {
 																// matrix
 		Point pointGroundCoord = new Point(dest.get(0, 0)[0] / 10, dest.get(0,
 				0)[1] / 10);
-		writeLog("(getGroundPlaneCoordinates) Found ground plane coordinates relative to robot: "
-				+ pointGroundCoord.toString());
-		double theta2 = Math.atan2(pointGroundCoord.x, pointGroundCoord.y);
-		writeLog("(getGroundPlaneCoordinates) Found ground plane coordinates relative to robot: "
-				+ pointGroundCoord.toString());
+		double theta = Math.atan2(pointGroundCoord.x, pointGroundCoord.y);
 		double dist = Math.sqrt(Math.pow(pointGroundCoord.x, 2)
 				+ Math.pow(pointGroundCoord.y, 2));
-		double dx = -dist
-				* Math.sin(2 * Math.PI
-						- (theta2 + Math.toRadians(getMyPosition().theta)));
-		double dy = dist
-				* Math.cos(2 * Math.PI
-						- (theta2 + Math.toRadians(getMyPosition().theta)));
 
-		writeLog("(getGroundPlaneCoordinates) theta2: " + theta2 + " theta: "
-				+ getMyPosition().theta + " dist: " + dist + " dx: " + dx
-				+ " dy: " + dy);
+		double[] polarCoord = new double[2];
 
-		pointGroundCoord.x = getMyPosition().x + dx;
-		pointGroundCoord.y = getMyPosition().y + dy;
-
-		writeLog("(getGroundPlaneCoordinates) Found ground plane coordinates (global): "
-				+ pointGroundCoord.toString());
+		polarCoord[0] = dist;
+		polarCoord[1] = theta;
 
 		src.release();
 		dest.release();
-		return pointGroundCoord;
+		return polarCoord;
 	}
 
 	// TODO: Fix: Is just able to work with one blob on the image.
@@ -1406,7 +1467,7 @@ public class Robot {
 
 	}
 
-	// TODO: implement
+	// TODO: implement; see sheet of paper that Gregor wrote
 	/**
 	 * Takes two visible beacons as input, calculates the global position using
 	 * these two beacons.
@@ -1419,9 +1480,92 @@ public class Robot {
 	 *            matrix which was received with the checkboard pattern
 	 * @return current globalPosition
 	 */
-	private Position findPosition(Square beacon1, Square beacon2,
+	private Position findPosition(Beacon beacon1, Beacon beacon2,
 			Mat homographyMatrix) {
-		return null;
+
+		// Creates the ID of a pair of beacons which consists of two numbers:
+		// First number -> ID of beacon with lower ID,
+		// Second number -> ID of beacon with higher ID
+		int beacIDcomb;
+		if (BeaconID.get(beacon1.getColorComb()) > BeaconID.get(beacon2
+				.getColorComb())) {
+			beacIDcomb = BeaconID.get(beacon1.getColorComb()) * 10
+					+ BeaconID.get(beacon2.getColorComb());
+		} else {
+			beacIDcomb = BeaconID.get(beacon2.getColorComb()) * 10
+					+ BeaconID.get(beacon1.getColorComb());
+		}
+
+		// distance between the two beacons
+		double b = imageProcessor.distPointToPoint(
+				BeaconPosition.get(beacon1.getColorComb()),
+				BeaconPosition.get(beacon2.getColorComb()));
+
+		double c;
+		double a;
+		double[] ground1 = getGroundPlaneCoordinatesRelRobot(
+				beacon1.getLowPt(), homographyMatrix); // TODO: We need
+														// coordinates relative
+														// to
+														// robot here; the used
+														// method does
+														// something else
+		double[] ground2 = getGroundPlaneCoordinatesRelRobot(
+				beacon2.getLowPt(), homographyMatrix); // TODO: We need
+														// coordinates relative
+														// to
+														// robot here; the used
+														// method does
+														// something else
+
+		// The distance of the beacon which appears first (from left to right)
+		// on the camera frame is stored in variable c
+		// The distance of the other beacon in a
+		double thetaRel;
+		Point beaconPos;
+		if (ground1[1] > ground2[1]) {
+			c = ground2[0];
+			a = ground1[0];
+			thetaRel = ground2[1];
+			beaconPos = BeaconPosition.get(beacon2.getColorComb());
+		} else {
+			c = ground1[0];
+			a = ground2[0];
+			thetaRel = ground1[1];
+			beaconPos = BeaconPosition.get(beacon1.getColorComb());
+		}
+
+		// Law of cosine to calculate the angle between the first beacon and the
+		// robot (in relation to the line crossing
+		// both beacons.
+		double alpha = Math.toDegrees(Math.acos(-(Math.pow(a, 2)
+				- Math.pow(b, 2) - Math.pow(c, 2))
+				/ (2 * b * c)));
+
+		// Angle in global coordinate system between robot and beacon
+		double tmptheta = alpha + BeaconsAngleOffs.get(beacIDcomb);
+
+		int theta = reduceAngle((int) (tmptheta - thetaRel));
+
+		// Using alpha and distance to the left beacon aswell as the Position of
+		// the beacon, calculate the position of the robot.
+
+		double dx = c * Math.sin(theta);
+
+		double dy = c * Math.cos(theta);
+
+		Point pointGroundCoord = new Point();
+		pointGroundCoord.x = beaconPos.x + dx;
+		pointGroundCoord.y = beaconPos.y + dy;
+
+		return new Position(pointGroundCoord.x, pointGroundCoord.y, theta); // TODO:
+																			// Use
+																			// tmptheta,
+																			// c
+																			// and
+																			// the
+		// position of left beacon to update
+		// x and y of odometry
 
 	}
 
@@ -1435,44 +1579,50 @@ public class Robot {
 	 * 
 	 * firstly turn robot to target
 	 * 
-	 * method uses list of balls and tries to determine which one is the nearest to catch on the way to the goal, that's the 
-	 * one to cage first...
+	 * method uses list of balls and tries to determine which one is the nearest
+	 * to catch on the way to the goal, that's the one to cage first...
 	 * 
 	 * @param targetPoint
 	 */
-	public void moveToTargetCollBalls(Position targetPoint, List<Ball> balls,Mat mRgbaWork, List<Scalar> myColors, Mat homographyMatrix) {
-		turnByDistanceBalanced(getAngleToTarget(targetPoint.x, targetPoint.y),'r');
-		
-		//TODO: write similar method, which doesn't overwrite surrendered ball
-		driveToBallAndCage(findNearestBall(balls), mRgbaWork, myColors, homographyMatrix);
+	public void moveToTargetCollBalls(Position targetPoint, List<Ball> balls,
+			Mat mRgbaWork, List<Scalar> myColors, Mat homographyMatrix) {
+		turnByDistanceBalanced(getAngleToTarget(targetPoint.x, targetPoint.y),
+				'r');
+
+		// TODO: write similar method, which doesn't overwrite surrendered ball
+		driveToBallAndCage(findNearestBall(balls), mRgbaWork, myColors,
+				homographyMatrix);
 		moveToTarget(targetPoint);
 	}
-	
+
 	// TODO implement
-	//moved from robot because we need the updated ball-list after the robot rotated
+	// moved from robot because we need the updated ball-list after the robot
+	// rotated
 	/**
 	 * Turns and looks for a ball with a clear line of sight.
 	 * 
-	 * robot should turn until he sees at least one ball, in case he founds occasionally more than one he chooses the nearest to return
+	 * robot should turn until he sees at least one ball, in case he founds
+	 * occasionally more than one he chooses the nearest to return
 	 * 
 	 * @return found ball; null when no ball is found
 	 */
 	public Ball findNearestBall(List<Ball> foundBalls) {
-		while(foundBalls.size() < 1){
+		while (foundBalls.size() < 1) {
 			turnByDistanceBalanced(15, 'r');
-			//here is maybe a delay necessary 
+			// here is maybe a delay necessary
 		}
-		Map<Double, Ball> ballGaps = new HashMap<Double,Ball>();
-		for(Ball b:foundBalls){
+		Map<Double, Ball> ballGaps = new HashMap<Double, Ball>();
+		for (Ball b : foundBalls) {
 			Point groundPoint = b.getPosGroundPlane();
-			Double distToBall = Math.sqrt(Math.pow(groundPoint.x-myPos.x, 2)+Math.pow(groundPoint.y-myPos.y, 2));
+			Double distToBall = Math.sqrt(Math.pow(groundPoint.x - myPos.x, 2)
+					+ Math.pow(groundPoint.y - myPos.y, 2));
 			ballGaps.put(distToBall, b);
 		}
 		Entry<Double, Ball> nearestBall = null;
 		for (Entry<Double, Ball> entry : ballGaps.entrySet()) {
-		    if (nearestBall == null || nearestBall.getKey() > entry.getKey()) {
-		        nearestBall = entry;
-		    }
+			if (nearestBall == null || nearestBall.getKey() > entry.getKey()) {
+				nearestBall = entry;
+			}
 		}
 		return nearestBall.getValue();
 	}
