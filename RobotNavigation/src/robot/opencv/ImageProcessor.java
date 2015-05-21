@@ -457,11 +457,12 @@ public class ImageProcessor {
 									squareA.getLowerLeftEdge().x,
 									squareA.getLowerLeftEdge().y
 											- (2 * squareA.getHalfHeight()));
-							beaconList
-									.add(new Beacon(newCenterPt, newHalfHeight,
-											newLowerLeftEdge, squareB
-													.getColorID(), squareA
-													.getColorID()));
+							Beacon newBeacon = new Beacon(newCenterPt,
+									newHalfHeight, newLowerLeftEdge,
+									squareB.getColorID(), squareA.getColorID());
+							if (!beaconList.contains(newBeacon)) {
+								beaconList.add(newBeacon);
+							}
 						} else {
 							// squareB is above squareA
 							newCenterPt = new Point(squareB.getCenter().x,
@@ -471,11 +472,12 @@ public class ImageProcessor {
 									squareB.getLowerLeftEdge().x,
 									squareB.getLowerLeftEdge().y
 											- (2 * squareB.getHalfHeight()));
-							beaconList
-									.add(new Beacon(newCenterPt, newHalfHeight,
-											newLowerLeftEdge, squareA
-													.getColorID(), squareB
-													.getColorID()));
+							Beacon newBeacon = new Beacon(newCenterPt,
+									newHalfHeight, newLowerLeftEdge,
+									squareA.getColorID(), squareB.getColorID());
+							if (!beaconList.contains(newBeacon)) {
+								beaconList.add(newBeacon);
+							}
 						}
 						// overwrite/extend one square to the size of both
 						// squares and
@@ -498,14 +500,14 @@ public class ImageProcessor {
 	public List<Beacon> findBeaconOrdered(List<Square> squareList) {
 		Collections.sort(squareList);
 		Collections.reverse(squareList);
+		Log.i(TAG, "squareList: " + squareList.toString());
 		List<Beacon> beaconList = new ArrayList<Beacon>();
 		Double TOLx = 40.0;
-		Double TOLy = 20.0;
+		Double TOLy = 50.0;
 		if (squareList.size() > 0) {
 			for (int i = 0; i < squareList.size() - 1; i++) {
 				for (int j = 1; j < squareList.size(); j++) {
-					// it's not possible to write compare method in
-					// point-class...
+					Integer squareFoundBelow = 0;
 					Square squareA = squareList.get(i);
 					Square squareB = squareList.get(j);
 					if (compare2PtbyX(squareA.getLowPt(), squareB.getLowPt()) <= TOLx
@@ -513,36 +515,42 @@ public class ImageProcessor {
 									squareB.getLowPt()) <= TOLy) {
 						Point newLowerLeftEdge = new Point();
 						Point newCenterPt = new Point();
-						Double newHalfHeight = (squareA.getCenter().y + squareB
-								.getCenter().y) / 2.0;
 						if (squareA.getCenter().y > squareB.getCenter().y) {
+							squareFoundBelow++;
+							Double newHalfHeight = squareA.getHalfHeight() * 2;
 							// squareA is above squareB
 							newCenterPt = new Point(squareA.getCenter().x,
 									squareA.getCenter().y
-											- (2 * squareA.getHalfHeight()));
+											+ (2 * squareA.getHalfHeight()));
 							newLowerLeftEdge = new Point(
 									squareA.getLowerLeftEdge().x,
 									squareA.getLowerLeftEdge().y
-											- (2 * squareA.getHalfHeight()));
-							beaconList
-									.add(new Beacon(newCenterPt, newHalfHeight,
-											newLowerLeftEdge, squareB
-													.getColorID(), squareA
-													.getColorID()));
+											+ (2 * squareA.getHalfHeight()));
+							Beacon newBeacon = new Beacon(newCenterPt,
+									newHalfHeight, newLowerLeftEdge,
+									squareB.getColorID(), squareA.getColorID());
+							if (!beaconList.contains(newBeacon)
+									&& squareFoundBelow < 2) {
+								beaconList.add(newBeacon);
+							}
 						} else {
+							squareFoundBelow++;
+							Double newHalfHeight = squareB.getHalfHeight() * 2;
 							// squareB is above squareA
 							newCenterPt = new Point(squareB.getCenter().x,
 									squareB.getCenter().y
-											- (2 * squareB.getHalfHeight()));
+											+ (2 * squareB.getHalfHeight()));
 							newLowerLeftEdge = new Point(
 									squareB.getLowerLeftEdge().x,
 									squareB.getLowerLeftEdge().y
-											- (2 * squareB.getHalfHeight()));
-							beaconList
-									.add(new Beacon(newCenterPt, newHalfHeight,
-											newLowerLeftEdge, squareA
-													.getColorID(), squareB
-													.getColorID()));
+											+ (2 * squareB.getHalfHeight()));
+							Beacon newBeacon = new Beacon(newCenterPt,
+									newHalfHeight, newLowerLeftEdge,
+									squareA.getColorID(), squareB.getColorID());
+							if (!beaconList.contains(newBeacon)
+									&& squareFoundBelow < 2) {
+								beaconList.add(newBeacon);
+							}
 						}
 						// overwrite/extend one square to the size of both
 						// squares and
