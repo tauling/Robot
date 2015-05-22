@@ -189,11 +189,7 @@ public class ImageProcessor {
 			// Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
 			// new Size(10, 10));
 			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-					new Size(15, 15)); // TODO: This should be a lot faster than
-										// working with a Circle; Test, if it's
-										// accurate enough.
-										// TODO: Test the use of a bigger
-										// rectangle.
+					new Size(15, 15));
 			Imgproc.dilate(mmMask, mmDilatedMask, element);
 			Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
 
@@ -291,8 +287,7 @@ public class ImageProcessor {
 		return mRgbaWithBalls;
 	}
 
-	// TODO: circleCenters should not be updated globally; add a second method
-	// that does this every 15 frames (within MainActivity)
+	
 	/**
 	 * Finds the centers of all circles on a given image matrix..
 	 * 
@@ -325,6 +320,7 @@ public class ImageProcessor {
 		return circleCenters;
 	}
 
+	
 	// TODO Add comment
 	public List<Circle> findCirclesOnCamera2(Mat mRgbaWork,
 			List<Scalar> myColors) {
@@ -351,7 +347,7 @@ public class ImageProcessor {
 		return circlesList;
 	}
 
-	// TODO: method should work on circlesList
+	
 	// TODO Add comment
 	public List<Square> findSquaresOnCamera(Mat mRgbaWork, List<Scalar> myColors) {
 		List<Square> squareList = new ArrayList<Square>();
@@ -387,6 +383,7 @@ public class ImageProcessor {
 		return squareList;
 	}
 
+
 	// TODO Add comment
 	private Point computeLowerEdgeLeft(Point center, double[] squareSize) {
 		Double halfWidth = squareSize[0];
@@ -399,12 +396,14 @@ public class ImageProcessor {
 		return lowestEdgeLeft;
 	}
 
+	// TODO needed?
+	// if so, add description
 	public Scalar getColorSalar(Mat mRgbaWork, Point pt) {
 		double[] color = mRgbaWork.get((int) pt.x, (int) pt.y);
 		return new Scalar(color);
 	}
 
-	// TODO choose better name
+	
 	// TODO update Description
 	/**
 	 * compares alignment of all squares in global squareCenter-list and tries
@@ -470,14 +469,13 @@ public class ImageProcessor {
 		return beaconList;
 	}
 
-	// TODO choose better name
+	
 	// TODO update Description
 	/**
 	 * compares alignment of all squares in global squareCenter-list and tries
 	 * to find stacked squares if two squares are stacked the method deletes one
 	 * of them and extends the first to the size of both
 	 */
-	@SuppressWarnings("unchecked")
 	public List<Beacon> findBeaconOrdered(List<Square> squareList) {
 		Collections.sort(squareList);
 		Collections.reverse(squareList);
@@ -539,6 +537,8 @@ public class ImageProcessor {
 		return beaconList;
 	}
 
+
+	// TODO update description
 	/**
 	 * computes the difference of 2 points along the x-axis
 	 * 
@@ -551,7 +551,9 @@ public class ImageProcessor {
 	public Double compare2PtbyX(Point a, Point b) {
 		return Math.abs(a.x - b.x);
 	}
+	
 
+	// TODO update description
 	/**
 	 * like compare2PtbyX, but only the y-axis
 	 * 
@@ -563,7 +565,7 @@ public class ImageProcessor {
 		return Math.abs(a.y - b.y);
 	}
 
-	// TODO: Needed? If so, add description
+
 	// TODO: Rename and finalize (see TODOs within method)
 	public double[] squareSize(MatOfPoint contours, Point center) {
 		Double width = 0.0, height = 0.0;

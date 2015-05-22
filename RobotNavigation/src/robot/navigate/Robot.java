@@ -752,7 +752,7 @@ public class Robot {
 		int degrees = angle;
 		degrees = (int) (CorrFactAngleByDist * degrees);
 		// int targetedAngleByOnce = 30; // TODO: Make global? Check if needed;
-		// could improve accuracy
+		// could improve accuracy 
 		int maxDegreesByOnce = 40;
 		// if (angle > targetedAngleByOnce) {
 		// maxDegreesByOnce = Math.min(127,
@@ -1552,15 +1552,7 @@ public class Robot {
 		pointGroundCoord.x = beaconPos.x + dx;
 		pointGroundCoord.y = beaconPos.y + dy;
 
-		return new Position(pointGroundCoord.x, pointGroundCoord.y, theta); // TODO:
-																			// Use
-																			// tmptheta,
-																			// c
-																			// and
-																			// the
-		// position of left beacon to update
-		// x and y of odometry
-
+		return new Position(pointGroundCoord.x, pointGroundCoord.y, theta);
 	}
 
 	// TODO implement first increment: collect one ball which is lying on the

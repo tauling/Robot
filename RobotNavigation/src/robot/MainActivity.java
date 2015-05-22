@@ -51,24 +51,15 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	// TODO: Use LEDs to display connection to the robot.
 
-	// TODO: Add a function that allows to drive curves (and updates odometry)
-
-	// TODO: Probably add a function that allows to turns robot by velocity (and
+	// TODO: Probably add a function that allows to turn robot by velocity (and
 	// since depending on the angle different correctorfactors are needed, we
 	// need to do this via a switch case)
-
-	// TODO: Explore workspace and remember positions of all balls
 
 	// TODO: Add comments for variables.
 
 	// TODO: Resolve warnings in all xml-files.
 
 	// TODO: target Position does not allow negative inputs in GUI
-
-	// TODO: Ex3: beacons: Detection of multiple, single-colored objects,
-	// finding their bottom points, calculating and displaying their locations
-	// in the robot's egocentric ground-plane coordinates, as well as their
-	// distances to the robot, using a pre-calibrated homography matrix
 
 	// TODO: Ex3: beacons: Detection of multiple, multi-colored objects, finding
 	// their bottom points, calculating and displaying their locations in the
@@ -83,8 +74,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// odometry based on these values.
 
 	// TODO: Ex3: About 10 balls of known colors are placed at arbitrary
-	// locations within the workspace.
+	// locations within the workspace. Find them and bring to target position.
 
+	
 	// GUI Elements
 	private TextView textLog; // Textview on GUI which contains the robot's log
 	private EditText editText1; // Textfield on GUI for entering x-coordinate of
@@ -137,16 +129,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private CameraBridgeViewBase mOpenCvCameraView; // interaction between
 													// openCV and camera
 
-	// TODO: probably a better solution that allows to abstract the found
-	// objects (because in fact, we aren't even able to distuingish between
-	// circles and squares)
-
 	private List<Ball> foundBalls = new ArrayList<Ball>(); // list which stores
 															// all found balls
 
-	List<Point> circleCenters = new ArrayList<Point>(); // TODO: Obsolete;
-														// Replace by
-														// circlesList
 
 	// TODO: write own method to update these lists
 	List<Circle> circleList = new ArrayList<Circle>();
@@ -155,6 +140,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	List<Beacon> beaconList = new ArrayList<Beacon>();
 
+	
 	// Robot specific variables
 	// TODO Use Position.java instead of targetX and targetY
 	private double targetX = 100.0; // target's x-coordinate
@@ -416,11 +402,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 			@Override
 			public void run() {
 				// Not needed currently
-				robot.moveByVelocitySlow(100, false); // TODO Add a Button for
-														// this method to
-														// "Kalibrieriung"; Then
-														// remove this line
-														// here.
 			};
 		};
 
@@ -467,7 +448,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	public void ButtonEmptyBrain(View v) {
 
-		circleCenters = new ArrayList<Point>();
 		circleList = new ArrayList<Circle>();
 		squareList = new ArrayList<Square>();
 		beaconList = new ArrayList<Beacon>();
@@ -720,7 +700,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 				mLoaderCallback);
 	}
 
-	// TODO: implement
+	// TODO: test
 	/**
 	 * Turns until two beacons are seen by the robot.
 	 * 
@@ -738,7 +718,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return beacons;
 	}
 
-	// TODO: implement
+	// TODO: test / implement
 	/**
 	 * 1)findTwoBeacons 2)drive to goal and cage ball one the way 3)after goal
 	 * position reached -> search for one ball and bring it to the goal (repeat
