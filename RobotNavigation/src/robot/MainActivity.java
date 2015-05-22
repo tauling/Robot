@@ -1,40 +1,35 @@
 package robot;
 
-import java.io.ObjectOutputStream.PutField;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+
+import jp.ksksue.driver.serial.FTDriver;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.imgproc.Moments;
 
 import robot.generated.R;
+import robot.navigate.Position;
+import robot.navigate.Robot;
+import robot.opencv.ImageProcessor;
 import robot.shapes.Ball;
 import robot.shapes.Beacon;
 import robot.shapes.Circle;
 import robot.shapes.Square;
-import robot.navigate.Position;
-import robot.navigate.Robot;
-import robot.opencv.ImageProcessor;
-import jp.ksksue.driver.serial.FTDriver;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.graphics.Color;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -77,7 +72,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// TODO: Ex3: About 10 balls of known colors are placed at arbitrary
 	// locations within the workspace. Find them and bring to target position.
 
-	
 	// GUI Elements
 	private TextView textLog; // Textview on GUI which contains the robot's log
 	private EditText editText1; // Textfield on GUI for entering x-coordinate of
@@ -133,7 +127,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private List<Ball> foundBalls = new ArrayList<Ball>(); // list which stores
 															// all found balls
 
-
 	// TODO: write own method to update these lists
 	List<Circle> circleList = new ArrayList<Circle>();
 
@@ -141,7 +134,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	List<Beacon> beaconList = new ArrayList<Beacon>();
 
-	
 	// Robot specific variables
 	// TODO Use Position.java instead of targetX and targetY
 	private double targetX = 100.0; // target's x-coordinate
@@ -622,15 +614,34 @@ public class MainActivity extends Activity implements OnTouchListener,
 		if (frameInterval >= executionInterval) {
 			circleList = imageProcessor.findCirclesOnCamera2(mRgbaWork,
 					myCircleColors);
-			// TODO: test (not tested!)
 			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
 					myBeaconColors);
 			beaconList = imageProcessor.findBeaconOrdered(squareList);
+			UpdateselfLocalization();
 			frameInterval = 0;
 		}
 
 		frameInterval++;
-		
+
+		// draw squares on CameraFrame
+
+		Mat grayImg = new Mat();
+		if (!myBeaconColors.isEmpty()) {
+			for (Scalar s : myBeaconColors)
+				grayImg = imageProcessor.filter(mRgbaWork, s);
+			mRgbaOutput = grayImg;
+		}
+
+		// out dated, we only draw beacons from now on
+		if (!squareList.isEmpty()) {
+
+			for (Square s : squareList) {
+				Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+						s.getUpperRightEdge(), new Scalar(20), -1);
+				robot.writeLog(s.toString());
+			}
+		}
+
 		// draw Beacons
 		if (!beaconList.isEmpty()) {
 			for (Beacon b : beaconList) {
@@ -645,31 +656,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 				Core.circle(mRgbaOutput, b.getUpperRightEdge(), 10, new Scalar(
 						130));
 				Core.circle(mRgbaOutput, b.getLowPt(), 10, new Scalar(70));
-				Core.putText(mRgbaOutput,b.toString(), b.getLowerLeftEdge(),
+				Core.putText(mRgbaOutput, b.toString(), b.getLowerLeftEdge(),
 						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
 						8, false);
 			}
 		}
 
-
-		// draw squares on CameraFrame
-
-		// Mat grayImg = new Mat();
-		// if (!myBeaconColors.isEmpty()) {
-		// for (Scalar s : myBeaconColors)
-		// grayImg = imageProcessor.filter(mRgbaWork, s);
-		// mRgbaOutput = grayImg;
-		// }
-
-		// out dated, we only draw beacons from now on
-		if (!squareList.isEmpty()) {
-
-			for (Square s : squareList) {
-				Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-						s.getUpperRightEdge(), new Scalar(20), -1);
-				robot.writeLog(s.toString());
-			}
-		}
 		frameInterval++;
 		return mRgbaOutput;
 	}
@@ -733,11 +725,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 	}
 
-	// TODO: write method that updates global position using beacons every ~15
+	/**
+	 * updates global position using beacons every ~15
+	 */
 	// frames (in case at least two beacons are visible)
 	// TODO: add description
-	public void selfLocalization() {
-
+	public void UpdateselfLocalization() {
+		robot.updateGlobalPosition(beaconList, homographyMatrix);
 	}
 
 }

@@ -3,10 +3,8 @@ package robot.opencv;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -19,11 +17,11 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
 
-import android.util.Log;
 import robot.shapes.Ball;
 import robot.shapes.Beacon;
 import robot.shapes.Circle;
 import robot.shapes.Square;
+import android.util.Log;
 
 public class ImageProcessor {
 
@@ -155,7 +153,7 @@ public class ImageProcessor {
 
 		try {
 
-			Scalar mmColorRadius = new Scalar(30, 70, 70, 0); // Color radius
+			Scalar mmColorRadius = new Scalar(10, 40, 70, 0); // Color radius
 																// for range
 																// checking in
 																// HSV color
@@ -189,7 +187,7 @@ public class ImageProcessor {
 			// Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
 			// new Size(10, 10));
 			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-					new Size(15, 15));
+					new Size(7, 7));
 			Imgproc.dilate(mmMask, mmDilatedMask, element);
 			Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
 
@@ -287,7 +285,6 @@ public class ImageProcessor {
 		return mRgbaWithBalls;
 	}
 
-	
 	/**
 	 * Finds the centers of all circles on a given image matrix..
 	 * 
@@ -320,7 +317,6 @@ public class ImageProcessor {
 		return circleCenters;
 	}
 
-	
 	// TODO Add comment
 	public List<Circle> findCirclesOnCamera2(Mat mRgbaWork,
 			List<Scalar> myColors) {
@@ -347,7 +343,6 @@ public class ImageProcessor {
 		return circlesList;
 	}
 
-	
 	// TODO Add comment
 	public List<Square> findSquaresOnCamera(Mat mRgbaWork, List<Scalar> myColors) {
 		List<Square> squareList = new ArrayList<Square>();
@@ -383,7 +378,6 @@ public class ImageProcessor {
 		return squareList;
 	}
 
-
 	// TODO Add comment
 	private Point computeLowerEdgeLeft(Point center, double[] squareSize) {
 		Double halfWidth = squareSize[0];
@@ -403,7 +397,6 @@ public class ImageProcessor {
 		return new Scalar(color);
 	}
 
-	
 	// TODO update Description
 	/**
 	 * compares alignment of all squares in global squareCenter-list and tries
@@ -469,7 +462,6 @@ public class ImageProcessor {
 		return beaconList;
 	}
 
-	
 	// TODO update Description
 	/**
 	 * compares alignment of all squares in global squareCenter-list and tries
@@ -478,65 +470,43 @@ public class ImageProcessor {
 	 */
 	public List<Beacon> findBeaconOrdered(List<Square> squareList) {
 		Collections.sort(squareList);
-		Collections.reverse(squareList);
 		Log.i(TAG, "squareList: " + squareList.toString());
 		List<Beacon> beaconList = new ArrayList<Beacon>();
 		Double TOLx = 60.0;
 		Double TOLy = 60.0;
-		if (squareList.size() > 0) {
-			for (int i = 0; i < squareList.size() - 1; i++) {
-				for (int j = 1; j < squareList.size(); j++) {
-					Integer squareFoundBelow = 0;
-					Square squareA = squareList.get(i);
-					Square squareB = squareList.get(j);
-					if (compare2PtbyX(squareA.getCenter(), squareB.getCenter()) <= TOLx
-							&& compare2PtbyY(squareA.getCenter(),
-									squareB.getCenter()) <= TOLy) {
-						Point newLowerLeftEdge = new Point();
-						Point newCenterPt = new Point();
-						if (Math.abs(squareA.getCenter().y) > Math.abs(squareB.getCenter().y)) {
-							squareFoundBelow++;
-							// squareA is above squareB
-							newCenterPt = new Point(squareA.getCenter().x,
-									squareA.getLowPt().y);
-							newLowerLeftEdge = new Point(
-									squareA.getLowerLeftEdge().x,
-									squareA.getLowerLeftEdge().y
-											+ (2 * squareA.getHalfHeight()));
-							Beacon newBeacon = new Beacon(newCenterPt,
-									squareB.getLowPt(), newLowerLeftEdge,
-									squareB.getColorID(), squareA.getColorID());
-							if (!beaconList.contains(newBeacon)
-									&& squareFoundBelow < 2) {
-								beaconList.add(newBeacon);
-							}
-						} else {
-							squareFoundBelow++;
-							// squareB is above squareA
-							newCenterPt = new Point(squareB.getCenter().x,
-									squareB.getLowPt().y);
-							newLowerLeftEdge = new Point(
-									squareB.getLowerLeftEdge().x,
-									squareB.getLowerLeftEdge().y
-											+ (2 * squareB.getHalfHeight()));
-							Beacon newBeacon = new Beacon(newCenterPt,
-									squareA.getLowPt(), newLowerLeftEdge,
-									squareA.getColorID(), squareB.getColorID());
-							if (!beaconList.contains(newBeacon)
-									&& squareFoundBelow < 2) {
-								beaconList.add(newBeacon);
-							}
-						}
-						// overwrite/extend one square to the size of both
-						// squares and
-						// remove the second square form the list
+		for (int i = 0; i < squareList.size() - 1; i++) {
+			for (int j = i + 1; j < squareList.size(); j++) {
+				Integer squareFoundBelow = 0;
+				Square squareA = squareList.get(i);
+				Square squareB = squareList.get(j);
+				// squareA should always be above squareB
+				if (compare2PtbyX(squareA.getLowPt(),
+						squareB.getUpperRightEdge()) <= TOLx
+						&& compare2PtbyY(squareA.getLowPt(),
+								squareB.getUpperRightEdge()) <= TOLy) {
+					Point newCenterPt;
+					Point newLowerLeftEdge;
+					squareFoundBelow++;
+					// squareA is above squareB
+					newCenterPt = new Point(squareA.getCenter().x,
+							squareA.getLowPt().y);
+					newLowerLeftEdge = new Point(squareA.getLowerLeftEdge().x,
+							squareA.getLowerLeftEdge().y
+									+ (2 * squareA.getHalfHeight()));
+					Beacon newBeacon = new Beacon(newCenterPt,
+							squareB.getLowPt(), newLowerLeftEdge,
+							squareB.getColorID(), squareA.getColorID());
+					if (!beaconList.contains(newBeacon) && squareFoundBelow < 2) {
+						beaconList.add(newBeacon);
 					}
+					// overwrite/extend one square to the size of both
+					// squares and
+					// remove the second square form the list
 				}
 			}
 		}
 		return beaconList;
 	}
-
 
 	// TODO update description
 	/**
@@ -551,7 +521,6 @@ public class ImageProcessor {
 	public Double compare2PtbyX(Point a, Point b) {
 		return Math.abs(a.x - b.x);
 	}
-	
 
 	// TODO update description
 	/**
@@ -564,7 +533,6 @@ public class ImageProcessor {
 	private Double compare2PtbyY(Point a, Point b) {
 		return Math.abs(a.y - b.y);
 	}
-
 
 	// TODO: Rename and finalize (see TODOs within method)
 	public double[] squareSize(MatOfPoint contours, Point center) {
