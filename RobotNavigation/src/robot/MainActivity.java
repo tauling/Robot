@@ -670,14 +670,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 				robot.writeLog(s.toString());
 			}
 		}
-
-		// draw Beacons
-		if (!beaconList.isEmpty()) {
-			for (Beacon b : beaconList) {
-				Core.rectangle(mRgbaOutput, b.getLowerLeftEdge(),
-						b.getUpperRightEdge(), new Scalar(120), -1);
-			}
-		}
 		frameInterval++;
 		return mRgbaOutput;
 	}
