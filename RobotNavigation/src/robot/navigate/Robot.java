@@ -1448,7 +1448,7 @@ public class Robot {
 		writeLog("(alignToPoint) aligned");
 	}
 
-	// TODO: implement
+	
 	/**
 	 * Uses beacons (with known positions) to update current position.
 	 * 
@@ -1457,11 +1457,29 @@ public class Robot {
 	 * @param homographyMatrix
 	 *            matrix which was received with the checkboard pattern
 	 */
-	public void updateGlobalPosition(List<Square> beacons, Mat homographyMatrix) {
-
+	public void updateGlobalPosition(List<Beacon> beacons, Mat homographyMatrix) {
+		int count = 0;
+		double avgPosition_x = 0;
+		double avgPosition_y = 0;
+		double avgPosition_theta = 0;
+		
+		for (int i = 0; i < beacons.size(); i++) {
+			for (int j = i; j < beacons.size(); j++) {
+				count++;
+				Position foundPosition = findPosition(beacons.get(i), beacons.get(j), homographyMatrix);
+				avgPosition_x += foundPosition.x;
+				avgPosition_y += foundPosition.y;
+				avgPosition_theta += foundPosition.theta;
+			}
+		}
+		
+		myPos.x += avgPosition_x / count;
+		myPos.y += avgPosition_y / count;
+		myPos.theta += avgPosition_theta / count;
+		
 	}
 
-	// TODO: implement; see sheet of paper that Gregor wrote
+	// TODO: test
 	/**
 	 * Takes two visible beacons as input, calculates the global position using
 	 * these two beacons.
@@ -1581,13 +1599,11 @@ public class Robot {
 		moveToTarget(targetPoint);
 	}
 
-	// TODO implement
-	// moved from robot because we need the updated ball-list after the robot
-	// rotated
+
 	/**
-	 * Turns and looks for a ball with a clear line of sight.
+	 * Turns and looks for the nearest ball with a clear line of sight.
 	 * 
-	 * robot should turn until he sees at least one ball, in case he founds
+	 * Robot should turn until he sees at least one ball, in case he founds
 	 * occasionally more than one he chooses the nearest to return
 	 * 
 	 * @return found ball; null when no ball is found

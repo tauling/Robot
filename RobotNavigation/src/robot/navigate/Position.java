@@ -15,7 +15,7 @@ public class Position implements Comparable<Object> {
 		return "{" + this.x + "|" + this.y + "|" + this.theta + "}";
 	}
 
-	public double minus(Position two) {
+	public double distance(Position two) {
 		return Math.sqrt(Math.pow(this.x - two.x, 2)
 				+ Math.pow(this.y - two.y, 2));
 	}
