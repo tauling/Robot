@@ -472,13 +472,12 @@ public class ImageProcessor {
 	 */
 	public List<Beacon> findBeaconOrdered(List<Square> squareList) {
 		Collections.sort(squareList);
-		Collections.reverse(squareList);
 		Log.i(TAG, "squareList: " + squareList.toString());
 		List<Beacon> beaconList = new ArrayList<Beacon>();
 		Double TOLx = 60.0;
 		Double TOLy = 60.0;
 		for (int i = 0; i < squareList.size() - 1; i++) {
-			for (int j = i; j < squareList.size(); j++) {
+			for (int j = i+1; j < squareList.size(); j++) {
 				Integer squareFoundBelow = 0;
 				Square squareA = squareList.get(i);
 				Square squareB = squareList.get(j);

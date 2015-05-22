@@ -630,26 +630,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 		}
 
 		frameInterval++;
-		
-		// draw Beacons
-		if (!beaconList.isEmpty()) {
-			for (Beacon b : beaconList) {
-				Core.rectangle(mRgbaOutput, b.getLowerLeftEdge(),
-						b.getUpperRightEdge(), new Scalar(120), -1);
-				Core.putText(mRgbaOutput, "center", b.getCenter(),
-						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
-						8, false);
-				Core.circle(mRgbaOutput, b.getCenter(), 10, new Scalar(0));
-				Core.circle(mRgbaOutput, b.getLowerLeftEdge(), 10, new Scalar(
-						40));
-				Core.circle(mRgbaOutput, b.getUpperRightEdge(), 10, new Scalar(
-						130));
-				Core.circle(mRgbaOutput, b.getLowPt(), 10, new Scalar(70));
-				Core.putText(mRgbaOutput,b.toString(), b.getLowerLeftEdge(),
-						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
-						8, false);
-			}
-		}
 
 
 		// draw squares on CameraFrame
@@ -670,14 +650,27 @@ public class MainActivity extends Activity implements OnTouchListener,
 				robot.writeLog(s.toString());
 			}
 		}
-
+		
 		// draw Beacons
 		if (!beaconList.isEmpty()) {
 			for (Beacon b : beaconList) {
 				Core.rectangle(mRgbaOutput, b.getLowerLeftEdge(),
 						b.getUpperRightEdge(), new Scalar(120), -1);
+				Core.putText(mRgbaOutput, "center", b.getCenter(),
+						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
+						8, false);
+				Core.circle(mRgbaOutput, b.getCenter(), 10, new Scalar(0));
+				Core.circle(mRgbaOutput, b.getLowerLeftEdge(), 10, new Scalar(
+						40));
+				Core.circle(mRgbaOutput, b.getUpperRightEdge(), 10, new Scalar(
+						130));
+				Core.circle(mRgbaOutput, b.getLowPt(), 10, new Scalar(70));
+				Core.putText(mRgbaOutput,b.toString(), b.getLowerLeftEdge(),
+						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
+						8, false);
 			}
 		}
+		
 		frameInterval++;
 		return mRgbaOutput;
 	}

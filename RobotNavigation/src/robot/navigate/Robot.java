@@ -1464,7 +1464,7 @@ public class Robot {
 		double avgPosition_theta = 0;
 		
 		for (int i = 0; i < beacons.size(); i++) {
-			for (int j = i; j < beacons.size(); j++) {
+			for (int j = i+1; j < beacons.size(); j++) {
 				count++;
 				Position foundPosition = findPosition(beacons.get(i), beacons.get(j), homographyMatrix);
 				avgPosition_x += foundPosition.x;
