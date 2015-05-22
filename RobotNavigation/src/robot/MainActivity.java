@@ -626,6 +626,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			beaconList = imageProcessor.findBeaconOrdered(squareList);
 			frameInterval = 0;
 		}
+
 		frameInterval++;
 		
 		// draw Beacons
@@ -633,40 +634,49 @@ public class MainActivity extends Activity implements OnTouchListener,
 			for (Beacon b : beaconList) {
 				Core.rectangle(mRgbaOutput, b.getLowerLeftEdge(),
 						b.getUpperRightEdge(), new Scalar(120), -1);
+				Core.putText(mRgbaOutput, "center", b.getCenter(),
+						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
+						8, false);
+				Core.circle(mRgbaOutput, b.getCenter(), 10, new Scalar(0));
+				Core.circle(mRgbaOutput, b.getLowerLeftEdge(), 10, new Scalar(
+						40));
+				Core.circle(mRgbaOutput, b.getUpperRightEdge(), 10, new Scalar(
+						130));
+				Core.circle(mRgbaOutput, b.getLowPt(), 10, new Scalar(70));
+				Core.putText(mRgbaOutput,b.toString(), b.getLowerLeftEdge(),
+						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
+						8, false);
 			}
 		}
+
 
 		// draw squares on CameraFrame
 
-//		Mat grayImg = new Mat();
-//		if (!myBeaconColors.isEmpty()) {
-//			for (Scalar s : myBeaconColors)
-//				grayImg = imageProcessor.filter(mRgbaWork, s);
-//			mRgbaOutput = grayImg;
-//		}
+		// Mat grayImg = new Mat();
+		// if (!myBeaconColors.isEmpty()) {
+		// for (Scalar s : myBeaconColors)
+		// grayImg = imageProcessor.filter(mRgbaWork, s);
+		// mRgbaOutput = grayImg;
+		// }
 
 		// out dated, we only draw beacons from now on
 		if (!squareList.isEmpty()) {
-			Log.d(TAG, "Number Squares: " + squareList.size());
+
 			for (Square s : squareList) {
-//					Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-//					 s.getUpperRightEdge(), new Scalar(20), -1);
-//					Core.putText(mRgbaOutput, "center", s.getCenter(),
-//							CV_FONT_HERSHEY_COMPLEX, 0.5,
-//							new Scalar(0, 0, 255), 1, 8, false);
-					Core.circle(mRgbaOutput, s.getCenter(), 10, new Scalar(180));
-					Core.circle(mRgbaOutput, s.getLowerLeftEdge(), 10,
-							new Scalar(100));
-					Core.circle(mRgbaOutput, s.getUpperRightEdge(), 10,
-							new Scalar(250));
-					Core.circle(mRgbaOutput, s.getLowPt(), 10, new Scalar(70));
-//					Core.putText(mRgbaOutput, s.toString(),
-//							s.getLowerLeftEdge(), CV_FONT_HERSHEY_COMPLEX, 0.5,
-//							new Scalar(0, 0, 255), 1, 8, false);
-//				robot.writeLog(s.toString());
+				Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+						s.getUpperRightEdge(), new Scalar(20), -1);
+				robot.writeLog(s.toString());
 			}
 		}
-		
+
+		// draw Beacons
+		if (!beaconList.isEmpty()) {
+			for (Beacon b : beaconList) {
+				Core.rectangle(mRgbaOutput, b.getLowerLeftEdge(),
+						b.getUpperRightEdge(), new Scalar(120), -1);
+			}
+		}
+		frameInterval++;
 		return mRgbaOutput;
 	}
 
