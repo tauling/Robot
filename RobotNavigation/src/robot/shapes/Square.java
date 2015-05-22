@@ -16,7 +16,7 @@ public class Square extends Shape implements Comparable{
 		this.halfWidth = center.x-lowerEdgeLeft.x;
 		this.halfHeight = lowerEdgeLeft.y-center.y;
 		this.lowPt = new Point(center.x, center.y + this.halfHeight);
-		this.upperRightEdge = new Point(lowerEdgeLeft.x+2*halfWidth,center.y-this.halfHeight);
+		this.upperRightEdge = new Point(lowPt.x+this.halfWidth,center.y-this.halfHeight);
 	}
 	
 	public Square(Point center, Point lowPt, Point lowerEdgeLeft, int colorID) {
@@ -26,7 +26,7 @@ public class Square extends Shape implements Comparable{
 		this.lowerLeftEdge = lowerEdgeLeft;
 		this.halfWidth = center.x-lowerEdgeLeft.x;
 		this.halfHeight = lowerEdgeLeft.y-center.y;
-		this.upperRightEdge = new Point(lowerEdgeLeft.x+2*halfWidth,center.y-halfHeight);
+		this.upperRightEdge = new Point(lowPt.x+this.halfWidth,center.y-this.halfHeight);
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class Square extends Shape implements Comparable{
 	}
 
 	public int compareTo(Square otherSquare) {
-		 if (this.getCenter().y<otherSquare.getCenter().y){
+		 if (Math.abs(this.getCenter().y)<Math.abs(otherSquare.getCenter().y)){
 	            return -1;
 	        }else{
 	            return 1;

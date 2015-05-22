@@ -16,10 +16,12 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
 
 import robot.generated.R;
 import robot.shapes.Ball;
@@ -645,6 +647,29 @@ public class MainActivity extends Activity implements OnTouchListener,
 			frameInterval = 0;
 		}
 
+		frameInterval++;
+		
+		// draw Beacons
+		if (!beaconList.isEmpty()) {
+			for (Beacon b : beaconList) {
+				Core.rectangle(mRgbaOutput, b.getLowerLeftEdge(),
+						b.getUpperRightEdge(), new Scalar(120), -1);
+				Core.putText(mRgbaOutput, "center", b.getCenter(),
+						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
+						8, false);
+				Core.circle(mRgbaOutput, b.getCenter(), 10, new Scalar(0));
+				Core.circle(mRgbaOutput, b.getLowerLeftEdge(), 10, new Scalar(
+						40));
+				Core.circle(mRgbaOutput, b.getUpperRightEdge(), 10, new Scalar(
+						130));
+				Core.circle(mRgbaOutput, b.getLowPt(), 10, new Scalar(70));
+				Core.putText(mRgbaOutput,b.toString(), b.getLowerLeftEdge(),
+						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
+						8, false);
+			}
+		}
+
+
 		// draw squares on CameraFrame
 
 		// Mat grayImg = new Mat();
@@ -656,21 +681,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		// out dated, we only draw beacons from now on
 		if (!squareList.isEmpty()) {
+
 			for (Square s : squareList) {
 				Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
 						s.getUpperRightEdge(), new Scalar(20), -1);
-				Core.putText(mRgbaOutput, "center", s.getCenter(),
-						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
-						8, false);
-				Core.circle(mRgbaOutput, s.getCenter(), 10, new Scalar(180));
-				Core.circle(mRgbaOutput, s.getLowerLeftEdge(), 10, new Scalar(
-						180));
-				Core.circle(mRgbaOutput, s.getUpperRightEdge(), 10, new Scalar(
-						180));
-				Core.circle(mRgbaOutput, s.getLowPt(), 10, new Scalar(70));
-				Core.putText(mRgbaOutput, s.toString(), s.getLowerLeftEdge(),
-						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
-						8, false);
 				robot.writeLog(s.toString());
 			}
 		}

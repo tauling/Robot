@@ -17,6 +17,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
 
 import android.util.Log;
 import robot.shapes.Ball;
@@ -214,22 +215,14 @@ public class ImageProcessor {
 	 * @param contours
 	 * @return Point (representing center point)
 	 */
-	public Point computeCenterPt(List<MatOfPoint> contours) {
-		if (contours.isEmpty()) {
-			return (new Point(-200.0, -200.0)); // TODO: Better to return null
-												// in this case?
-		}
-		double avgX = 0, avgY = 0;
-		double count = 0.0;
-		for (int i = 0; i < contours.size(); i++) {
-			List<Point> pts = contours.get(i).toList();
-			for (Point p : pts) {
-				avgX += p.x;
-				avgY += p.y;
-				count++;
-			}
-		}
-		Point ptCenter = new Point(avgX / count, avgY / count);
+	public Point computeCenterPt(MatOfPoint contours) {
+
+		Moments mu = new Moments();
+		mu = Imgproc.moments(contours, false);
+		double x = mu.get_m10() / mu.get_m00();
+		double y = mu.get_m01() / mu.get_m00();
+
+		Point ptCenter = new Point(x, y);
 		return ptCenter;
 	}
 
@@ -255,21 +248,14 @@ public class ImageProcessor {
 	 *            center of the given contours
 	 * @return radius in pixels
 	 */
-	public double computeRadius(List<MatOfPoint> contours, Point center) {
-		if (contours.isEmpty()) {
-			return 0;
-		}
+	public double computeRadius(MatOfPoint contours, Point center) {
 		center = computeCenterPt(contours);
 		double distToCenter = 0;
-		int nrElements = 0;
-		for (int i = 0; i < contours.size(); i++) {
-			List<Point> pts = contours.get(i).toList();
-			for (Point p : pts) {
-				distToCenter += distPointToPoint(p, center);
-			}
-			nrElements += pts.size();
+		List<Point> pts = contours.toList();
+		for (Point p : pts) {
+			distToCenter += distPointToPoint(p, center);
 		}
-		distToCenter = distToCenter / nrElements;
+		distToCenter = distToCenter / pts.size();
 
 		return distToCenter;
 	}
@@ -329,10 +315,7 @@ public class ImageProcessor {
 
 			for (MatOfPoint area : contours) {
 
-				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
-				ballArea.add(area);
-
-				Point center = computeCenterPt(ballArea);
+				Point center = computeCenterPt(area);
 
 				circleCenters.add(center);
 			}
@@ -355,12 +338,9 @@ public class ImageProcessor {
 
 			for (MatOfPoint area : contours) {
 
-				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>();
-				ballArea.add(area);
+				Point center = computeCenterPt(area);
 
-				Point center = computeCenterPt(ballArea);
-
-				Double radius = computeRadius(ballArea, center);
+				Double radius = computeRadius(area, center);
 
 				Circle foundCircle = new Circle(center, radius);
 
@@ -379,20 +359,16 @@ public class ImageProcessor {
 		for (Scalar hsvColor : myColors) {
 			i++;
 			Mat grayImg = new Mat();
-			grayImg = filter(mRgbaWork, hsvColor);
+			do {
+				grayImg = filter(mRgbaWork, hsvColor);
+			} while (grayImg.empty());
 
 			List<MatOfPoint> contours = findContours(grayImg);
 
 			for (MatOfPoint area : contours) {
-				List<MatOfPoint> ballArea = new ArrayList<MatOfPoint>(); // TODO
-																			// rename
-				ballArea.add(area);
 
-				Point center = computeCenterPt(ballArea);
-
-				// squareSize[0] -> halfWidth
-				// squareSize[1] -> halfHeight
-				double[] squareSize = squareSize(ballArea, center);
+				Point center = computeCenterPt(area);
+				double[] squareSize = squareSize(area, center);
 
 				Point lowerEdgeLeft = computeLowerEdgeLeft(center, squareSize);
 
@@ -400,7 +376,12 @@ public class ImageProcessor {
 						lowerEdgeLeft, i);
 
 				squareList.add(foundSquare);
+
+				// squareSize[0] -> halfWidth
+				// squareSize[1] -> halfHeight
+
 			}
+
 		}
 		Log.i(TAG, "(findSquaresOnCamera) Found squares: " + squareList.size());
 		return squareList;
@@ -502,32 +483,30 @@ public class ImageProcessor {
 		Collections.reverse(squareList);
 		Log.i(TAG, "squareList: " + squareList.toString());
 		List<Beacon> beaconList = new ArrayList<Beacon>();
-		Double TOLx = 40.0;
-		Double TOLy = 50.0;
+		Double TOLx = 60.0;
+		Double TOLy = 60.0;
 		if (squareList.size() > 0) {
 			for (int i = 0; i < squareList.size() - 1; i++) {
 				for (int j = 1; j < squareList.size(); j++) {
 					Integer squareFoundBelow = 0;
 					Square squareA = squareList.get(i);
 					Square squareB = squareList.get(j);
-					if (compare2PtbyX(squareA.getLowPt(), squareB.getLowPt()) <= TOLx
-							&& compare2PtbyY(squareA.getLowPt(),
-									squareB.getLowPt()) <= TOLy) {
+					if (compare2PtbyX(squareA.getCenter(), squareB.getCenter()) <= TOLx
+							&& compare2PtbyY(squareA.getCenter(),
+									squareB.getCenter()) <= TOLy) {
 						Point newLowerLeftEdge = new Point();
 						Point newCenterPt = new Point();
-						if (squareA.getCenter().y > squareB.getCenter().y) {
+						if (Math.abs(squareA.getCenter().y) > Math.abs(squareB.getCenter().y)) {
 							squareFoundBelow++;
-							Double newHalfHeight = squareA.getHalfHeight() * 2;
 							// squareA is above squareB
 							newCenterPt = new Point(squareA.getCenter().x,
-									squareA.getCenter().y
-											+ (2 * squareA.getHalfHeight()));
+									squareA.getLowPt().y);
 							newLowerLeftEdge = new Point(
 									squareA.getLowerLeftEdge().x,
 									squareA.getLowerLeftEdge().y
 											+ (2 * squareA.getHalfHeight()));
 							Beacon newBeacon = new Beacon(newCenterPt,
-									newHalfHeight, newLowerLeftEdge,
+									squareB.getLowPt(), newLowerLeftEdge,
 									squareB.getColorID(), squareA.getColorID());
 							if (!beaconList.contains(newBeacon)
 									&& squareFoundBelow < 2) {
@@ -535,17 +514,15 @@ public class ImageProcessor {
 							}
 						} else {
 							squareFoundBelow++;
-							Double newHalfHeight = squareB.getHalfHeight() * 2;
 							// squareB is above squareA
 							newCenterPt = new Point(squareB.getCenter().x,
-									squareB.getCenter().y
-											+ (2 * squareB.getHalfHeight()));
+									squareB.getLowPt().y);
 							newLowerLeftEdge = new Point(
 									squareB.getLowerLeftEdge().x,
 									squareB.getLowerLeftEdge().y
 											+ (2 * squareB.getHalfHeight()));
 							Beacon newBeacon = new Beacon(newCenterPt,
-									newHalfHeight, newLowerLeftEdge,
+									squareA.getLowPt(), newLowerLeftEdge,
 									squareA.getColorID(), squareB.getColorID());
 							if (!beaconList.contains(newBeacon)
 									&& squareFoundBelow < 2) {
@@ -588,17 +565,16 @@ public class ImageProcessor {
 
 	// TODO: Needed? If so, add description
 	// TODO: Rename and finalize (see TODOs within method)
-	public double[] squareSize(List<MatOfPoint> contours, Point center) {
+	public double[] squareSize(MatOfPoint contours, Point center) {
 		Double width = 0.0, height = 0.0;
 		int countH = 0, countW = 0, count = 0;
-		for (int i = 0; i < contours.size(); i++) {
-			List<Point> pts = contours.get(i).toList();
-			for (Point p : pts) {
-				width += Math.abs(p.x - center.x);
-				height += Math.abs(p.y - center.y);
-				count++;
-			}
+		List<Point> pts = contours.toList();
+		for (Point p : pts) {
+			width += Math.abs(p.x - center.x);
+			height += Math.abs(p.y - center.y);
+			count++;
 		}
+
 		width = width / count;
 		height = height / count;
 
@@ -607,17 +583,15 @@ public class ImageProcessor {
 		Double borderRight = center.x + width;
 		Double borderTop = center.y + height;
 		Double borderBottom = center.y - height;
-		for (int j = 0; j < contours.size(); j++) {
-			List<Point> pts = contours.get(j).toList();
-			for (Point p : pts) {
-				if (borderLeft <= p.x && p.x <= borderRight) {
-					halfHeight += Math.abs(p.y - center.y);
-					countH++;
-				}
-				if (borderBottom <= p.y && p.y <= borderTop) {
-					halfWidth += Math.abs(p.x - center.x);
-					countW++;
-				}
+
+		for (Point p : pts) {
+			if (borderLeft <= p.x && p.x <= borderRight) {
+				halfHeight += Math.abs(p.y - center.y);
+				countH++;
+			}
+			if (borderBottom <= p.y && p.y <= borderTop) {
+				halfWidth += Math.abs(p.x - center.x);
+				countW++;
 			}
 		}
 		double[] squareSize = new double[2];

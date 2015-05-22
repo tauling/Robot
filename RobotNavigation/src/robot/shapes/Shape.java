@@ -2,7 +2,7 @@ package robot.shapes;
 
 import org.opencv.core.Point;
 
-public abstract class Shape {
+public abstract class Shape{
 	protected Point lowPt;
 	protected Point center;
 
