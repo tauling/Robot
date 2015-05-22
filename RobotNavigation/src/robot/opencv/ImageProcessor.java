@@ -32,6 +32,7 @@ public class ImageProcessor {
 													// filtering
 
 	private String TAG; // Tag for log-messages sent to logcat
+	
 
 	/**
 	 * Constructor method.
@@ -84,6 +85,7 @@ public class ImageProcessor {
 		} catch (Exception e) {
 		} finally {
 			tempImage.release(); // free memory
+			mHierarchy.release();
 		}
 		return mmContours;
 	}
@@ -132,7 +134,7 @@ public class ImageProcessor {
 		} else
 			return new Mat();
 	}
-
+	
 	/**
 	 * Filters the input image for the given color and opens the image (thus
 	 * reducing noice).
@@ -349,12 +351,14 @@ public class ImageProcessor {
 		int i = 0;
 		for (Scalar hsvColor : myColors) {
 			i++;
-			Mat grayImg = new Mat();
+			Mat grayImg;
 			do {
 				grayImg = filter(mRgbaWork, hsvColor);
 			} while (grayImg.empty());
 
 			List<MatOfPoint> contours = findContours(grayImg);
+			
+			grayImg.release();
 
 			for (MatOfPoint area : contours) {
 
