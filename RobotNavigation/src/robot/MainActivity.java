@@ -1,6 +1,7 @@
 package robot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -369,7 +371,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				// Not needed currently
+				collectAllBalls();
 			};
 		};
 
@@ -382,7 +384,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				// Not needed currently
+				UpdateselfLocalization();
 			};
 		};
 
@@ -408,7 +410,29 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				// not needed currently
+				Point center = new Point(0, 0);
+				Point center2 = new Point(0, 100);
+				Point center3 = new Point(0, -100);
+
+				Point lowPt = new Point(0, 0);
+				Point lowPt2 = new Point(0, 100);
+				Point lowPt3 = new Point(0, -100);
+
+				Point lowerEdgeLeft = new Point(0, 0);
+				Point lowerEdgeLeft2 = new Point(0, 100);
+				Point lowerEdgeLeft3 = new Point(0, -100);
+
+				List<Square> squareList = new ArrayList<Square>();
+				Square s1 = new Square(center, lowPt, lowerEdgeLeft, 1);
+				Square s2 = new Square(center2, lowPt2, lowerEdgeLeft2, 1);
+				Square s3 = new Square(center3, lowPt3, lowerEdgeLeft3, 1);
+				squareList.add(s1);
+				squareList.add(s2);
+				squareList.add(s3);
+
+				robot.writeLog(squareList.toString());
+				Collections.sort(squareList);
+				robot.writeLog(squareList.toString());
 			};
 		};
 
@@ -617,7 +641,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
 					myBeaconColors);
 			beaconList = imageProcessor.findBeaconOrdered(squareList);
-			UpdateselfLocalization();
 			frameInterval = 0;
 		}
 
@@ -625,12 +648,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		// draw squares on CameraFrame
 
-		Mat grayImg = new Mat();
-		if (!myBeaconColors.isEmpty()) {
-			for (Scalar s : myBeaconColors)
-				grayImg = imageProcessor.filter(mRgbaWork, s);
-			mRgbaOutput = grayImg;
-		}
+		// Mat grayImg = new Mat();
+		// if (!myBeaconColors.isEmpty()) {
+		// for (Scalar s : myBeaconColors)
+		// grayImg = imageProcessor.filter(mRgbaWork, s);
+		// mRgbaOutput = grayImg;
+		// }
 
 		// out dated, we only draw beacons from now on
 		if (!squareList.isEmpty()) {
@@ -731,6 +754,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// frames (in case at least two beacons are visible)
 	// TODO: add description
 	public void UpdateselfLocalization() {
+		findTwoBeacons();
 		robot.updateGlobalPosition(beaconList, homographyMatrix);
 	}
 

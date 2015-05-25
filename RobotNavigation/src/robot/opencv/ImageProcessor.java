@@ -32,7 +32,6 @@ public class ImageProcessor {
 													// filtering
 
 	private String TAG; // Tag for log-messages sent to logcat
-	
 
 	/**
 	 * Constructor method.
@@ -66,17 +65,31 @@ public class ImageProcessor {
 			// Find max contour area
 			double maxArea = 0;
 			Iterator<MatOfPoint> each = contours.iterator();
-			while (each.hasNext()) {
-				MatOfPoint wrapper = each.next();
+			int contourSize = contours.size();
+			for (int i = 0; i < contourSize; i++) {
+				MatOfPoint wrapper = contours.get(i);
 				double area = Imgproc.contourArea(wrapper);
 				if (area > maxArea)
 					maxArea = area;
 			}
+			// while (each.hasNext()) {
+			// MatOfPoint wrapper = each.next();
+			// double area = Imgproc.contourArea(wrapper);
+			// if (area > maxArea)
+			// maxArea = area;
+			// }
 
-			// Filter contours by area and resize to fit the original image size
-			each = contours.iterator();
-			while (each.hasNext()) {
-				MatOfPoint contour = each.next();
+			// // Filter contours by area and resize to fit the original image
+			// size
+			// each = contours.iterator();
+			// while (each.hasNext()) {
+			// MatOfPoint contour = each.next();
+			// if (Imgproc.contourArea(contour) > mMinContourArea * maxArea) {
+			// mmContours.add(contour);
+			// }
+			// }
+			for (int j = 0; j < contourSize; j++) {
+				MatOfPoint contour = contours.get(j);
 				if (Imgproc.contourArea(contour) > mMinContourArea * maxArea) {
 					mmContours.add(contour);
 				}
@@ -108,9 +121,11 @@ public class ImageProcessor {
 		float delta = 12.0f; // size of a single square edge in chessboard
 		LinkedList<Point> PointList = new LinkedList<Point>();
 		// Define real-world coordinates for given chessboard pattern:
-		for (int i = 0; i < mPatternSize.height; i++) {
+		double mPatternSizeHeight = mPatternSize.height;
+		double mPatternSizeWidth = mPatternSize.width;
+		for (int i = 0; i < mPatternSizeHeight; i++) {
 			y = 309.0f;
-			for (int j = 0; j < mPatternSize.width; j++) {
+			for (int j = 0; j < mPatternSizeWidth; j++) {
 				PointList.addLast(new Point(x, y));
 				y += delta;
 			}
@@ -134,7 +149,7 @@ public class ImageProcessor {
 		} else
 			return new Mat();
 	}
-	
+
 	/**
 	 * Filters the input image for the given color and opens the image (thus
 	 * reducing noice).
@@ -248,8 +263,9 @@ public class ImageProcessor {
 		center = computeCenterPt(contours);
 		double distToCenter = 0;
 		List<Point> pts = contours.toList();
-		for (Point p : pts) {
-			distToCenter += distPointToPoint(p, center);
+		int ptsAmount = pts.size();
+		for (int i = 0; i < ptsAmount; i++) {
+			distToCenter += distPointToPoint(pts.get(i), center);
 		}
 		distToCenter = distToCenter / pts.size();
 
@@ -323,18 +339,20 @@ public class ImageProcessor {
 	public List<Circle> findCirclesOnCamera2(Mat mRgbaWork,
 			List<Scalar> myColors) {
 		List<Circle> circlesList = new ArrayList<Circle>();
-		for (Scalar hsvColor : myColors) {
+		double colorAmount = myColors.size();
+		for (int i = 0; i < colorAmount; i++) {
 			Mat grayImg;
 			do {
-				grayImg = filter(mRgbaWork, hsvColor);
+				grayImg = filter(mRgbaWork, myColors.get(i));
 			} while (grayImg.empty());
 			List<MatOfPoint> contours = findContours(grayImg);
 
-			for (MatOfPoint area : contours) {
+			int contoursLength = contours.size();
+			for (int j = 0; j < contoursLength; j++) {
 
-				Point center = computeCenterPt(area);
+				Point center = computeCenterPt(contours.get(j));
 
-				Double radius = computeRadius(area, center);
+				Double radius = computeRadius(contours.get(j), center);
 
 				Circle foundCircle = new Circle(center, radius);
 
@@ -348,22 +366,22 @@ public class ImageProcessor {
 	// TODO Add comment
 	public List<Square> findSquaresOnCamera(Mat mRgbaWork, List<Scalar> myColors) {
 		List<Square> squareList = new ArrayList<Square>();
-		int i = 0;
-		for (Scalar hsvColor : myColors) {
-			i++;
+		int colorAmount = myColors.size();
+		for (int i = 0; i < colorAmount; i++) {
 			Mat grayImg;
 			do {
-				grayImg = filter(mRgbaWork, hsvColor);
+				grayImg = filter(mRgbaWork, myColors.get(i));
 			} while (grayImg.empty());
 
 			List<MatOfPoint> contours = findContours(grayImg);
-			
+
 			grayImg.release();
 
-			for (MatOfPoint area : contours) {
+			int contoursLength = contours.size();
+			for (int j = 0; j < contoursLength; j++) {
 
-				Point center = computeCenterPt(area);
-				double[] squareSize = squareSize(area, center);
+				Point center = computeCenterPt(contours.get(j));
+				double[] squareSize = squareSize(contours.get(j), center);
 
 				Point lowerEdgeLeft = computeLowerEdgeLeft(center, squareSize);
 
@@ -412,8 +430,9 @@ public class ImageProcessor {
 		Double TOLx = 40.0;
 		Double TOLy = 20.0;
 		if (squareList.size() > 0) {
-			for (int i = 0; i < squareList.size() - 1; i++) {
-				for (int j = 1; j < squareList.size(); j++) {
+			int squareListLength = squareList.size();
+			for (int i = 0; i < squareListLength - 1; i++) {
+				for (int j = 1; j < squareListLength; j++) {
 					// it's not possible to write compare method in
 					// point-class...
 					Square squareA = squareList.get(i);
@@ -478,8 +497,9 @@ public class ImageProcessor {
 		List<Beacon> beaconList = new ArrayList<Beacon>();
 		Double TOLx = 60.0;
 		Double TOLy = 60.0;
-		for (int i = 0; i < squareList.size() - 1; i++) {
-			for (int j = i + 1; j < squareList.size(); j++) {
+		int squareListLength = squareList.size();
+		for (int i = 0; i < squareListLength - 1; i++) {
+			for (int j = i + 1; j < squareListLength; j++) {
 				Integer squareFoundBelow = 0;
 				Square squareA = squareList.get(i);
 				Square squareB = squareList.get(j);
@@ -543,9 +563,10 @@ public class ImageProcessor {
 		Double width = 0.0, height = 0.0;
 		int countH = 0, countW = 0, count = 0;
 		List<Point> pts = contours.toList();
-		for (Point p : pts) {
-			width += Math.abs(p.x - center.x);
-			height += Math.abs(p.y - center.y);
+		int ptsAmount = pts.size();
+		for (int i = 0; i < ptsAmount; i++) {
+			width += Math.abs(pts.get(i).x - center.x);
+			height += Math.abs(pts.get(i).y - center.y);
 			count++;
 		}
 
@@ -558,13 +579,13 @@ public class ImageProcessor {
 		Double borderTop = center.y + height;
 		Double borderBottom = center.y - height;
 
-		for (Point p : pts) {
-			if (borderLeft <= p.x && p.x <= borderRight) {
-				halfHeight += Math.abs(p.y - center.y);
+		for (int i = 0; i < ptsAmount; i++) {
+			if (borderLeft <= pts.get(i).x && pts.get(i).x <= borderRight) {
+				halfHeight += Math.abs(pts.get(i).y - center.y);
 				countH++;
 			}
-			if (borderBottom <= p.y && p.y <= borderTop) {
-				halfWidth += Math.abs(p.x - center.x);
+			if (borderBottom <= pts.get(i).y && pts.get(i).y <= borderTop) {
+				halfWidth += Math.abs(pts.get(i).x - center.x);
 				countW++;
 			}
 		}
