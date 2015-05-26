@@ -625,12 +625,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		// draw squares on CameraFrame
 
-		Mat grayImg = new Mat();
-		if (!myBeaconColors.isEmpty()) {
-			for (Scalar s : myBeaconColors)
-				grayImg = imageProcessor.filter(mRgbaWork, s);
-			mRgbaOutput = grayImg;
-		}
+//		Mat grayImg = new Mat();
+//		if (!myBeaconColors.isEmpty()) {
+//			for (Scalar s : myBeaconColors)
+//				grayImg = imageProcessor.filter(mRgbaWork, s);
+//			mRgbaOutput = grayImg;
+//		}
 
 		// out dated, we only draw beacons from now on
 		if (!squareList.isEmpty()) {

@@ -1321,12 +1321,10 @@ public class Robot {
 		Ball detectedBall = null;
 		if (turnAndFindABall(mRgbaWork, myColors)) {
 			for (Scalar hsvColor : myColors) {
-				Mat grayImg;
-				do {
-					grayImg = imageProcessor.filter(mRgbaWork, hsvColor);
-				} while (grayImg.empty());
+				Mat grayImg = imageProcessor.filter(mRgbaWork, hsvColor);
 				List<MatOfPoint> contours = imageProcessor
 						.findContours(grayImg);
+				grayImg.release();
 				Log.e(TAG, "found areas: " + contours.size());
 				for (MatOfPoint area : contours) {
 
@@ -1338,7 +1336,6 @@ public class Robot {
 
 					detectedBall = new Ball(center, pointGroundPlane, rad);
 				}
-				grayImg.release();
 			}
 		}
 

@@ -192,6 +192,7 @@ public class ImageProcessor {
 					new Size(7, 7));
 			Imgproc.dilate(mmMask, mmDilatedMask, element);
 			Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
+			element.release();
 
 			Imgproc.resize(mmDilatedMask, mmDilatedMask, rgbaImage.size());
 
@@ -301,11 +302,9 @@ public class ImageProcessor {
 	public List<Point> findCirclesOnCamera(Mat mRgbaWork, List<Scalar> myColors) {
 		List<Point> circleCenters = new ArrayList<Point>();
 		for (Scalar hsvColor : myColors) {
-			Mat grayImg;
-			do {
-				grayImg = filter(mRgbaWork, hsvColor);
-			} while (grayImg.empty());
+			Mat grayImg = filter(mRgbaWork, hsvColor);
 			List<MatOfPoint> contours = findContours(grayImg);
+			grayImg.release();
 
 			for (MatOfPoint area : contours) {
 
@@ -313,7 +312,6 @@ public class ImageProcessor {
 
 				circleCenters.add(center);
 			}
-			grayImg.release();
 		}
 
 		return circleCenters;
@@ -325,10 +323,9 @@ public class ImageProcessor {
 		List<Circle> circlesList = new ArrayList<Circle>();
 		for (Scalar hsvColor : myColors) {
 			Mat grayImg;
-			do {
-				grayImg = filter(mRgbaWork, hsvColor);
-			} while (grayImg.empty());
+			grayImg = filter(mRgbaWork, hsvColor);
 			List<MatOfPoint> contours = findContours(grayImg);
+			grayImg.release();
 
 			for (MatOfPoint area : contours) {
 
@@ -340,7 +337,6 @@ public class ImageProcessor {
 
 				circlesList.add(foundCircle);
 			}
-			grayImg.release();
 		}
 		return circlesList;
 	}
@@ -352,9 +348,7 @@ public class ImageProcessor {
 		for (Scalar hsvColor : myColors) {
 			i++;
 			Mat grayImg;
-			do {
-				grayImg = filter(mRgbaWork, hsvColor);
-			} while (grayImg.empty());
+			grayImg = filter(mRgbaWork, hsvColor);
 
 			List<MatOfPoint> contours = findContours(grayImg);
 			
