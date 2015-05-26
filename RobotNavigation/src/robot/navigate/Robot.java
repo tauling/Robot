@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import jp.ksksue.driver.serial.FTDriver;
+
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -18,8 +20,6 @@ import org.opencv.core.Scalar;
 import robot.opencv.ImageProcessor;
 import robot.shapes.Ball;
 import robot.shapes.Beacon;
-import robot.shapes.Square;
-import jp.ksksue.driver.serial.FTDriver;
 import android.os.Handler;
 import android.util.Log;
 import android.widget.ScrollView;
@@ -752,7 +752,7 @@ public class Robot {
 		int degrees = angle;
 		degrees = (int) (CorrFactAngleByDist * degrees);
 		// int targetedAngleByOnce = 30; // TODO: Make global? Check if needed;
-		// could improve accuracy 
+		// could improve accuracy
 		int maxDegreesByOnce = 40;
 		// if (angle > targetedAngleByOnce) {
 		// maxDegreesByOnce = Math.min(127,
@@ -1262,6 +1262,32 @@ public class Robot {
 		}
 	}
 
+	/**
+	 * Drives to the ball and cages it. BUT does not update targetball
+	 * 
+	 * @param ball
+	 *            the ball to cage
+	 * @param mRgbaWork
+	 *            image to work on
+	 * @param myColors
+	 *            colors that are recognized by the robot
+	 * @param homographyMatrix
+	 *            used to map from camera pixels to ground plane coordinates
+	 */
+	public void driveToBallAndCage2(Ball ball, Mat mRgbaWork,
+			List<Scalar> myColors, Mat homographyMatrix, List<Ball> foundBalls) {
+		Point ballTarget = ball.getPosGroundPlane();
+		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 25);
+		ballTarget = findNearestBall(foundBalls).getPosGroundPlane();
+		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 5);
+		Log.i(TAG, "(driveToBallAndCage) lowering bar");
+		robotSetBar(50);
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+		}
+	}
+
 	// TODO: needed?
 	// TODO add comment
 	// TODO fix: this method is used to detect various balls; currently not
@@ -1445,7 +1471,6 @@ public class Robot {
 		writeLog("(alignToPoint) aligned");
 	}
 
-	
 	/**
 	 * Uses beacons (with known positions) to update current position.
 	 * 
@@ -1459,21 +1484,22 @@ public class Robot {
 		double avgPosition_x = 0;
 		double avgPosition_y = 0;
 		double avgPosition_theta = 0;
-		
+
 		for (int i = 0; i < beacons.size(); i++) {
-			for (int j = i+1; j < beacons.size(); j++) {
+			for (int j = i + 1; j < beacons.size(); j++) {
 				count++;
-				Position foundPosition = findPosition(beacons.get(i), beacons.get(j), homographyMatrix);
+				Position foundPosition = findPosition(beacons.get(i),
+						beacons.get(j), homographyMatrix);
 				avgPosition_x += foundPosition.x;
 				avgPosition_y += foundPosition.y;
 				avgPosition_theta += foundPosition.theta;
 			}
 		}
-		
+
 		myPos.x += avgPosition_x / count;
 		myPos.y += avgPosition_y / count;
 		myPos.theta += avgPosition_theta / count;
-		
+
 	}
 
 	// TODO: test
@@ -1591,11 +1617,10 @@ public class Robot {
 				'r');
 
 		// TODO: write similar method, which doesn't overwrite surrendered ball
-		driveToBallAndCage(findNearestBall(balls), mRgbaWork, myColors,
-				homographyMatrix);
+		driveToBallAndCage2(findNearestBall(balls), mRgbaWork, myColors,
+				homographyMatrix, balls);
 		moveToTarget(targetPoint);
 	}
-
 
 	/**
 	 * Turns and looks for the nearest ball with a clear line of sight.

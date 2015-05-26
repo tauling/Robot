@@ -60,6 +60,11 @@ public class Square extends Shape implements Comparable<Square> {
 
 	public int compareTo(Square otherSquare) {
 		if (this.getCenter().y < otherSquare.getCenter().y) {
+<<<<<<< HEAD
+=======
+			return -1;
+		} else if (this.getCenter().y > otherSquare.getCenter().y) {
+>>>>>>> db47b8ee5ec61e183701c30e1e01c6c5cc1f6a9e
 			return 1;
 		} else if (this.getCenter().y > otherSquare.getCenter().y) {
 			return -1;
@@ -68,4 +73,18 @@ public class Square extends Shape implements Comparable<Square> {
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	@Override
+	public int compareTo(Object another) {
+		if (this.getCenter().y < ((Shape) another).getCenter().y) {
+			return -1;
+		} else if (this.getCenter().y > ((Shape) another).getCenter().y) {
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+
+>>>>>>> db47b8ee5ec61e183701c30e1e01c6c5cc1f6a9e
 }
