@@ -2,7 +2,7 @@ package robot.shapes;
 
 import org.opencv.core.Point;
 
-public class Square extends Shape implements Comparable {
+public class Square extends Shape implements Comparable<Square> {
 	private Point lowerLeftEdge;
 	private Point upperRightEdge;
 	private Double halfWidth;
@@ -43,7 +43,7 @@ public class Square extends Shape implements Comparable {
 	}
 
 	public Point getUpperRightEdge() {
-		return upperRightEdge;
+		return upperRightEdge;	
 	}
 
 	public Double getHalfWidth() {
@@ -67,16 +67,6 @@ public class Square extends Shape implements Comparable {
 			return 0;
 		}
 	}
-
-	@Override
-	public int compareTo(Object another) {
-		if (this.getCenter().y < ((Shape) another).getCenter().y) {
-			return -1;
-		} else if (this.getCenter().y > ((Shape) another).getCenter().y) {
-			return 1;
-		} else {
-			return 0;
-		}
-	}
-
+	
+	// TODO: Sorting works?
 }

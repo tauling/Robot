@@ -209,6 +209,7 @@ public class ImageProcessor {
 					new Size(7, 7));
 			Imgproc.dilate(mmMask, mmDilatedMask, element);
 			Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
+			element.release();
 
 			Imgproc.resize(mmDilatedMask, mmDilatedMask, rgbaImage.size());
 
@@ -319,11 +320,9 @@ public class ImageProcessor {
 	public List<Point> findCirclesOnCamera(Mat mRgbaWork, List<Scalar> myColors) {
 		List<Point> circleCenters = new ArrayList<Point>();
 		for (Scalar hsvColor : myColors) {
-			Mat grayImg;
-			do {
-				grayImg = filter(mRgbaWork, hsvColor);
-			} while (grayImg.empty());
+			Mat grayImg = filter(mRgbaWork, hsvColor);
 			List<MatOfPoint> contours = findContours(grayImg);
+			grayImg.release();
 
 			for (MatOfPoint area : contours) {
 
@@ -331,7 +330,6 @@ public class ImageProcessor {
 
 				circleCenters.add(center);
 			}
-			grayImg.release();
 		}
 
 		return circleCenters;
@@ -344,10 +342,9 @@ public class ImageProcessor {
 		double colorAmount = myColors.size();
 		for (int i = 0; i < colorAmount; i++) {
 			Mat grayImg;
-			do {
-				grayImg = filter(mRgbaWork, myColors.get(i));
-			} while (grayImg.empty());
+			grayImg = filter(mRgbaWork, myColors.get(i));
 			List<MatOfPoint> contours = findContours(grayImg);
+			grayImg.release();
 
 			int contoursLength = contours.size();
 			for (int j = 0; j < contoursLength; j++) {
@@ -360,7 +357,6 @@ public class ImageProcessor {
 
 				circlesList.add(foundCircle);
 			}
-			grayImg.release();
 		}
 		return circlesList;
 	}
@@ -371,9 +367,7 @@ public class ImageProcessor {
 		int colorAmount = myColors.size();
 		for (int i = 0; i < colorAmount; i++) {
 			Mat grayImg;
-			do {
-				grayImg = filter(mRgbaWork, myColors.get(i));
-			} while (grayImg.empty());
+			grayImg = filter(mRgbaWork, myColors.get(i));
 
 			List<MatOfPoint> contours = findContours(grayImg);
 
@@ -388,7 +382,7 @@ public class ImageProcessor {
 				Point lowerEdgeLeft = computeLowerEdgeLeft(center, squareSize);
 
 				Square foundSquare = new Square(center, squareSize[0],
-						lowerEdgeLeft, i);
+						lowerEdgeLeft, i + 1);
 
 				/**
 				 * squareSize[0] -> halfWidth squareSize[1] -> halfHeight

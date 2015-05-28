@@ -397,7 +397,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				// Not needed currently
+				List<Beacon> beaconlist = imageProcessor.findBeacon(squareList);
+				robot.updateGlobalPosition(beaconlist, homographyMatrix);
+				robot.writeLog("Robot's new position: "
+						+ robot.getMyPosition().toString());
 			};
 		};
 
