@@ -3,8 +3,10 @@ package robot.opencv;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -388,10 +390,10 @@ public class ImageProcessor {
 				Square foundSquare = new Square(center, squareSize[0],
 						lowerEdgeLeft, i);
 
+				/**
+				 * squareSize[0] -> halfWidth squareSize[1] -> halfHeight
+				 */
 				squareList.add(foundSquare);
-
-				// squareSize[0] -> halfWidth
-				// squareSize[1] -> halfHeight
 
 			}
 
@@ -490,8 +492,15 @@ public class ImageProcessor {
 	 * compares alignment of all squares in global squareCenter-list and tries
 	 * to find stacked squares if two squares are stacked the method deletes one
 	 * of them and extends the first to the size of both
+	 * 
+	 * @param needs
+	 *            list of all squares
 	 */
-	public List<Beacon> findBeaconOrdered(List<Square> squareList) {
+	public Map<List<Beacon>, List<Square>> findBeaconOrdered(
+			List<Square> squareList) {
+		List<Square> confSquares = new ArrayList<Square>(); // confSquares
+															// contains
+															// confirmed squares
 		Collections.sort(squareList);
 		Log.i(TAG, "squareList: " + squareList.toString());
 		List<Beacon> beaconList = new ArrayList<Beacon>();
@@ -507,7 +516,8 @@ public class ImageProcessor {
 				if (compare2PtbyX(squareA.getLowPt(),
 						squareB.getUpperRightEdge()) <= TOLx
 						&& compare2PtbyY(squareA.getLowPt(),
-								squareB.getUpperRightEdge()) <= TOLy) {
+								squareB.getUpperRightEdge()) <= TOLy
+						&& squareTest(squareA)) {
 					Point newCenterPt;
 					Point newLowerLeftEdge;
 					squareFoundBelow++;
@@ -520,8 +530,11 @@ public class ImageProcessor {
 					Beacon newBeacon = new Beacon(newCenterPt,
 							squareB.getLowPt(), newLowerLeftEdge,
 							squareB.getColorID(), squareA.getColorID());
-					if (!beaconList.contains(newBeacon) && squareFoundBelow < 2) {
+					if (!beaconList.contains(newBeacon) && squareFoundBelow < 2
+							&& checkIntersection(beaconList, newBeacon)) {
 						beaconList.add(newBeacon);
+						confSquares.add(squareA);
+						confSquares.add(squareB);
 					}
 					// overwrite/extend one square to the size of both
 					// squares and
@@ -529,7 +542,37 @@ public class ImageProcessor {
 				}
 			}
 		}
-		return beaconList;
+		Map<List<Beacon>, List<Square>> beaconsAndSquares = new LinkedHashMap<List<Beacon>, List<Square>>();
+		beaconsAndSquares.put(beaconList, confSquares);
+		return beaconsAndSquares;
+	}
+
+	private boolean checkIntersection(List<Beacon> beaconList, Beacon newBeacon) {
+		boolean noconflict = true;
+		int beaconListLength = beaconList.size();
+		for (int i = 0; i < beaconListLength; i++) {
+			double left = beaconList.get(i).getLowerLeftEdge().x;
+			double right = beaconList.get(i).getUpperRightEdge().x;
+			if (left <= newBeacon.getCenter().x
+					&& newBeacon.getCenter().x <= right) {
+				noconflict = false;
+			}
+		}
+		return noconflict;
+	}
+
+	/**
+	 * tests if surrendered squares has the width and height relation to be a
+	 * real square and not a circle
+	 */
+	private Boolean squareTest(Square s) {
+		Double width = s.getHalfWidth() * 2;
+		Double height = s.getHalfHeight() * 2;
+		if (height / 0.65 > width) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	// TODO update description

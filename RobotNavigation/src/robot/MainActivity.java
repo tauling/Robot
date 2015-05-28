@@ -133,9 +133,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 	List<Circle> circleList = new ArrayList<Circle>();
 
 	List<Square> squareList = new ArrayList<Square>();
+	List<Square> confirmedSquares = new ArrayList<Square>();
 
 	List<Beacon> beaconList = new ArrayList<Beacon>();
-
 	// Robot specific variables
 	// TODO Use Position.java instead of targetX and targetY
 	private double targetX = 100.0; // target's x-coordinate
@@ -468,6 +468,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		circleList = new ArrayList<Circle>();
 		squareList = new ArrayList<Square>();
+		confirmedSquares = new ArrayList<Square>();
 		beaconList = new ArrayList<Beacon>();
 		myCircleColors = new ArrayList<Scalar>();
 		myBeaconColors = new ArrayList<Scalar>();
@@ -640,7 +641,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 					myCircleColors);
 			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
 					myBeaconColors);
-			beaconList = imageProcessor.findBeaconOrdered(squareList);
+			Map<List<Beacon>, List<Square>> beaconsAndSquares = imageProcessor
+					.findBeaconOrdered(squareList);
+			for (List<Beacon> beacons : beaconsAndSquares.keySet())
+				beaconList = beacons;
+			for (List<Square> squares : beaconsAndSquares.values())
+				confirmedSquares = squares;
 			frameInterval = 0;
 		}
 
@@ -661,7 +667,17 @@ public class MainActivity extends Activity implements OnTouchListener,
 			for (Square s : squareList) {
 				Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
 						s.getUpperRightEdge(), new Scalar(20), -1);
-				robot.writeLog(s.toString());
+				// robot.writeLog(s.toString());
+			}
+		}
+
+		// draw confirmed squares
+		if (!confirmedSquares.isEmpty()) {
+
+			for (Square s : confirmedSquares) {
+				Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+						s.getUpperRightEdge(), new Scalar(80), -1);
+				// robot.writeLog(s.toString());
 			}
 		}
 
