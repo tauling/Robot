@@ -524,7 +524,7 @@ public class ImageProcessor {
 					Beacon newBeacon = new Beacon(newCenterPt,
 							squareB.getLowPt(), newLowerLeftEdge,
 							squareB.getColorID(), squareA.getColorID());
-					if (!checkIfNew(beaconList, newBeacon)
+					if (checkIfNew(beaconList, newBeacon)
 							&& squareFoundBelow < 2
 							&& checkIntersection(beaconList, newBeacon)) {
 						beaconList.add(newBeacon);
