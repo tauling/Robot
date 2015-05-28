@@ -380,7 +380,7 @@ public class ImageProcessor {
 				Point lowerEdgeLeft = computeLowerEdgeLeft(center, squareSize);
 
 				Square foundSquare = new Square(center, squareSize[0],
-						lowerEdgeLeft, i);
+						lowerEdgeLeft, i + 1);
 
 				squareList.add(foundSquare);
 
