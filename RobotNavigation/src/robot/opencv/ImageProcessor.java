@@ -524,7 +524,8 @@ public class ImageProcessor {
 					Beacon newBeacon = new Beacon(newCenterPt,
 							squareB.getLowPt(), newLowerLeftEdge,
 							squareB.getColorID(), squareA.getColorID());
-					if (!beaconList.contains(newBeacon) && squareFoundBelow < 2
+					if (!checkIfNew(beaconList, newBeacon)
+							&& squareFoundBelow < 2
 							&& checkIntersection(beaconList, newBeacon)) {
 						beaconList.add(newBeacon);
 						confSquares.add(squareA);
@@ -539,6 +540,19 @@ public class ImageProcessor {
 		Map<List<Beacon>, List<Square>> beaconsAndSquares = new LinkedHashMap<List<Beacon>, List<Square>>();
 		beaconsAndSquares.put(beaconList, confSquares);
 		return beaconsAndSquares;
+	}
+
+	private boolean checkIfNew(List<Beacon> beaconList, Beacon newBeacon) {
+		boolean unique = true;
+		int beaconListLength = beaconList.size();
+		double TOL = 10;
+		for (int i = 0; i < beaconListLength; i++) {
+			Point refPt = beaconList.get(i).getCenter();
+			if (distPointToPoint(refPt, newBeacon.getCenter()) > TOL) {
+				unique = false;
+			}
+		}
+		return unique;
 	}
 
 	private boolean checkIntersection(List<Beacon> beaconList, Beacon newBeacon) {
