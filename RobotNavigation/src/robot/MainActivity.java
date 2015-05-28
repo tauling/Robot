@@ -1,7 +1,6 @@
 package robot;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +16,6 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -28,6 +26,7 @@ import robot.navigate.Robot;
 import robot.opencv.ImageProcessor;
 import robot.shapes.Ball;
 import robot.shapes.Beacon;
+import robot.shapes.BeaconSquareHolder;
 import robot.shapes.Circle;
 import robot.shapes.Square;
 import android.annotation.SuppressLint;
@@ -413,29 +412,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				Point center = new Point(0, 0);
-				Point center2 = new Point(0, 100);
-				Point center3 = new Point(0, -100);
-
-				Point lowPt = new Point(0, 0);
-				Point lowPt2 = new Point(0, 100);
-				Point lowPt3 = new Point(0, -100);
-
-				Point lowerEdgeLeft = new Point(0, 0);
-				Point lowerEdgeLeft2 = new Point(0, 100);
-				Point lowerEdgeLeft3 = new Point(0, -100);
-
-				List<Square> squareList = new ArrayList<Square>();
-				Square s1 = new Square(center, lowPt, lowerEdgeLeft, 1);
-				Square s2 = new Square(center2, lowPt2, lowerEdgeLeft2, 1);
-				Square s3 = new Square(center3, lowPt3, lowerEdgeLeft3, 1);
-				squareList.add(s1);
-				squareList.add(s2);
-				squareList.add(s3);
-
-				robot.writeLog(squareList.toString());
-				Collections.sort(squareList);
-				robot.writeLog(squareList.toString());
+				robot.writeLog("i know " + beaconList.size() + " beacons");
 			};
 		};
 
@@ -644,12 +621,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 					myCircleColors);
 			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
 					myBeaconColors);
-			Map<List<Beacon>, List<Square>> beaconsAndSquares = imageProcessor
+			BeaconSquareHolder beaconsAndSquares = imageProcessor
 					.findBeaconOrdered(squareList);
-			for (List<Beacon> beacons : beaconsAndSquares.keySet())
-				beaconList = beacons;
-			for (List<Square> squares : beaconsAndSquares.values())
-				confirmedSquares = squares;
+			beaconList = beaconsAndSquares.getBeaconList();
+			confirmedSquares = beaconsAndSquares.getSquareList();
 			frameInterval = 0;
 		}
 
