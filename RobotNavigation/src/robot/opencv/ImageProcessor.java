@@ -3,10 +3,8 @@ package robot.opencv;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -21,6 +19,7 @@ import org.opencv.imgproc.Moments;
 
 import robot.shapes.Ball;
 import robot.shapes.Beacon;
+import robot.shapes.BeaconSquareHolder;
 import robot.shapes.Circle;
 import robot.shapes.Square;
 import android.util.Log;
@@ -490,8 +489,7 @@ public class ImageProcessor {
 	 * @param needs
 	 *            list of all squares
 	 */
-	public Map<List<Beacon>, List<Square>> findBeaconOrdered(
-			List<Square> squareList) {
+	public BeaconSquareHolder findBeaconOrdered(List<Square> squareList) {
 		List<Square> confSquares = new ArrayList<Square>(); // confSquares
 															// contains
 															// confirmed squares
@@ -537,18 +535,16 @@ public class ImageProcessor {
 				}
 			}
 		}
-		Map<List<Beacon>, List<Square>> beaconsAndSquares = new LinkedHashMap<List<Beacon>, List<Square>>();
-		beaconsAndSquares.put(beaconList, confSquares);
-		return beaconsAndSquares;
+		return new BeaconSquareHolder(beaconList, confSquares);
 	}
 
 	private boolean checkIfNew(List<Beacon> beaconList, Beacon newBeacon) {
 		boolean unique = true;
+		double TOL = 2;
 		int beaconListLength = beaconList.size();
-		double TOL = 10;
 		for (int i = 0; i < beaconListLength; i++) {
 			Point refPt = beaconList.get(i).getCenter();
-			if (distPointToPoint(refPt, newBeacon.getCenter()) > TOL) {
+			if (distPointToPoint(refPt, newBeacon.getCenter()) < TOL) {
 				unique = false;
 			}
 		}
