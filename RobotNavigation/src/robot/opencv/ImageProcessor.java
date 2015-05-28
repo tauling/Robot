@@ -334,7 +334,17 @@ public class ImageProcessor {
 		return circleCenters;
 	}
 
-	// TODO Add comment
+	/**
+	 * Finds the centers of all circles on a given image matrix..
+	 * 
+	 * @param mRgbaWork
+	 *            The image to find circles in.
+	 * @param myColors
+	 *            a list of colors which should be processed
+	 * 
+	 * @return a list of centers of circles that are currently present on the
+	 *         camera frame
+	 */
 	public List<Circle> findCirclesOnCamera2(Mat mRgbaWork,
 			List<Scalar> myColors) {
 		List<Circle> circlesList = new ArrayList<Circle>();
@@ -360,7 +370,14 @@ public class ImageProcessor {
 		return circlesList;
 	}
 
-	// TODO Add comment
+	/**
+	 * detect contours for all colors in myColors-list and creates squares based
+	 * on these contours
+	 * 
+	 * @param mRgbaWork
+	 * @param myColors
+	 * @return list of squares
+	 */
 	public List<Square> findSquaresOnCamera(Mat mRgbaWork, List<Scalar> myColors) {
 		List<Square> squareList = new ArrayList<Square>();
 		int colorAmount = myColors.size();
@@ -395,7 +412,15 @@ public class ImageProcessor {
 		return squareList;
 	}
 
-	// TODO Add comment
+	/**
+	 * computes the coordinates for the lower left edge
+	 * 
+	 * @param center
+	 *            point
+	 * @param squareSize
+	 *            (half width and half height)
+	 * @return computed new lower left edge point
+	 */
 	private Point computeLowerEdgeLeft(Point center, double[] squareSize) {
 		Double halfWidth = squareSize[0];
 		Double halfHeight = squareSize[1];
@@ -414,11 +439,14 @@ public class ImageProcessor {
 		return new Scalar(color);
 	}
 
-	// TODO update Description
 	/**
-	 * compares alignment of all squares in global squareCenter-list and tries
-	 * to find stacked squares if two squares are stacked the method deletes one
-	 * of them and extends the first to the size of both
+	 * 1) sorts square-list 2) compares alignment of all squares in global
+	 * squareCenter-list and tries to find stacked squares 3) if two squares are
+	 * stacked we create a beacon
+	 * 
+	 * @param sqaure
+	 *            -list
+	 * @return list of beacons
 	 */
 	public List<Beacon> findBeacon(List<Square> squareList) {
 		List<Beacon> beaconList = new ArrayList<Beacon>();
@@ -505,9 +533,8 @@ public class ImageProcessor {
 				Square squareA = squareList.get(i);
 				Square squareB = squareList.get(j);
 				// squareA should always be above squareB
-				
-				if (compare2PtbyX(squareA.getLowPt(),
-						squareB.getCenter()) <= TOLx
+
+				if (compare2PtbyX(squareA.getLowPt(), squareB.getCenter()) <= TOLx
 						&& compare2PtbyY(squareA.getLowPt(),
 								squareB.getUpperRightEdge()) <= TOLy
 						&& squareTest(squareA)) {
@@ -520,12 +547,17 @@ public class ImageProcessor {
 					newLowerLeftEdge = new Point(squareA.getLowerLeftEdge().x,
 							squareA.getLowerLeftEdge().y
 									+ (2 * squareA.getHalfHeight()));
-					Beacon newBeacon = new Beacon(newCenterPt, newLowerLeftEdge,
-							squareB.getColorID(), squareA.getColorID());
+					Beacon newBeacon = new Beacon(newCenterPt,
+							newLowerLeftEdge, squareB.getColorID(),
+							squareA.getColorID());
 					if (checkIfNew(beaconList, newBeacon)
 							&& squareFoundBelow < 2
 							&& checkIntersection(beaconList, newBeacon)) {
-						Log.i(TAG, "Made Beacon out of Square A: " + squareA.toString() + " and Square B: " + squareB.toString());
+						Log.i(TAG,
+								"Made Beacon out of Square A: "
+										+ squareA.toString()
+										+ " and Square B: "
+										+ squareB.toString());
 						beaconList.add(newBeacon);
 						confSquares.add(squareA);
 						confSquares.add(squareB);

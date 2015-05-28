@@ -167,6 +167,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+		// initialize myColors
+		myBeaconColors.add(new Scalar(22, 230, 187)); // orange
+		myBeaconColors.add(new Scalar(111, 139, 97)); // blue
+		// myCircleColors.add(new Scalar()); // magenta
+		// myCircleColors.add(new Scalar()); // green
 	}
 
 	public void buttonMoveToGoalN3_onClick(View v) {
@@ -370,7 +376,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				collectAllBalls();
+
 			};
 		};
 
@@ -597,7 +603,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		} else {
 			myBeaconColors.add(mBlobColorHsv);
 		}
-		Log.i(TAG, "saved colors: " + myCircleColors.size());
+		Log.i(TAG, "saved colors: " + myCircleColors.size() + mBlobColorHsv);
 		touchedRegionRgba.release();
 		touchedRegionHsv.release();
 		return false;
