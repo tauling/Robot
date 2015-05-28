@@ -120,12 +120,12 @@ public class Robot {
 	static {
 		Map<Integer, Point> tmpPosition = new LinkedHashMap<Integer, Point>();
 		tmpPosition.put(12, new Point(-125.0, 125.0));
-		tmpPosition.put(21, new Point(0, 125.0));
+		tmpPosition.put(21, new Point(0.0, 125.0));
 		tmpPosition.put(13, new Point(125.0, 125.0));
-		tmpPosition.put(42, new Point(-125.0, 0));
-		tmpPosition.put(42, new Point(125.0, 0));
+		tmpPosition.put(42, new Point(-125.0, 0.0));
+		tmpPosition.put(24, new Point(125.0, 0.0));
 		tmpPosition.put(41, new Point(-125.0, -125.0));
-		tmpPosition.put(14, new Point(0, -125.0));
+		tmpPosition.put(14, new Point(0.0, -125.0));
 		tmpPosition.put(31, new Point(125.0, -125.0));
 		BeaconPosition = Collections.unmodifiableMap(tmpPosition);
 
@@ -1530,7 +1530,7 @@ public class Robot {
 	private Position findPosition(Beacon beacon1, Beacon beacon2,
 			Mat homographyMatrix) {
 
-		writeLog("Trying to find the position by having a look at Beacon " + BeaconID.get(beacon1.getColorComb()) + " with color "+ beacon1.getColorComb() + " and  Beacon " + BeaconID.get(beacon2.getColorComb()) + " with color "+ beacon2.getColorComb());
+		writeLog("findPosition -> Trying to find the position by having a look at Beacon " + BeaconID.get(beacon1.getColorComb()) + " with color "+ beacon1.getColorComb() + " and  Beacon " + BeaconID.get(beacon2.getColorComb()) + " with color "+ beacon2.getColorComb());
 		
 		// Creates the ID of a pair of beacons which consists of two numbers:
 		// First number -> ID of beacon with lower ID,
@@ -1545,15 +1545,20 @@ public class Robot {
 					+ BeaconID.get(beacon1.getColorComb());
 		}
 		
-		writeLog("Leading to following beacon ID combo: " + beacIDcomb);
+		writeLog("findPosition -> Leading to following beacon ID combo: " + beacIDcomb);
+
+		Point pos1 = BeaconPosition.get(beacon1.getColorComb()); 
+		Point pos2 = BeaconPosition.get(beacon2.getColorComb()); 
 		
+		writeLog("findPosition -> Beacon 1 position: " + pos1);
+		writeLog("findPosition -> Beacon 2 position: " + pos2);
 		
 		// distance between the two beacons
 		double b = imageProcessor.distPointToPoint(
-				BeaconPosition.get(beacon1.getColorComb()),
-				BeaconPosition.get(beacon2.getColorComb()));
+				pos1,
+				pos2);
 
-		writeLog("Distance between Beacons: " + b);
+		writeLog("findPosition -> Distance between Beacons: " + b);
 
 		double c;
 		double a;
@@ -1563,8 +1568,8 @@ public class Robot {
 				beacon2.getLowPt(), homographyMatrix); 
 		
 
-		writeLog("First beacon is located at (relative to robot) " + ground1.toString());
-		writeLog("Second beacon is located at (relative to robot) " + ground2.toString());
+		writeLog("findPosition -> First beacon is located at (relative to robot) " + ground1.toString());
+		writeLog("findPosition -> Second beacon is located at (relative to robot) " + ground2.toString());
 		
 
 		// The distance of the beacon which appears first (from left to right)

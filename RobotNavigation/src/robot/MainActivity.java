@@ -396,7 +396,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				List<Beacon> beaconlist = imageProcessor.findBeacon(squareList);
+				List<Beacon> beaconlist = imageProcessor.findBeaconOrdered(squareList).getBeaconList();
 				robot.updateGlobalPosition(beaconlist, homographyMatrix);
 				robot.writeLog("Robot's new position: "
 						+ robot.getMyPosition().toString());
@@ -412,7 +412,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				List<Beacon> beaconlist = imageProcessor.findBeacon(squareList);
+				List<Beacon> beaconlist = imageProcessor.findBeaconOrdered(squareList).getBeaconList();
 				robot.writeLog("Number of beacons: " + beaconlist.size());
 			};
 		};

@@ -16,10 +16,11 @@ public class Beacon extends Square {
 			int lowerColorID, int upperColorID) {
 		super(center, lowerEdgeLeft, lowerColorID);
 		this.upperColorID = upperColorID;
+		System.out.println("My Beaconcolor: " + lowerColorID + ", " + upperColorID + "; first one should be " + super.getColorID() + " and color comb: " + (upperColorID*10 + super.getColorID()));
 	}
 	
 	public int getColorComb() {
-		return upperColorID*10 + getColorID();
+		return upperColorID*10 + super.getColorID();
 	}
 
 	
