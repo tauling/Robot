@@ -21,10 +21,10 @@ public class Square extends Shape implements Comparable<Square> {
 				- this.halfHeight);
 	}
 
-	public Square(Point center, Point lowPt, Point lowerEdgeLeft, int colorID) {
+	public Square(Point center, Point lowerEdgeLeft, int colorID) {
 		this.colorID = colorID;
 		this.center = center;
-		this.lowPt = lowPt;
+		this.lowPt = new Point(center.x, lowerEdgeLeft.y);
 		this.lowerLeftEdge = lowerEdgeLeft;
 		this.halfWidth = center.x - lowerEdgeLeft.x;
 		this.halfHeight = lowerEdgeLeft.y - center.y;
@@ -35,7 +35,7 @@ public class Square extends Shape implements Comparable<Square> {
 	@Override
 	public String toString() {
 		return "square, center: {" + (int) this.center.x + ","
-				+ (int) this.center.y + "} lowest point:" + this.lowPt;
+				+ (int) this.center.y + "} lowest point:" + this.lowPt + " and colorid: " + getColorID();
 	}
 
 	public Point getLowerLeftEdge() {

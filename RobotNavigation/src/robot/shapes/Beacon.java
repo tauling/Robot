@@ -12,9 +12,9 @@ public class Beacon extends Square {
 		this.upperColorID = upperColorID;
 	}
 	
-	public Beacon(Point center, Point lowPt, Point lowerEdgeLeft,
+	public Beacon(Point center, Point lowerEdgeLeft,
 			int lowerColorID, int upperColorID) {
-		super(center,lowPt, lowerEdgeLeft, lowerColorID);
+		super(center, lowerEdgeLeft, lowerColorID);
 		this.upperColorID = upperColorID;
 	}
 	

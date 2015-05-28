@@ -496,17 +496,18 @@ public class ImageProcessor {
 		Collections.sort(squareList);
 		Log.i(TAG, "squareList: " + squareList.toString());
 		List<Beacon> beaconList = new ArrayList<Beacon>();
-		Double TOLx = 60.0;
-		Double TOLy = 60.0;
+		Double TOLx = 25.0;
+		Double TOLy = 15.0;
 		int squareListLength = squareList.size();
 		for (int i = 0; i < squareListLength - 1; i++) {
 			for (int j = i + 1; j < squareListLength; j++) {
-				Integer squareFoundBelow = 0;
+				int squareFoundBelow = 0;
 				Square squareA = squareList.get(i);
 				Square squareB = squareList.get(j);
 				// squareA should always be above squareB
+				
 				if (compare2PtbyX(squareA.getLowPt(),
-						squareB.getUpperRightEdge()) <= TOLx
+						squareB.getCenter()) <= TOLx
 						&& compare2PtbyY(squareA.getLowPt(),
 								squareB.getUpperRightEdge()) <= TOLy
 						&& squareTest(squareA)) {
@@ -519,12 +520,12 @@ public class ImageProcessor {
 					newLowerLeftEdge = new Point(squareA.getLowerLeftEdge().x,
 							squareA.getLowerLeftEdge().y
 									+ (2 * squareA.getHalfHeight()));
-					Beacon newBeacon = new Beacon(newCenterPt,
-							squareB.getLowPt(), newLowerLeftEdge,
+					Beacon newBeacon = new Beacon(newCenterPt, newLowerLeftEdge,
 							squareB.getColorID(), squareA.getColorID());
 					if (checkIfNew(beaconList, newBeacon)
 							&& squareFoundBelow < 2
 							&& checkIntersection(beaconList, newBeacon)) {
+						Log.i(TAG, "Made Beacon out of Square A: " + squareA.toString() + " and Square B: " + squareB.toString());
 						beaconList.add(newBeacon);
 						confSquares.add(squareA);
 						confSquares.add(squareB);
@@ -540,7 +541,7 @@ public class ImageProcessor {
 
 	private boolean checkIfNew(List<Beacon> beaconList, Beacon newBeacon) {
 		boolean unique = true;
-		double TOL = 2;
+		double TOL = 15;
 		int beaconListLength = beaconList.size();
 		for (int i = 0; i < beaconListLength; i++) {
 			Point refPt = beaconList.get(i).getCenter();
@@ -572,7 +573,7 @@ public class ImageProcessor {
 	private Boolean squareTest(Square s) {
 		Double width = s.getHalfWidth() * 2;
 		Double height = s.getHalfHeight() * 2;
-		if (height / 0.65 > width) {
+		if (height / width > 1.5) {
 			return true;
 		} else {
 			return false;
