@@ -169,8 +169,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// initialize myColors
-		myBeaconColors.add(new Scalar(15, 57, 223)); // orange
-		myBeaconColors.add(new Scalar(135, 232, 200)); // blue
+		myBeaconColors.add(new Scalar(19, 232, 188)); // orange
+		myBeaconColors.add(new Scalar(132, 202, 165)); // blue
 		// myCircleColors.add(new Scalar()); // magenta
 		// myCircleColors.add(new Scalar()); // green
 	}
@@ -642,14 +642,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 										// image as mRgbaOutput? In that case,
 										// either fix or remove this variable.
 		if (frameInterval >= executionInterval) {
-			circleList = imageProcessor.findCirclesOnCamera2(mRgbaWork,
-					myCircleColors);
 			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
 					myBeaconColors);
 			BeaconSquareHolder beaconsAndSquares = imageProcessor
 					.findBeaconOrdered(squareList);
 			beaconList = beaconsAndSquares.getBeaconList();
 			confirmedSquares = beaconsAndSquares.getSquareList();
+			circleList = imageProcessor.findCirclesOnCamera2(mRgbaWork,
+					myCircleColors, confirmedSquares);
 			frameInterval = 0;
 		}
 

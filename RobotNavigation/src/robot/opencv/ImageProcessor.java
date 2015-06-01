@@ -346,7 +346,7 @@ public class ImageProcessor {
 	 *         camera frame
 	 */
 	public List<Circle> findCirclesOnCamera2(Mat mRgbaWork,
-			List<Scalar> myColors) {
+			List<Scalar> myColors, List<Square> confirmedSquares) {
 		List<Circle> circlesList = new ArrayList<Circle>();
 		double colorAmount = myColors.size();
 		for (int i = 0; i < colorAmount; i++) {
@@ -363,11 +363,32 @@ public class ImageProcessor {
 				Double radius = computeRadius(contours.get(j), center);
 
 				Circle foundCircle = new Circle(center, radius);
-
-				circlesList.add(foundCircle);
+				// check if circle is not in confirmedSquares-list
+				if (checkCircleVsSquares(foundCircle, confirmedSquares))
+					circlesList.add(foundCircle);
 			}
 		}
 		return circlesList;
+	}
+
+	/**
+	 * checks if a circle is already detected as a square
+	 * 
+	 * @param foundCircle
+	 * @param confirmedSquares
+	 * @return true (true circle), false (circle is detected on a beacon)
+	 */
+	private boolean checkCircleVsSquares(Circle foundCircle,
+			List<Square> confirmedSquares) {
+		boolean unique = true;
+		int squareAm = confirmedSquares.size();
+		double TOL = 5.0;
+		for (int i = 0; i < squareAm; i++) {
+			if (distPointToPoint(foundCircle.getCenter(),
+					confirmedSquares.get(i).getCenter()) < TOL)
+				unique = false;
+		}
+		return unique;
 	}
 
 	/**
@@ -463,7 +484,7 @@ public class ImageProcessor {
 				int squareFoundBelow = 0;
 				Square squareA = squareList.get(i);
 				Square squareB = squareList.get(j);
-				// squareA should always be above squareB
+				// squareA is always above squareB
 
 				if (compare2PtbyX(squareA.getLowPt(), squareB.getCenter()) <= TOLx
 						&& compare2PtbyY(squareA.getLowPt(),
@@ -472,7 +493,6 @@ public class ImageProcessor {
 					Point newCenterPt;
 					Point newLowerLeftEdge;
 					squareFoundBelow++;
-					// squareA is above squareB
 					newCenterPt = new Point(squareA.getCenter().x,
 							squareA.getLowPt().y);
 					newLowerLeftEdge = new Point(squareA.getLowerLeftEdge().x,
@@ -493,9 +513,6 @@ public class ImageProcessor {
 						confSquares.add(squareA);
 						confSquares.add(squareB);
 					}
-					// overwrite/extend one square to the size of both
-					// squares and
-					// remove the second square form the list
 				}
 			}
 		}
