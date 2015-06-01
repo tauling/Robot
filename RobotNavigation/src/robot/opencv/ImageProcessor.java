@@ -439,75 +439,6 @@ public class ImageProcessor {
 		return new Scalar(color);
 	}
 
-	/**
-	 * 1) sorts square-list 2) compares alignment of all squares in global
-	 * squareCenter-list and tries to find stacked squares 3) if two squares are
-	 * stacked we create a beacon
-	 * 
-	 * @param sqaure
-	 *            -list
-	 * @return list of beacons
-	 */
-	public List<Beacon> findBeacon(List<Square> squareList) {
-		List<Beacon> beaconList = new ArrayList<Beacon>();
-		Double TOLx = 40.0;
-		Double TOLy = 20.0;
-		if (squareList.size() > 0) {
-			int squareListLength = squareList.size();
-			for (int i = 0; i < squareListLength - 1; i++) {
-				for (int j = 1; j < squareListLength; j++) {
-					// it's not possible to write compare method in
-					// point-class...
-					Square squareA = squareList.get(i);
-					Square squareB = squareList.get(j);
-					if (compare2PtbyX(squareA.getLowPt(), squareB.getLowPt()) <= TOLx
-							&& compare2PtbyY(squareA.getLowPt(),
-									squareB.getLowPt()) <= TOLy) {
-						Point newLowerLeftEdge = new Point();
-						Point newCenterPt = new Point();
-						Double newHalfHeight = (squareA.getCenter().y + squareB
-								.getCenter().y) / 2.0;
-						if (squareA.getCenter().y > squareB.getCenter().y) {
-							// squareA is above squareB
-							newCenterPt = new Point(squareA.getCenter().x,
-									squareA.getCenter().y
-											- (2 * squareA.getHalfHeight()));
-							newLowerLeftEdge = new Point(
-									squareA.getLowerLeftEdge().x,
-									squareA.getLowerLeftEdge().y
-											- (2 * squareA.getHalfHeight()));
-							Beacon newBeacon = new Beacon(newCenterPt,
-									newHalfHeight, newLowerLeftEdge,
-									squareB.getColorID(), squareA.getColorID());
-							if (!beaconList.contains(newBeacon)) {
-								beaconList.add(newBeacon);
-							}
-						} else {
-							// squareB is above squareA
-							newCenterPt = new Point(squareB.getCenter().x,
-									squareB.getCenter().y
-											- (2 * squareB.getHalfHeight()));
-							newLowerLeftEdge = new Point(
-									squareB.getLowerLeftEdge().x,
-									squareB.getLowerLeftEdge().y
-											- (2 * squareB.getHalfHeight()));
-							Beacon newBeacon = new Beacon(newCenterPt,
-									newHalfHeight, newLowerLeftEdge,
-									squareA.getColorID(), squareB.getColorID());
-							if (!beaconList.contains(newBeacon)) {
-								beaconList.add(newBeacon);
-							}
-						}
-						// overwrite/extend one square to the size of both
-						// squares and
-						// remove the second square form the list
-					}
-				}
-			}
-		}
-		return beaconList;
-	}
-
 	// TODO update Description
 	/**
 	 * compares alignment of all squares in global squareCenter-list and tries
@@ -524,8 +455,8 @@ public class ImageProcessor {
 		Collections.sort(squareList);
 		Log.i(TAG, "squareList: " + squareList.toString());
 		List<Beacon> beaconList = new ArrayList<Beacon>();
-		Double TOLx = 25.0;
-		Double TOLy = 15.0;
+		Double TOLx = 40.0;
+		Double TOLy = 25.0;
 		int squareListLength = squareList.size();
 		for (int i = 0; i < squareListLength - 1; i++) {
 			for (int j = i + 1; j < squareListLength; j++) {
@@ -573,7 +504,7 @@ public class ImageProcessor {
 
 	private boolean checkIfNew(List<Beacon> beaconList, Beacon newBeacon) {
 		boolean unique = true;
-		double TOL = 15;
+		double TOL = 25;
 		int beaconListLength = beaconList.size();
 		for (int i = 0; i < beaconListLength; i++) {
 			Point refPt = beaconList.get(i).getCenter();

@@ -169,8 +169,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// initialize myColors
-		myBeaconColors.add(new Scalar(22, 230, 187)); // orange
-		myBeaconColors.add(new Scalar(111, 139, 97)); // blue
+		myBeaconColors.add(new Scalar(15, 57, 223)); // orange
+		myBeaconColors.add(new Scalar(135, 232, 200)); // blue
 		// myCircleColors.add(new Scalar()); // magenta
 		// myCircleColors.add(new Scalar()); // green
 	}
@@ -370,6 +370,18 @@ public class MainActivity extends Activity implements OnTouchListener,
 		t.start();
 	}
 
+	public void ButtonExamination3(View v) {
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				collectAllBalls();
+			};
+		};
+
+		t.start();
+	}
+
 	public void buttonTest_onClick(View v) {
 
 		Thread t = new Thread() {
@@ -389,7 +401,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				UpdateselfLocalization();
+				Position targetPoint = new Position(targetX, targetY,
+						targetTheta);
+				robot.moveToTargetCollBalls(targetPoint, foundBalls, mRgbaWork,
+						myBeaconColors, homographyMatrix);
 			};
 		};
 
@@ -402,7 +417,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				List<Beacon> beaconlist = imageProcessor.findBeacon(squareList);
+				List<Beacon> beaconlist = imageProcessor.findBeaconOrdered(
+						squareList).getBeaconList();
 				robot.updateGlobalPosition(beaconlist, homographyMatrix);
 				robot.writeLog("Robot's new position: "
 						+ robot.getMyPosition().toString());
@@ -418,7 +434,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				List<Beacon> beaconlist = imageProcessor.findBeacon(squareList);
+				List<Beacon> beaconlist = imageProcessor.findBeaconOrdered(
+						squareList).getBeaconList();
 				robot.writeLog("Number of beacons: " + beaconlist.size());
 			};
 		};
@@ -604,6 +621,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			myBeaconColors.add(mBlobColorHsv);
 		}
 		Log.i(TAG, "saved colors: " + myCircleColors.size() + mBlobColorHsv);
+		robot.writeLog("saved colors: " + myCircleColors.size() + mBlobColorHsv);
 		touchedRegionRgba.release();
 		touchedRegionHsv.release();
 		return false;
@@ -647,22 +665,30 @@ public class MainActivity extends Activity implements OnTouchListener,
 		// }
 
 		// out dated, we only draw beacons from now on
-		if (!squareList.isEmpty()) {
-
-			for (Square s : squareList) {
-				Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-						s.getUpperRightEdge(), new Scalar(20), -1);
-				// robot.writeLog(s.toString());
-			}
-		}
-
-		// draw confirmed squares
+		// if (!squareList.isEmpty()) {
+		//
+		// for (Square s : squareList) {
+		// Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+		// s.getUpperRightEdge(), new Scalar(20), -1);
+		// // robot.writeLog(s.toString());
+		// }
+		// }
+		//
+		// // draw confirmed squares
 		if (!confirmedSquares.isEmpty()) {
 
 			for (Square s : confirmedSquares) {
 				Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-						s.getUpperRightEdge(), new Scalar(80), -1);
+						s.getUpperRightEdge(), new Scalar(0, 0, 0), -1);
 				// robot.writeLog(s.toString());
+			}
+		}
+
+		// draw circles on camera frame
+		if (!circleList.isEmpty()) {
+			for (Circle c : circleList) {
+				Core.circle(mRgbaOutput, c.getCenter(), (int) c.getRadius(),
+						new Scalar(160, 245, 5));
 			}
 		}
 
@@ -670,16 +696,17 @@ public class MainActivity extends Activity implements OnTouchListener,
 		if (!beaconList.isEmpty()) {
 			for (Beacon b : beaconList) {
 				Core.rectangle(mRgbaOutput, b.getLowerLeftEdge(),
-						b.getUpperRightEdge(), new Scalar(120), -1);
+						b.getUpperRightEdge(), new Scalar(240, 126, 12), -1);
 				Core.putText(mRgbaOutput, "center", b.getCenter(),
 						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
 						8, false);
 				Core.circle(mRgbaOutput, b.getCenter(), 10, new Scalar(0));
 				Core.circle(mRgbaOutput, b.getLowerLeftEdge(), 10, new Scalar(
-						40));
+						255, 0, 0));
 				Core.circle(mRgbaOutput, b.getUpperRightEdge(), 10, new Scalar(
-						130));
-				Core.circle(mRgbaOutput, b.getLowPt(), 10, new Scalar(70));
+						255, 0, 0));
+				Core.circle(mRgbaOutput, b.getLowPt(), 10,
+						new Scalar(255, 0, 0));
 				Core.putText(mRgbaOutput, b.toString(), b.getLowerLeftEdge(),
 						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
 						8, false);
