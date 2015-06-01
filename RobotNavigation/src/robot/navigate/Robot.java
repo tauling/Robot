@@ -1612,23 +1612,25 @@ public class Robot {
 		// Angle in global coordinate system between robot and beacon
 		writeLog("beacIDcomb: " + beacIDcomb + "BeaconsAngleOffs: "
 				+ BeaconsAngleOffs.get(beacIDcomb));
-		double tmptheta = alpha + BeaconsAngleOffs.get(beacIDcomb);
+		double alph = alpha + BeaconsAngleOffs.get(beacIDcomb);
 
-		int theta = reduceAngle((int) (tmptheta - Math.toDegrees(thetaRel)));
+		int alphhlp = reduceAngle((int) (180 - (alph - Math.toDegrees(thetaRel))));
 
 		// Using alpha and distance to the left beacon aswell as the Position of
 		// the beacon, calculate the position of the robot.
+		
+		int theta = reduceAngle((int) (BeaconsAngleOffs.get(beacIDcomb) + (180 - (alpha + thetaRel))));
 
-		double dx = c * Math.sin(theta);
+		double dx = c * Math.cos(Math.toRadians(alphhlp));
 
-		double dy = c * Math.cos(theta);
+		double dy = -c * Math.sin(Math.toRadians(alphhlp));
 
 		Point pointGroundCoord = new Point();
 		pointGroundCoord.x = beaconPos.x + dx;
 		pointGroundCoord.y = beaconPos.y + dy;
 
 		writeLog("Heavy calculating leads to alpha: " + alpha + "; tmptheta: "
-				+ tmptheta + "; theta: " + theta + "; dx: " + dx + "; dy: "
+				+ alphhlp + "; theta: " + theta + "; dx: " + dx + "; dy: "
 				+ dy + "; myPosition: " + pointGroundCoord.toString());
 
 		return new Position(pointGroundCoord.x, pointGroundCoord.y, theta);
