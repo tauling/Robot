@@ -305,6 +305,7 @@ public class ImageProcessor {
 		return mRgbaWithBalls;
 	}
 
+	// TODO: needed?
 	/**
 	 * Finds the centers of all circles on a given image matrix..
 	 * 

@@ -388,7 +388,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-
+				findTwoBeacons();
 			};
 		};
 
@@ -747,7 +747,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		List<Square> beacons = imageProcessor.findSquaresOnCamera(mRgbaWork,
 				myBeaconColors);
 		while (beacons.size() < 2) {
-			// TODO: check angle value
+			// TODO: verify angle value
 			robot.turnByDistance(15, 'r');
 			beacons = imageProcessor.findSquaresOnCamera(mRgbaWork,
 					myBeaconColors);
