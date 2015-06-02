@@ -1684,8 +1684,8 @@ public class Robot {
 		testPoint.y = (-D - Math.sqrt(Math.pow(D,2) - 4*C*E))/(2*C);
 		testPoint.x = A + B*testPoint.y;
 		
-		double alpha1 = Math.atan2((pos1.y - pointGroundCoord.y), pointGroundCoord.x);
-		double alpha2 = Math.atan2(r1*Math.cos(ground1[1]), r1*Math.sin(ground1[1]));
+		double alpha1 = Math.toDegrees(Math.atan2((pos1.y - pointGroundCoord.y), pointGroundCoord.x));
+		double alpha2 = Math.toDegrees(Math.atan2(r1*Math.cos(ground1[1]), r1*Math.sin(ground1[1])));
 
 		writeLog("Heavy calculating leads to A: " + A + "; B: "
 				+ B + "; C: " + C + "; D: " + D + "; E: "

@@ -171,14 +171,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// initialize myBeaconColors & myColors
-		myBeaconColors.add(new Scalar(18, 210, 170)); // orange
-		// myBeaconColors.add(new Scalar(132, 190, 140)); // blue
-		myBeaconColors.add(new Scalar(240, 200, 150)); // magenta
+		myBeaconColors.add(new Scalar(20, 240, 200)); // orange
+		myBeaconColors.add(new Scalar(125, 60, 134)); // blue
+		// myBeaconColors.add(new Scalar(240, 200, 150)); // magenta
 		// myBeaconColors.add(new Scalar(100, 155, 115)); // green
 
-		myCircleColors.add(new Scalar(99, 225, 125)); // green
+		myCircleColors.add(new Scalar(95, 240, 110)); // green
 		// myCircleColors.add(new Scalar(248, 200, 180)); // red
-		// myCircleColors.add(new Scalar(147, 230, 130)); // blue
+		myCircleColors.add(new Scalar(147, 245, 140)); // blue
 		// myCircleColors.add(new Scalar(5, 215, 200)); // orange
 	}
 
@@ -424,8 +424,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				List<Beacon> beaconlist = imageProcessor.findBeacons(
-						squareList).getBeaconList();
+				List<Beacon> beaconlist = imageProcessor
+						.findBeacons(squareList).getBeaconList();
 				robot.updateGlobalPosition(beaconlist, homographyMatrix);
 				robot.writeLog("Robot's new position: "
 						+ robot.getMyPosition().toString());
@@ -441,8 +441,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				List<Beacon> beaconlist = imageProcessor.findBeacons(
-						squareList).getBeaconList();
+				List<Beacon> beaconlist = imageProcessor
+						.findBeacons(squareList).getBeaconList();
 				robot.writeLog("Number of beacons: " + beaconlist.size());
 			};
 		};
@@ -672,23 +672,21 @@ public class MainActivity extends Activity implements OnTouchListener,
 		// }
 
 		// out dated, we only draw beacons from now on
-		// if (!squareList.isEmpty()) {
-		//
-		// for (Square s : squareList) {
-		// Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-		// s.getUpperRightEdge(), new Scalar(20), -1);
-		// // robot.writeLog(s.toString());
-		// }
-		// }
+
+		for (Square s : squareList) {
+			Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+					s.getUpperRightEdge(), new Scalar(20), -1);
+			Core.putText(mRgbaOutput, "center", s.getCenter(),
+					CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
+					8, false);
+			// robot.writeLog(s.toString());
+		}
 		//
 		// // draw confirmed squares
-		if (!confirmedSquares.isEmpty()) {
-
-			for (Square s : confirmedSquares) {
-				Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-						s.getUpperRightEdge(), new Scalar(0, 0, 0), -1);
-				// robot.writeLog(s.toString());
-			}
+		for (Square s : confirmedSquares) {
+			Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+					s.getUpperRightEdge(), new Scalar(0, 0, 0), -1);
+			// robot.writeLog(s.toString());
 		}
 
 		// draw circles on camera frame

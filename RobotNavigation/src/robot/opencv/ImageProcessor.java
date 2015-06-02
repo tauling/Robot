@@ -116,16 +116,16 @@ public class ImageProcessor {
 		final Size mPatternSize = new Size(6, 9); // number of inner corners in
 		// the used chessboard
 		// pattern
-		float x = -48.0f; // coordinates of first detected inner corner on
+		float x = -95.0f; // coordinates of first detected inner corner on
 		// chessboard
-		float y = 309.0f;
-		float delta = 12.0f; // size of a single square edge in chessboard
+		float y = 224.0f;
+		float delta = 22.0f; // size of a single square edge in chessboard
 		LinkedList<Point> PointList = new LinkedList<Point>();
 		// Define real-world coordinates for given chessboard pattern:
 		double mPatternSizeHeight = mPatternSize.height;
 		double mPatternSizeWidth = mPatternSize.width;
 		for (int i = 0; i < mPatternSizeHeight; i++) {
-			y = 309.0f;
+			y = 224.0f;
 			for (int j = 0; j < mPatternSizeWidth; j++) {
 				PointList.addLast(new Point(x, y));
 				y += delta;
@@ -144,8 +144,8 @@ public class ImageProcessor {
 		gray.release(); // free memory
 		// Calculate homography:
 		if (mPatternWasFound) {
-			// Calib3d.drawChessboardCorners(mRgba, mPatternSize, mCorners,
-			// mPatternWasFound); // for visualization
+			Calib3d.drawChessboardCorners(mRgba, mPatternSize, mCorners,
+			mPatternWasFound); // for visualization
 			return Calib3d.findHomography(mCorners, RealWorldC);
 		} else
 			return new Mat();
@@ -171,7 +171,7 @@ public class ImageProcessor {
 
 		try {
 
-			Scalar mmColorRadius = new Scalar(8, 60, 90, 0); // Color radius
+			Scalar mmColorRadius = new Scalar(10, 100, 100, 0); // Color radius
 			// for range
 			// checking in
 			// HSV color
@@ -477,7 +477,7 @@ public class ImageProcessor {
 		Collections.sort(squareList);
 		Log.i(TAG, "squareList: " + squareList.toString());
 		List<Beacon> beaconList = new ArrayList<Beacon>();
-		Double TOLx = 40.0;
+		Double TOLx = 50.0;
 		Double TOLy = 25.0;
 		int squareListLength = squareList.size();
 		for (int i = 0; i < squareListLength - 1; i++) {
@@ -487,7 +487,7 @@ public class ImageProcessor {
 				Square squareB = squareList.get(j);
 				// squareA is always above squareB
 
-				if (compare2PtbyX(squareA.getLowPt(), squareB.getCenter()) <= TOLx
+				if (compare2PtbyX(squareA.getCenter(), squareB.getCenter()) <= TOLx
 						&& compare2PtbyY(squareA.getLowPt(),
 								squareB.getUpperRightEdge()) <= TOLy
 						&& squareTest(squareA)) {
@@ -502,9 +502,10 @@ public class ImageProcessor {
 					Beacon newBeacon = new Beacon(newCenterPt,
 							newLowerLeftEdge, squareB.getColorID(),
 							squareA.getColorID());
-					if (checkIfNew(beaconList, newBeacon)
-							&& squareFoundBelow < 2
-							&& checkIntersection(beaconList, newBeacon)) {
+					if (//checkIfNew(beaconList, newBeacon) &&
+							squareFoundBelow < 2
+							&& checkIntersection(beaconList, newBeacon)
+							) {
 						Log.i(TAG,
 								"Made Beacon out of Square A: "
 										+ squareA.toString()
@@ -554,7 +555,7 @@ public class ImageProcessor {
 	private Boolean squareTest(Square s) {
 		Double width = s.getHalfWidth() * 2;
 		Double height = s.getHalfHeight() * 2;
-		if (height / width > 1.5) {
+		if (height / width > 1.2) {
 			return true;
 		} else {
 			return false;
