@@ -31,6 +31,7 @@ import robot.shapes.Circle;
 import robot.shapes.Square;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.hardware.camera2.CameraDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -42,6 +43,7 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.hardware.camera2.*;
 
 public class MainActivity extends Activity implements OnTouchListener,
 		CvCameraViewListener2 {
@@ -168,11 +170,16 @@ public class MainActivity extends Activity implements OnTouchListener,
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-		// initialize myColors
-		myBeaconColors.add(new Scalar(19, 232, 188)); // orange
-		myBeaconColors.add(new Scalar(132, 202, 165)); // blue
-		// myCircleColors.add(new Scalar()); // magenta
-		// myCircleColors.add(new Scalar()); // green
+		// initialize myBeaconColors & myColors
+		myBeaconColors.add(new Scalar(18, 210, 170)); // orange
+		// myBeaconColors.add(new Scalar(132, 190, 140)); // blue
+		myBeaconColors.add(new Scalar(240, 200, 150)); // magenta
+		// myBeaconColors.add(new Scalar(100, 155, 115)); // green
+
+		myCircleColors.add(new Scalar(99, 225, 125)); // green
+		// myCircleColors.add(new Scalar(248, 200, 180)); // red
+		// myCircleColors.add(new Scalar(147, 230, 130)); // blue
+		// myCircleColors.add(new Scalar(5, 215, 200)); // orange
 	}
 
 	public void buttonMoveToGoalN3_onClick(View v) {

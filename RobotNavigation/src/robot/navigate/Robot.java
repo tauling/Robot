@@ -1618,7 +1618,7 @@ public class Robot {
 
 		// Using alpha and distance to the left beacon aswell as the Position of
 		// the beacon, calculate the position of the robot.
-		
+
 		int theta = reduceAngle((int) (BeaconsAngleOffs.get(beacIDcomb) + (180 - (alpha + thetaRel))));
 
 		double dx = c * Math.cos(Math.toRadians(alphhlp));
@@ -1630,14 +1630,12 @@ public class Robot {
 		pointGroundCoord.y = beaconPos.y + dy;
 
 		writeLog("Heavy calculating leads to alpha: " + alpha + "; tmptheta: "
-				+ alphhlp + "; theta: " + theta + "; dx: " + dx + "; dy: "
-				+ dy + "; myPosition: " + pointGroundCoord.toString());
+				+ alphhlp + "; theta: " + theta + "; dx: " + dx + "; dy: " + dy
+				+ "; myPosition: " + pointGroundCoord.toString());
 
 		return new Position(pointGroundCoord.x, pointGroundCoord.y, theta);
 	}
 
-	// TODO implement first increment: collect one ball which is lying on the
-	// robot's way
 	// TODO implement second increment: collect more balls which are lying on
 	// the robot's way
 	/**
@@ -1656,7 +1654,6 @@ public class Robot {
 		turnByDistanceBalanced(getAngleToTarget(targetPoint.x, targetPoint.y),
 				'r');
 
-		// TODO: write similar method, which doesn't overwrite surrendered ball
 		driveToBallAndCage2(findNearestBall(balls), mRgbaWork, myColors,
 				homographyMatrix, balls);
 		moveToTarget(targetPoint);
