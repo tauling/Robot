@@ -470,7 +470,7 @@ public class ImageProcessor {
 	 * @param needs
 	 *            list of all squares
 	 */
-	public BeaconSquareHolder findBeaconOrdered(List<Square> squareList) {
+	public BeaconSquareHolder findBeacons(List<Square> squareList) {
 		List<Square> confSquares = new ArrayList<Square>(); // confSquares
 															// contains
 															// confirmed squares

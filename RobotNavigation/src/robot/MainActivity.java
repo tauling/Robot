@@ -417,7 +417,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				List<Beacon> beaconlist = imageProcessor.findBeaconOrdered(
+				List<Beacon> beaconlist = imageProcessor.findBeacons(
 						squareList).getBeaconList();
 				robot.updateGlobalPosition(beaconlist, homographyMatrix);
 				robot.writeLog("Robot's new position: "
@@ -434,7 +434,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				List<Beacon> beaconlist = imageProcessor.findBeaconOrdered(
+				List<Beacon> beaconlist = imageProcessor.findBeacons(
 						squareList).getBeaconList();
 				robot.writeLog("Number of beacons: " + beaconlist.size());
 			};
@@ -645,7 +645,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
 					myBeaconColors);
 			BeaconSquareHolder beaconsAndSquares = imageProcessor
-					.findBeaconOrdered(squareList);
+					.findBeacons(squareList);
 			beaconList = beaconsAndSquares.getBeaconList();
 			confirmedSquares = beaconsAndSquares.getSquareList();
 			circleList = imageProcessor.findCirclesOnCamera2(mRgbaWork,
