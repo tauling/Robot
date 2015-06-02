@@ -171,11 +171,11 @@ public class ImageProcessor {
 
 		try {
 
-			Scalar mmColorRadius = new Scalar(10, 40, 70, 0); // Color radius
-																// for range
-																// checking in
-																// HSV color
-																// space
+			Scalar mmColorRadius = new Scalar(8, 60, 90, 0); // Color radius
+			// for range
+			// checking in
+			// HSV color
+			// space
 			double minH = (hsvColor.val[0] >= mmColorRadius.val[0]) ? hsvColor.val[0]
 					- mmColorRadius.val[0]
 					: 0;
@@ -383,7 +383,7 @@ public class ImageProcessor {
 			List<Square> confirmedSquares) {
 		boolean unique = true;
 		int squareAm = confirmedSquares.size();
-		double TOL = 5.0;
+		double TOL = 15.0;
 		for (int i = 0; i < squareAm; i++) {
 			if (distPointToPoint(foundCircle.getCenter(),
 					confirmedSquares.get(i).getCenter()) < TOL)

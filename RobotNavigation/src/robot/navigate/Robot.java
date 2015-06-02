@@ -1694,8 +1694,6 @@ public class Robot {
 		return new Position(pointGroundCoord.x, pointGroundCoord.y, (int) (alpha1 + alpha2));
 	}
 
-	// TODO implement first increment: collect one ball which is lying on the
-	// robot's way
 	// TODO implement second increment: collect more balls which are lying on
 	// the robot's way
 	/**
@@ -1714,7 +1712,6 @@ public class Robot {
 		turnByDistanceBalanced(getAngleToTarget(targetPoint.x, targetPoint.y),
 				'r');
 
-		// TODO: write similar method, which doesn't overwrite surrendered ball
 		driveToBallAndCage2(findNearestBall(balls), mRgbaWork, myColors,
 				homographyMatrix, balls);
 		moveToTarget(targetPoint);
