@@ -3,8 +3,10 @@ package robot.opencv;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -306,34 +308,6 @@ public class ImageProcessor {
 	}
 
 	// TODO: needed?
-	/**
-	 * Finds the centers of all circles on a given image matrix..
-	 * 
-	 * @param mRgbaWork
-	 *            The image to find circles in.
-	 * @param myColors
-	 *            a list of colors which should be processed
-	 * 
-	 * @return a list of centers of circles that are currently present on the
-	 *         camera frame
-	 */
-	public List<Point> findCirclesOnCamera(Mat mRgbaWork, List<Scalar> myColors) {
-		List<Point> circleCenters = new ArrayList<Point>();
-		for (Scalar hsvColor : myColors) {
-			Mat grayImg = filter(mRgbaWork, hsvColor);
-			List<MatOfPoint> contours = findContours(grayImg);
-			grayImg.release();
-
-			for (MatOfPoint area : contours) {
-
-				Point center = computeCenterPt(area);
-
-				circleCenters.add(center);
-			}
-		}
-
-		return circleCenters;
-	}
 
 	/**
 	 * Finds the centers of all circles on a given image matrix..
@@ -369,6 +343,8 @@ public class ImageProcessor {
 					circlesList.add(foundCircle);
 			}
 		}
+		Log.i(TAG,
+				"found circles in findCirclesOnCamera2:" + circlesList.size());
 		return circlesList;
 	}
 
@@ -504,7 +480,8 @@ public class ImageProcessor {
 							squareA.getColorID());
 					if (checkIfNew(beaconList, newBeacon)
 							&& squareFoundBelow < 2
-							&& checkIntersection(beaconList, newBeacon)) {
+							&& checkIntersection(beaconList, newBeacon)
+							&& checkBeaconColorComb(newBeacon)) {
 						Log.i(TAG,
 								"Made Beacon out of Square A: "
 										+ squareA.toString()
@@ -518,6 +495,27 @@ public class ImageProcessor {
 			}
 		}
 		return new BeaconSquareHolder(beaconList, confSquares);
+	}
+
+	/**
+	 * checks if the detected beacon color id combination is correct
+	 * 
+	 * correct means the combination matches with one of the beacon color
+	 * combinations we created
+	 * 
+	 * @param newBeacon
+	 * @return true (newBeacon is a proper one) false otherwise
+	 */
+	private boolean checkBeaconColorComb(Beacon newBeacon) {
+		int[] colorCombs = { 12, 21, 13, 42, 24, 41, 14, 31 };
+		boolean correctId = false;
+		int colorCombsSize = colorCombs.length;
+		int refColor = newBeacon.getColorComb();
+		for (int i = 0; i < colorCombsSize; i++) {
+			if (colorCombs[i] == refColor)
+				correctId = true;
+		}
+		return correctId;
 	}
 
 	private boolean checkIfNew(List<Beacon> beaconList, Beacon newBeacon) {

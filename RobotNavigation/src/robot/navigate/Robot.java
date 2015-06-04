@@ -20,6 +20,8 @@ import org.opencv.core.Scalar;
 import robot.opencv.ImageProcessor;
 import robot.shapes.Ball;
 import robot.shapes.Beacon;
+import robot.shapes.Circle;
+import robot.shapes.Square;
 import android.os.Handler;
 import android.util.Log;
 import android.widget.ScrollView;
@@ -1182,10 +1184,13 @@ public class Robot {
 	 *            used to map camera pixels to ground plane coordinates
 	 */
 	public void findAndDeliverBall(double targetX, double targetY,
-			Mat mRgbaWork, List<Scalar> myColors, Mat homographyMatrix) {
-		Ball myBall = detectOneBall(mRgbaWork, myColors, homographyMatrix);
+			Mat mRgbaWork, List<Scalar> myColors, Mat homographyMatrix,
+			List<Square> confirmedSquares) {
+		Ball myBall = detectOneBall(mRgbaWork, myColors, homographyMatrix,
+				confirmedSquares);
 		if (myBall != null) {
-			driveToBallAndCage(myBall, mRgbaWork, myColors, homographyMatrix);
+			driveToBallAndCage(myBall, mRgbaWork, myColors, homographyMatrix,
+					confirmedSquares);
 			moveToTargetWithoutAngle(targetX, targetY, 5);
 			moveByVelocitySlow(-16, false);
 			try {
@@ -1212,19 +1217,24 @@ public class Robot {
 	 * 
 	 * @return true if ball is found, false otherwise.
 	 */
-	public boolean turnAndFindABall(Mat mRgbaWork, List<Scalar> myColors) {
-
+	public boolean turnAndFindABall(Mat mRgbaWork, List<Scalar> myColors,
+			List<Square> confirmedSquares) {
+		Log.i(TAG, "turnAndFindABall start");
 		Boolean foundBall = false;
 		int turnedAngle = 0;
-		List<Point> circles = new ArrayList<Point>();
-		while (turnedAngle < 360 && !foundBall) {
-			circles = imageProcessor.findCirclesOnCamera(mRgbaWork, myColors);
+		while (turnedAngle < 360) {
+			ImageProcessor imgProc = new ImageProcessor(TAG);
+			List<Circle> circles = imgProc.findCirclesOnCamera2(mRgbaWork,
+					myColors, confirmedSquares);
+			Log.i(TAG, "found circles:" + circles.size());
 			if (circles.size() > 0) {
-				Log.i(TAG, "found circle x:" + circles.get(0).x + " y:"
-						+ circles.get(0).y);
-				alignToPoint(circles.get(0), mRgbaWork, myColors);
+				Log.i(TAG, "found circle x:" + circles.get(0).getLowPt().x
+						+ " y:" + circles.get(0).getLowPt().y);
+				alignToPoint(circles.get(0).getLowPt(), mRgbaWork, myColors,
+						confirmedSquares);
 				Log.i(TAG, "(turnAndFindABall) found a ball");
 				foundBall = true;
+				break;
 			} else {
 				turnByDistanceBalanced(25, 'r');
 				turnedAngle += 25;
@@ -1248,11 +1258,12 @@ public class Robot {
 	 *            used to map from camera pixels to ground plane coordinates
 	 */
 	public void driveToBallAndCage(Ball ball, Mat mRgbaWork,
-			List<Scalar> myColors, Mat homographyMatrix) {
+			List<Scalar> myColors, Mat homographyMatrix,
+			List<Square> confirmedSquares) {
 		Point ballTarget = ball.getPosGroundPlane();
 		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 25);
-		ballTarget = detectOneBall(mRgbaWork, myColors, homographyMatrix)
-				.getPosGroundPlane();
+		ballTarget = detectOneBall(mRgbaWork, myColors, homographyMatrix,
+				confirmedSquares).getPosGroundPlane();
 		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 5);
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robotSetBar(50);
@@ -1275,10 +1286,12 @@ public class Robot {
 	 *            used to map from camera pixels to ground plane coordinates
 	 */
 	public void driveToBallAndCage2(Ball ball, Mat mRgbaWork,
-			List<Scalar> myColors, Mat homographyMatrix, List<Ball> foundBalls) {
+			List<Scalar> myColors, Mat homographyMatrix,
+			List<Square> confirmedSquares) {
 		Point ballTarget = ball.getPosGroundPlane();
 		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 25);
-		ballTarget = findNearestBall(foundBalls).getPosGroundPlane();
+		ballTarget = findNearestBall(mRgbaWork, myColors, homographyMatrix,
+				confirmedSquares).getPosGroundPlane();
 		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 5);
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robotSetBar(50);
@@ -1343,9 +1356,9 @@ public class Robot {
 	 * @return Ball object if found, null otherwise.
 	 */
 	public Ball detectOneBall(Mat mRgbaWork, List<Scalar> myColors,
-			Mat homographyMatrix) {
+			Mat homographyMatrix, List<Square> confirmedSquares) {
 		Ball detectedBall = null;
-		if (turnAndFindABall(mRgbaWork, myColors)) {
+		if (turnAndFindABall(mRgbaWork, myColors, confirmedSquares)) {
 			for (Scalar hsvColor : myColors) {
 				Mat grayImg = imageProcessor.filter(mRgbaWork, hsvColor);
 				List<MatOfPoint> contours = imageProcessor
@@ -1394,6 +1407,7 @@ public class Robot {
 		pointGroundCoord.x = getMyPosition().x + dx;
 		pointGroundCoord.y = getMyPosition().y + dy;
 
+		writeLog("pointGroundCoord" + pointGroundCoord);
 		return pointGroundCoord;
 	}
 
@@ -1434,6 +1448,8 @@ public class Robot {
 
 		src.release();
 		dest.release();
+		writeLog(" polar pointGroundCoord dist: " + polarCoord[0] + " theta:"
+				+ polarCoord[1]);
 		return polarCoord;
 	}
 
@@ -1449,7 +1465,8 @@ public class Robot {
 	 * @param Colors
 	 *            which are recognized by the robot.
 	 */
-	public void alignToPoint(Point p, Mat mRgbaWork, List<Scalar> myColors) {
+	public void alignToPoint(Point p, Mat mRgbaWork, List<Scalar> myColors,
+			List<Square> confirmedSquares) {
 		writeLog("(alignToPoint) p = " + p.toString());
 		Boolean aligned = false;
 		double centerXAxis = mRgbaWork.width() / 2;
@@ -1457,8 +1474,10 @@ public class Robot {
 		double TOL = 150.0;
 		double ballXAxis = p.x;
 		while (!aligned) {
-			ballXAxis = imageProcessor.findCirclesOnCamera(mRgbaWork, myColors)
-					.get(0).x;
+			ImageProcessor imgProc = new ImageProcessor(TAG);
+			ballXAxis = imgProc
+					.findCirclesOnCamera2(mRgbaWork, myColors, confirmedSquares)
+					.get(0).getCenter().x;
 			double diff = centerXAxis - ballXAxis;
 			if (Math.abs(diff) > TOL && diff < 0) {
 				turnByDistanceBalanced(30, 'r');
@@ -1649,14 +1668,44 @@ public class Robot {
 	 * 
 	 * @param targetPoint
 	 */
-	public void moveToTargetCollBalls(Position targetPoint, List<Ball> balls,
-			Mat mRgbaWork, List<Scalar> myColors, Mat homographyMatrix) {
+	public void moveToTargetCollBalls(Position targetPoint, Mat mRgbaWork,
+			List<Scalar> myColors, Mat homographyMatrix,
+			List<Square> confirmedSquares) {
 		turnByDistanceBalanced(getAngleToTarget(targetPoint.x, targetPoint.y),
 				'r');
 
-		driveToBallAndCage2(findNearestBall(balls), mRgbaWork, myColors,
-				homographyMatrix, balls);
+		driveToBallAndCage2(
+				findNearestBall(mRgbaWork, myColors, homographyMatrix,
+						confirmedSquares), mRgbaWork, myColors,
+				homographyMatrix, confirmedSquares);
 		moveToTarget(targetPoint);
+	}
+
+	/**
+	 * drive to target position and collect all balls on the way
+	 * 
+	 * @param target
+	 * @param mRgbaWork
+	 * @param myColors
+	 * @param homographyMatrix
+	 * @param foundBalls
+	 */
+	public void driveToTargetCollectAllBalls(Position target, Mat mRgbaWork,
+			List<Scalar> myColors, Mat homographyMatrix, List<Ball> foundBalls,
+			List<Square> confirmedSquares) {
+		double TOL = 15; // target tolerance
+		double distCurPosTarget = Math.sqrt(Math.pow(target.x
+				- getMyPosition().x, 2)
+				+ Math.pow(target.y - getMyPosition().y, 2));
+		while (distCurPosTarget > TOL) {
+			driveToBallAndCage2(
+					findNearestBall(mRgbaWork, myColors, homographyMatrix,
+							confirmedSquares), mRgbaWork, myColors,
+					homographyMatrix, confirmedSquares);
+			distCurPosTarget = Math.sqrt(Math.pow(target.x - getMyPosition().x,
+					2) + Math.pow(target.y - getMyPosition().y, 2));
+		}
+		writeLog("target reached");
 	}
 
 	/**
@@ -1667,24 +1716,46 @@ public class Robot {
 	 * 
 	 * @return found ball; null when no ball is found
 	 */
-	public Ball findNearestBall(List<Ball> foundBalls) {
-		while (foundBalls.size() < 1) {
-			turnByDistanceBalanced(15, 'r');
-			// here is maybe a delay necessary
-		}
+	public Ball findNearestBall(Mat mRgbaWork, List<Scalar> myColors,
+			Mat homographyMatrix, List<Square> confirmedSquares) {
+		Ball detectedBall = null;
 		Map<Double, Ball> ballGaps = new HashMap<Double, Ball>();
-		for (Ball b : foundBalls) {
-			Point groundPoint = b.getPosGroundPlane();
-			Double distToBall = Math.sqrt(Math.pow(groundPoint.x - myPos.x, 2)
-					+ Math.pow(groundPoint.y - myPos.y, 2));
-			ballGaps.put(distToBall, b);
+		Log.e(TAG, "find nearest Ball");
+		if (turnAndFindABall(mRgbaWork, myColors, confirmedSquares)) {
+			for (Scalar hsvColor : myColors) {
+				ImageProcessor imgProc = new ImageProcessor(TAG);
+				Mat grayImg = imgProc.filter(mRgbaWork, hsvColor);
+				List<MatOfPoint> contours = imgProc.findContours(grayImg);
+				grayImg.release();
+				Log.e(TAG, "found areas: " + contours.size());
+
+				for (MatOfPoint area : contours) {
+
+					Point center = imgProc.computeCenterPt(area);
+					double rad = imgProc.computeRadius(area, center);
+					Point lowestPoint = new Point(center.x, center.y + rad);
+					Point pointGroundPlane = getGroundPlaneCoordinates(
+							lowestPoint, homographyMatrix);
+
+					detectedBall = new Ball(center, pointGroundPlane, rad);
+					Point groundPoint = detectedBall.getPosGroundPlane();
+					Double distToBall = Math.sqrt(Math.pow(groundPoint.x
+							- myPos.x, 2)
+							+ Math.pow(groundPoint.y - myPos.y, 2));
+					ballGaps.put(distToBall, detectedBall);
+					writeLog("found a ball");
+				}
+			}
 		}
+
 		Entry<Double, Ball> nearestBall = null;
 		for (Entry<Double, Ball> entry : ballGaps.entrySet()) {
 			if (nearestBall == null || nearestBall.getKey() > entry.getKey()) {
 				nearestBall = entry;
 			}
 		}
+		// TODO: returns NULL object, if no ball in view
+		Log.e(TAG, "nearest Ball:" + nearestBall.getValue());
 		return nearestBall.getValue();
 	}
 }
