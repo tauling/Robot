@@ -3,8 +3,10 @@ package robot.opencv;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -12,6 +14,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
@@ -27,7 +30,71 @@ import android.util.Log;
 public class ImageProcessor {
 
 	// TODO Check if offsets for homography are needed
+	
 
+	// -> Beacon Calibration
+	public static final Map<Integer, Point> BeaconPosition; // maps colorID combo
+														// (10*upperColorID +
+														// lowerColorID) to the
+														// position in real
+														// world coordinates
+	public static final Map<Integer, Integer> BeaconID;// maps colorID combo
+												// (10*upperColorID +
+												// lowerColorID) to the ID
+	public static final Map<Integer, Integer> BeaconsAngleOffs; // maps beaconID-combo
+															// to angles which
+															// have to be added
+															// to the
+															// calculation for
+															// gaining the real
+															// world coordinates
+
+	static {
+		Map<Integer, Point> tmpPosition = new LinkedHashMap<Integer, Point>();
+		tmpPosition.put(12, new Point(-125.0, 125.0));
+		tmpPosition.put(21, new Point(0.0, 125.0));
+		tmpPosition.put(13, new Point(125.0, 125.0));
+		tmpPosition.put(42, new Point(-125.0, 0.0));
+		tmpPosition.put(24, new Point(125.0, 0.0));
+		tmpPosition.put(41, new Point(-125.0, -125.0));
+		tmpPosition.put(14, new Point(0.0, -125.0));
+		tmpPosition.put(31, new Point(125.0, -125.0));
+		BeaconPosition = Collections.unmodifiableMap(tmpPosition);
+
+		Map<Integer, Integer> tmpID = new LinkedHashMap<Integer, Integer>();
+		tmpID.put(12, 1);
+		tmpID.put(21, 2);
+		tmpID.put(13, 3);
+		tmpID.put(42, 4);
+		tmpID.put(24, 5);
+		tmpID.put(41, 6);
+		tmpID.put(14, 7);
+		tmpID.put(31, 8);
+		BeaconID = Collections.unmodifiableMap(tmpID);
+
+		Map<Integer, Integer> tmpAngles = new LinkedHashMap<Integer, Integer>();
+		tmpAngles.put(12, 90);
+		tmpAngles.put(13, 90);
+		tmpAngles.put(23, 90);
+		tmpAngles.put(35, 180);
+		tmpAngles.put(38, 180);
+		tmpAngles.put(58, 180);
+		tmpAngles.put(67, 270);
+		tmpAngles.put(68, 270);
+		tmpAngles.put(78, 270);
+		tmpAngles.put(14, 0);
+		tmpAngles.put(16, 0);
+		tmpAngles.put(46, 0);
+		tmpAngles.put(24, 45);
+		tmpAngles.put(25, 135);
+		tmpAngles.put(57, 225);
+		tmpAngles.put(47, 315);
+		BeaconsAngleOffs = Collections.unmodifiableMap(tmpAngles);
+	}
+
+	// <- Beacon Calibration
+
+	
 	private static double mMinContourArea = 0.1; // Minimum contour area in
 													// percent for contours
 													// filtering
@@ -145,7 +212,7 @@ public class ImageProcessor {
 		// Calculate homography:
 		if (mPatternWasFound) {
 			Calib3d.drawChessboardCorners(mRgba, mPatternSize, mCorners,
-			mPatternWasFound); // for visualization
+					mPatternWasFound); // for visualization
 			return Calib3d.findHomography(mCorners, RealWorldC);
 		} else
 			return new Mat();
@@ -159,9 +226,12 @@ public class ImageProcessor {
 	 *            image to filter
 	 * @param hsvColor
 	 *            color to filter for
+	 * @param mode
+	 *            'b' for filtering beacons (higher tolerances) or 'c' for
+	 *            filtering circles
 	 * @return filtered image in grayscale
 	 */
-	public Mat filter(Mat rgbaImage, Scalar hsvColor) {
+	public Mat filter(Mat rgbaImage, Scalar hsvColor, char mode) {
 		Scalar mmLowerBound = new Scalar(0);
 		Scalar mmUpperBound = new Scalar(0);
 		Mat mmPyrDownMat = new Mat();
@@ -169,13 +239,27 @@ public class ImageProcessor {
 		Mat mmMask = new Mat();
 		Mat mmDilatedMask = new Mat();
 
-		try {
+		Scalar mmColorRadius = new Scalar(6, 40, 70, 0);
 
-			Scalar mmColorRadius = new Scalar(10, 60, 255, 0); // Color radius
+		switch (mode) {
+		case 'b':
+			mmColorRadius = new Scalar(10, 60, 255, 0); // Color radius
 			// for range
 			// checking in
 			// HSV color
 			// space
+			break;
+		case 'c':
+			mmColorRadius = new Scalar(6, 40, 70, 0); // Color radius
+			// for range
+			// checking in
+			// HSV color
+			// space
+			break;
+		}
+
+		try {
+
 			double minH = (hsvColor.val[0] >= mmColorRadius.val[0]) ? hsvColor.val[0]
 					- mmColorRadius.val[0]
 					: 0;
@@ -320,7 +404,7 @@ public class ImageProcessor {
 	public List<Point> findCirclesOnCamera(Mat mRgbaWork, List<Scalar> myColors) {
 		List<Point> circleCenters = new ArrayList<Point>();
 		for (Scalar hsvColor : myColors) {
-			Mat grayImg = filter(mRgbaWork, hsvColor);
+			Mat grayImg = filter(mRgbaWork, hsvColor, 'c');
 			List<MatOfPoint> contours = findContours(grayImg);
 			grayImg.release();
 
@@ -352,7 +436,7 @@ public class ImageProcessor {
 		double colorAmount = myColors.size();
 		for (int i = 0; i < colorAmount; i++) {
 			Mat grayImg;
-			grayImg = filter(mRgbaWork, myColors.get(i));
+			grayImg = filter(mRgbaWork, myColors.get(i), 'c');
 			List<MatOfPoint> contours = findContours(grayImg);
 			grayImg.release();
 
@@ -386,7 +470,7 @@ public class ImageProcessor {
 		double TOL = 15.0;
 		for (int i = 0; i < squareAm; i++) {
 			if (distPointToPoint(foundCircle.getCenter(),
-					confirmedSquares.get(i).getCenter()) < TOL)
+					confirmedSquares.get(i).center) < TOL)
 				unique = false;
 		}
 		return unique;
@@ -405,7 +489,7 @@ public class ImageProcessor {
 		int colorAmount = myColors.size();
 		for (int i = 0; i < colorAmount; i++) {
 			Mat grayImg;
-			grayImg = filter(mRgbaWork, myColors.get(i));
+			grayImg = filter(mRgbaWork, myColors.get(i), 'b');
 
 			List<MatOfPoint> contours = findContours(grayImg);
 
@@ -414,13 +498,15 @@ public class ImageProcessor {
 			int contoursLength = contours.size();
 			for (int j = 0; j < contoursLength; j++) {
 
-				Point center = computeCenterPt(contours.get(j));
-				double[] squareSize = squareSize(contours.get(j), center);
+//				Point center = computeCenterPt(contours.get(j));
 
-				Point lowerEdgeLeft = computeLowerEdgeLeft(center, squareSize);
+				Square foundSquare = new Square(Imgproc.minAreaRect(new MatOfPoint2f(contours.get(j).toArray())), i+1);
+//				double[] squareSize = squareSize(contours.get(j), center);
 
-				Square foundSquare = new Square(center, squareSize[0],
-						lowerEdgeLeft, i + 1);
+//				Point lowerEdgeLeft = computeLowerEdgeLeft(center, squareSize);
+
+//				Square foundSquare = new Square(center, squareSize[0],
+//						lowerEdgeLeft, i + 1);
 
 				/**
 				 * squareSize[0] -> halfWidth squareSize[1] -> halfHeight
@@ -430,7 +516,7 @@ public class ImageProcessor {
 			}
 
 		}
-		Log.i(TAG, "(findSquaresOnCamera) Found squares: " + squareList.size());
+//		Log.i(TAG, "(findSquaresOnCamera) Found squares: " + squareList.size());
 		return squareList;
 	}
 
@@ -475,7 +561,7 @@ public class ImageProcessor {
 															// contains
 															// confirmed squares
 		Collections.sort(squareList);
-		Log.i(TAG, "squareList: " + squareList.toString());
+//		Log.i(TAG, "squareList: " + squareList.toString());
 		List<Beacon> beaconList = new ArrayList<Beacon>();
 		Double TOLx = 50.0;
 		Double TOLy = 25.0;
@@ -485,27 +571,38 @@ public class ImageProcessor {
 				int squareFoundBelow = 0;
 				Square squareA = squareList.get(i);
 				Square squareB = squareList.get(j);
-				// squareA is always above squareB
+				Log.i(TAG, "Checking Squares against each other: " + squareA.toString() + " and " + squareB.toString());
 
-				if (compare2PtbyX(squareA.getCenter(), squareB.getCenter()) <= TOLx
-						&& compare2PtbyY(squareA.getLowPt(),
-								squareB.getUpperRightEdge()) <= TOLy
-						&& squareTest(squareA)) {
-					Point newCenterPt;
-					Point newLowerLeftEdge;
-					squareFoundBelow++;
-					newCenterPt = new Point(squareA.getCenter().x,
-							squareA.getLowPt().y);
-					newLowerLeftEdge = new Point(squareA.getLowerLeftEdge().x,
-							squareA.getLowerLeftEdge().y
-									+ (2 * squareA.getHalfHeight()));
-					Beacon newBeacon = new Beacon(newCenterPt,
-							newLowerLeftEdge, squareB.getColorID(),
-							squareA.getColorID());
-					if (//checkIfNew(beaconList, newBeacon) &&
-							squareFoundBelow < 2
-							&& checkIntersection(beaconList, newBeacon)
-							) {
+				// squareA is always above squareB
+				
+				if (squareTest(squareA)) {
+					Log.i(TAG, "upper Square passed the test");
+				}
+				
+				if (twoSquaresMakeBeacon(squareA, squareB)) {
+					Log.i(TAG, "the two squares make a beacon");
+				}
+				
+				if (squareTest(squareA) && twoSquaresMakeBeacon(squareA, squareB)) {
+					
+					Point newCenterPt = squareA.getLowPt();
+					Size newSize;
+					if (squareA.size.width > squareA.size.height) {
+						newSize = new Size(squareA.size.width * 2, squareA.size.height);
+					} else {
+						newSize = new Size(squareA.size.width, squareA.size.height*2);
+					}
+//					Point newLowerLeftEdge;
+//					squareFoundBelow++;
+//					newCenterPt = squareA.
+//					newLowerLeftEdge = new Point(squareA.getLowerLeftEdge().x,
+//							squareA.getLowerLeftEdge().y
+//									+ (2 * squareA.getHalfHeight()));
+					Beacon newBeacon = new Beacon(newCenterPt, newSize, squareA.angle, squareB.getColorID(), squareA.getColorID() );
+					if ( checkIfNew(beaconList, newBeacon) &&
+//					squareFoundBelow < 2
+							//&& checkIntersection(beaconList, newBeacon)
+							BeaconID.get(newBeacon.getColorComb()) != null) {
 						Log.i(TAG,
 								"Made Beacon out of Square A: "
 										+ squareA.toString()
@@ -521,45 +618,68 @@ public class ImageProcessor {
 		return new BeaconSquareHolder(beaconList, confSquares);
 	}
 
+	
+	private boolean twoSquaresMakeBeacon(Square squareA, Square squareB) {
+		
+		int TOL = 25;
+		
+		if (distPointToPoint(squareA.getLowPt(), squareB.getHighPt()) < TOL || distPointToPoint(squareB.getLowPt(), squareA.getHighPt()) < TOL) {
+			return true;
+		}
+		
+		
+		return false;
+	}
+
+	// TODO Needed? checkIntersection should be enough
 	private boolean checkIfNew(List<Beacon> beaconList, Beacon newBeacon) {
 		boolean unique = true;
-		double TOL = 25;
+		double TOL = 50;
 		int beaconListLength = beaconList.size();
 		for (int i = 0; i < beaconListLength; i++) {
-			Point refPt = beaconList.get(i).getCenter();
-			if (distPointToPoint(refPt, newBeacon.getCenter()) < TOL) {
+			Point refPt = beaconList.get(i).center;
+			if (distPointToPoint(refPt, newBeacon.center) < TOL) {
 				unique = false;
 			}
 		}
 		return unique;
 	}
 
-	private boolean checkIntersection(List<Beacon> beaconList, Beacon newBeacon) {
-		boolean noconflict = true;
-		int beaconListLength = beaconList.size();
-		for (int i = 0; i < beaconListLength; i++) {
-			double left = beaconList.get(i).getLowerLeftEdge().x;
-			double right = beaconList.get(i).getUpperRightEdge().x;
-			if (left <= newBeacon.getCenter().x
-					&& newBeacon.getCenter().x <= right) {
-				noconflict = false;
-			}
-		}
-		return noconflict;
-	}
+//	private boolean checkIntersection(List<Beacon> beaconList, Beacon newBeacon) {
+//		boolean noconflict = true;
+//		int beaconListLength = beaconList.size();
+//		for (int i = 0; i < beaconListLength; i++) {
+//			double left = beaconList.get(i).getLowerLeftEdge().x;
+//			double right = beaconList.get(i).getUpperRightEdge().x;
+//			if (left <= newBeacon.getCenter().x
+//					&& newBeacon.getCenter().x <= right) {
+//				noconflict = false;
+//			}
+//		}
+//		return noconflict;
+//	}
 
 	/**
 	 * tests if surrendered squares has the width and height relation to be a
 	 * real square and not a circle
 	 */
 	private Boolean squareTest(Square s) {
-		Double width = s.getHalfWidth() * 2;
-		Double height = s.getHalfHeight() * 2;
-		if (height / width > 1.2) {
-			return true;
+		Double width = s.size.width;
+		Double height = s.size.height;
+		if (height > width) {
+			if (height / width > 1.2) {
+				return true;
+			} else {
+				return false;
+			}
 		} else {
-			return false;
+			if (width / height > 1.2) {
+				return true;
+			} else {
+				return false;
+			}
 		}
+
 	}
 
 	// TODO update description
