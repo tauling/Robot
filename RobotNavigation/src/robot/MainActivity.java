@@ -16,6 +16,7 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -166,14 +167,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// initialize myBeaconColors & myColors
-		myBeaconColors.add(new Scalar(18, 210, 170)); // orange
-		// myBeaconColors.add(new Scalar(132, 190, 140)); // blue
+		myBeaconColors.add(new Scalar(20, 200, 210)); // orange
+		myBeaconColors.add(new Scalar(130, 180, 134)); // blue
 		myBeaconColors.add(new Scalar(240, 200, 150)); // magenta
-		// myBeaconColors.add(new Scalar(100, 155, 115)); // green
+		myBeaconColors.add(new Scalar(110, 140, 115)); // green
 
-		myCircleColors.add(new Scalar(99, 225, 125)); // green
+		myCircleColors.add(new Scalar(95, 240, 110)); // green
 		// myCircleColors.add(new Scalar(248, 200, 180)); // red
-		// myCircleColors.add(new Scalar(147, 230, 130)); // blue
+		myCircleColors.add(new Scalar(147, 245, 140)); // blue
 		// myCircleColors.add(new Scalar(5, 215, 200)); // orange
 	}
 
@@ -446,6 +447,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 				}
 				robot.findNearestBall(mRgbaWork, myCircleColors,
 						homographyMatrix, confirmedSquares);
+				// List<Beacon> beaconlist = imageProcessor
+				// .findBeacons(squareList).getBeaconList();
+				// robot.writeLog("Number of beacons: " + beaconlist.size());
 			};
 		};
 
@@ -654,7 +658,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
 					myBeaconColors);
 			BeaconSquareHolder beaconsAndSquares = imageProcessor
-					.findBeaconOrdered(squareList);
+					.findBeacons(squareList);
 			beaconList = beaconsAndSquares.getBeaconList();
 			confirmedSquares = beaconsAndSquares.getSquareList();
 			circleList = imageProcessor.findCirclesOnCamera2(mRgbaWork,
@@ -673,24 +677,42 @@ public class MainActivity extends Activity implements OnTouchListener,
 		// mRgbaOutput = grayImg;
 		// }
 
-		// out dated, we only draw beacons from now on
-		// if (!squareList.isEmpty()) {
-		//
-		// for (Square s : squareList) {
-		// Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-		// s.getUpperRightEdge(), new Scalar(20), -1);
-		// // robot.writeLog(s.toString());
-		// }
-		// }
+		for (Square s : squareList) {
+
+			Point[] rect_points = new Point[4];
+			s.points(rect_points);
+			Core.circle(mRgbaOutput, s.getLowPt(), 10, new Scalar(255, 0, 0));
+			Core.circle(mRgbaOutput, s.getHighPt(), 10, new Scalar(0, 0, 255));
+
+			// Log.i(TAG, s.toString());
+			for (int j = 0; j < 4; j++)
+				Core.line(mRgbaOutput, rect_points[j],
+						rect_points[(j + 1) % 4], new Scalar(0, 0, 0), 5);
+			//
+			// Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+			// s.getUpperRightEdge(), new Scalar(20), -1);
+			Core.putText(mRgbaOutput, "center", s.center,
+					CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1, 8,
+					false);
+			// robot.writeLog(s.toString());
+		}
 		//
 		// // draw confirmed squares
-		if (!confirmedSquares.isEmpty()) {
+		for (Square s : confirmedSquares) {
 
-			for (Square s : confirmedSquares) {
-				Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-						s.getUpperRightEdge(), new Scalar(0, 0, 0), -1);
-				// robot.writeLog(s.toString());
-			}
+			Point[] rect_points = new Point[4];
+			s.points(rect_points);
+			Core.circle(mRgbaOutput, s.getLowPt(), 10, new Scalar(255, 0, 0));
+			Core.circle(mRgbaOutput, s.getHighPt(), 10, new Scalar(0, 0, 255));
+
+			for (int j = 0; j < 4; j++)
+				Core.line(mRgbaOutput, rect_points[j],
+						rect_points[(j + 1) % 4], new Scalar(0, 0, 255), 5);
+			//
+
+			// Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+			// s.getUpperRightEdge(), new Scalar(0, 0, 0), -1);
+			// robot.writeLog(s.toString());
 		}
 
 		// draw circles on camera frame
@@ -704,21 +726,29 @@ public class MainActivity extends Activity implements OnTouchListener,
 		// draw Beacons
 		if (!beaconList.isEmpty()) {
 			for (Beacon b : beaconList) {
-				Core.rectangle(mRgbaOutput, b.getLowerLeftEdge(),
-						b.getUpperRightEdge(), new Scalar(240, 126, 12), -1);
-				Core.putText(mRgbaOutput, "center", b.getCenter(),
+				Point[] rect_points = new Point[4];
+				b.points(rect_points);
+
+				for (int j = 0; j < 4; j++)
+					Core.line(mRgbaOutput, rect_points[j],
+							rect_points[(j + 1) % 4], new Scalar(240, 126, 12),
+							5);
+				//
+				Core.putText(mRgbaOutput, "center", b.center,
 						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
 						8, false);
-				Core.circle(mRgbaOutput, b.getCenter(), 10, new Scalar(0));
-				Core.circle(mRgbaOutput, b.getLowerLeftEdge(), 10, new Scalar(
-						255, 0, 0));
-				Core.circle(mRgbaOutput, b.getUpperRightEdge(), 10, new Scalar(
-						255, 0, 0));
+				Core.circle(mRgbaOutput, b.center, 10, new Scalar(0));
+				// Core.circle(mRgbaOutput, b.getLowerLeftEdge(), 10, new
+				// Scalar(
+				// 255, 0, 0));
+				// Core.circle(mRgbaOutput, b.getUpperRightEdge(), 10, new
+				// Scalar(
+				// 255, 0, 0));
 				Core.circle(mRgbaOutput, b.getLowPt(), 10,
 						new Scalar(255, 0, 0));
-				Core.putText(mRgbaOutput, b.toString(), b.getLowerLeftEdge(),
-						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
-						8, false);
+				// Core.putText(mRgbaOutput, b.toString(), b.getLowerLeftEdge(),
+				// CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
+				// 8, false);
 			}
 		}
 

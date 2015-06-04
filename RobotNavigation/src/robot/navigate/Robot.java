@@ -103,65 +103,6 @@ public class Robot {
 	// measures distances correctly in its working
 	// range.
 
-	static final Map<Integer, Point> BeaconPosition; // maps colorID combo
-														// (10*upperColorID +
-														// lowerColorID) to the
-														// position in real
-														// world coordinates
-	static final Map<Integer, Integer> BeaconID;// maps colorID combo
-												// (10*upperColorID +
-												// lowerColorID) to the ID
-	static final Map<Integer, Integer> BeaconsAngleOffs; // maps beaconID-combo
-															// to angles which
-															// have to be added
-															// to the
-															// calculation for
-															// gaining the real
-															// world coordinates
-
-	static {
-		Map<Integer, Point> tmpPosition = new LinkedHashMap<Integer, Point>();
-		tmpPosition.put(12, new Point(-125.0, 125.0));
-		tmpPosition.put(21, new Point(0.0, 125.0));
-		tmpPosition.put(13, new Point(125.0, 125.0));
-		tmpPosition.put(42, new Point(-125.0, 0.0));
-		tmpPosition.put(24, new Point(125.0, 0.0));
-		tmpPosition.put(41, new Point(-125.0, -125.0));
-		tmpPosition.put(14, new Point(0.0, -125.0));
-		tmpPosition.put(31, new Point(125.0, -125.0));
-		BeaconPosition = Collections.unmodifiableMap(tmpPosition);
-
-		Map<Integer, Integer> tmpID = new LinkedHashMap<Integer, Integer>();
-		tmpID.put(12, 1);
-		tmpID.put(21, 2);
-		tmpID.put(13, 3);
-		tmpID.put(42, 4);
-		tmpID.put(24, 5);
-		tmpID.put(41, 6);
-		tmpID.put(14, 7);
-		tmpID.put(31, 8);
-		BeaconID = Collections.unmodifiableMap(tmpID);
-
-		Map<Integer, Integer> tmpAngles = new LinkedHashMap<Integer, Integer>();
-		tmpAngles.put(12, 90);
-		tmpAngles.put(13, 90);
-		tmpAngles.put(23, 90);
-		tmpAngles.put(35, 180);
-		tmpAngles.put(38, 180);
-		tmpAngles.put(58, 180);
-		tmpAngles.put(67, 270);
-		tmpAngles.put(68, 270);
-		tmpAngles.put(78, 270);
-		tmpAngles.put(14, 0);
-		tmpAngles.put(16, 0);
-		tmpAngles.put(46, 0);
-		tmpAngles.put(24, 45);
-		tmpAngles.put(25, 135);
-		tmpAngles.put(57, 225);
-		tmpAngles.put(47, 315);
-		BeaconsAngleOffs = Collections.unmodifiableMap(tmpAngles);
-	}
-
 	// <- Robot Calibration
 
 	// TODO Check the use of WriteLog; too many comments in textLog while
@@ -1360,7 +1301,7 @@ public class Robot {
 		Ball detectedBall = null;
 		if (turnAndFindABall(mRgbaWork, myColors, confirmedSquares)) {
 			for (Scalar hsvColor : myColors) {
-				Mat grayImg = imageProcessor.filter(mRgbaWork, hsvColor);
+				Mat grayImg = imageProcessor.filter(mRgbaWork, hsvColor, 'c');
 				List<MatOfPoint> contours = imageProcessor
 						.findContours(grayImg);
 				grayImg.release();
@@ -1419,7 +1360,8 @@ public class Robot {
 	 *            the pixel to map to the ground plane
 	 * @param homographyMatrix
 	 *            the matrix that maps camera pixels to the ground plane
-	 * @return ground plane coordinates of camera point relative to robot
+	 * @return ground plane coordinates of camera point relative to robot (polar
+	 *         coords; radiant)
 	 */
 	public double[] getGroundPlaneCoordinatesRelRobot(Point cameraPoint,
 			Mat homographyMatrix) {
@@ -1524,9 +1466,9 @@ public class Robot {
 				}
 			}
 
-			myPos.x += avgPosition_x / count;
-			myPos.y += avgPosition_y / count;
-			myPos.theta += avgPosition_theta / count;
+			myPos.x = avgPosition_x / count;
+			myPos.y = avgPosition_y / count;
+			myPos.theta = (int) avgPosition_theta / count;
 
 			return true;
 
@@ -1539,7 +1481,8 @@ public class Robot {
 	// TODO: test
 	/**
 	 * Takes two visible beacons as input, calculates the global position using
-	 * these two beacons.
+	 * these two beacons. Method taken from "Landmark Based Global
+	 * Self-localization of Mobile Soccer Robots" (Abdul Bais, Robert Sablatnig)
 	 * 
 	 * @param beacon1
 	 *            first visible beacon
@@ -1553,35 +1496,54 @@ public class Robot {
 			Mat homographyMatrix) {
 
 		writeLog("findPosition -> Trying to find the position by having a look at Beacon "
-				+ BeaconID.get(beacon1.getColorComb())
+				+ ImageProcessor.BeaconID.get(beacon1.getColorComb())
 				+ " with color "
 				+ beacon1.getColorComb()
 				+ " and  Beacon "
-				+ BeaconID.get(beacon2.getColorComb())
-				+ " with color "
-				+ beacon2.getColorComb());
+				+ ImageProcessor.BeaconID.get(beacon2.getColorComb())
+				+ " with color " + beacon2.getColorComb());
 
 		// Creates the ID of a pair of beacons which consists of two numbers:
 		// First number -> ID of beacon with lower ID,
 		// Second number -> ID of beacon with higher ID
 		int beacIDcomb;
-		if (BeaconID.get(beacon1.getColorComb()) > BeaconID.get(beacon2
-				.getColorComb())) {
-			beacIDcomb = BeaconID.get(beacon2.getColorComb()) * 10
-					+ BeaconID.get(beacon1.getColorComb());
+		if (ImageProcessor.BeaconID.get(beacon1.getColorComb()) > ImageProcessor.BeaconID
+				.get(beacon2.getColorComb())) {
+			beacIDcomb = ImageProcessor.BeaconID.get(beacon2.getColorComb())
+					* 10 + ImageProcessor.BeaconID.get(beacon1.getColorComb());
 		} else {
-			beacIDcomb = BeaconID.get(beacon1.getColorComb()) * 10
-					+ BeaconID.get(beacon2.getColorComb());
+			beacIDcomb = ImageProcessor.BeaconID.get(beacon1.getColorComb())
+					* 10 + ImageProcessor.BeaconID.get(beacon2.getColorComb());
 		}
 
 		writeLog("findPosition -> Leading to following beacon ID combo: "
 				+ beacIDcomb);
 
-		Point pos1 = BeaconPosition.get(beacon1.getColorComb());
-		Point pos2 = BeaconPosition.get(beacon2.getColorComb());
+		double[] ground1 = getGroundPlaneCoordinatesRelRobot(
+				beacon1.getLowPt(), homographyMatrix);
+		double[] ground2 = getGroundPlaneCoordinatesRelRobot(
+				beacon2.getLowPt(), homographyMatrix);
+		Beacon beaconl;
+		Beacon beaconr;
 
-		writeLog("findPosition -> Beacon 1 position: " + pos1);
-		writeLog("findPosition -> Beacon 2 position: " + pos2);
+		if (ground1[1] > ground2[1]) {
+			beaconl = beacon2;
+			beaconr = beacon1;
+		} else {
+			beaconl = beacon1;
+			beaconr = beacon2;
+		}
+
+		ground1 = getGroundPlaneCoordinatesRelRobot(beaconl.getLowPt(),
+				homographyMatrix);
+		ground2 = getGroundPlaneCoordinatesRelRobot(beaconr.getLowPt(),
+				homographyMatrix);
+
+		Point pos1 = ImageProcessor.BeaconPosition.get(beaconl.getColorComb());
+		Point pos2 = ImageProcessor.BeaconPosition.get(beaconr.getColorComb());
+
+		writeLog("findPosition -> Beaconl position: " + pos1);
+		writeLog("findPosition -> Beaconr position: " + pos2);
 
 		// distance between the two beacons
 		double b = Math.sqrt(Math.pow(pos2.x - pos1.x, 2)
@@ -1589,70 +1551,124 @@ public class Robot {
 
 		writeLog("findPosition -> Distance between Beacons: " + b);
 
-		double c;
-		double a;
-		double[] ground1 = getGroundPlaneCoordinatesRelRobot(
-				beacon1.getLowPt(), homographyMatrix);
-		double[] ground2 = getGroundPlaneCoordinatesRelRobot(
-				beacon2.getLowPt(), homographyMatrix);
+		double c = ground1[0];
+		double a = ground2[0];
+		double thetaRel = ground1[1];
+		Point beaconPos = ImageProcessor.BeaconPosition.get(beaconl
+				.getColorComb());
 
-		writeLog("findPosition -> First beacon is located at (relative to robot) "
+		writeLog("findPosition -> Left beacon is located at (relative to robot) "
 				+ ground1[0] + ", " + Math.toDegrees(ground1[1]));
-		writeLog("findPosition -> Second beacon is located at (relative to robot) "
+		writeLog("findPosition -> Right beacon is located at (relative to robot) "
 				+ ground2[0] + ", " + Math.toDegrees(ground2[1]));
-
-		// The distance of the beacon which appears first (from left to right)
-		// on the camera frame is stored in variable c
-		// The distance of the other beacon in a
-		double thetaRel;
-		Point beaconPos;
-		if (ground1[1] > ground2[1]) {
-			c = ground2[0];
-			a = ground1[0];
-			thetaRel = ground2[1];
-			beaconPos = BeaconPosition.get(beacon2.getColorComb());
-		} else {
-			c = ground1[0];
-			a = ground2[0];
-			thetaRel = ground1[1];
-			beaconPos = BeaconPosition.get(beacon1.getColorComb());
-		}
 
 		writeLog("Left beacon; c: " + c + "; a: " + a + "; theta_rel: "
 				+ Math.toDegrees(thetaRel) + "; beaconPos: " + beaconPos);
 
 		// Law of cosine to calculate the angle between the first beacon and the
 		// robot (in relation to the line crossing
-		// both beacons.
+		// both beacons).
 		double alpha = Math.toDegrees(Math.acos(-(Math.pow(a, 2)
 				- Math.pow(b, 2) - Math.pow(c, 2))
 				/ (2 * b * c)));
 
 		// Angle in global coordinate system between robot and beacon
 		writeLog("beacIDcomb: " + beacIDcomb + "BeaconsAngleOffs: "
-				+ BeaconsAngleOffs.get(beacIDcomb));
-		double alph = alpha + BeaconsAngleOffs.get(beacIDcomb);
+				+ ImageProcessor.BeaconsAngleOffs.get(beacIDcomb));
+		double alph = reduceAngle((int) alpha
+				+ ImageProcessor.BeaconsAngleOffs.get(beacIDcomb));
 
-		int alphhlp = reduceAngle((int) (180 - (alph - Math.toDegrees(thetaRel))));
+		// int alphhlp = reduceAngle((int) (180 - (alph -
+		// Math.toDegrees(thetaRel))));
 
 		// Using alpha and distance to the left beacon aswell as the Position of
 		// the beacon, calculate the position of the robot.
 
-		int theta = reduceAngle((int) (BeaconsAngleOffs.get(beacIDcomb) + (180 - (alpha + thetaRel))));
+		double dx = c * Math.sin(Math.toRadians(alph));
 
-		double dx = c * Math.cos(Math.toRadians(alphhlp));
+		double dy = c * Math.cos(Math.toRadians(alph));
 
-		double dy = -c * Math.sin(Math.toRadians(alphhlp));
+		double theta = 0; // TODO calc
 
 		Point pointGroundCoord = new Point();
 		pointGroundCoord.x = beaconPos.x + dx;
 		pointGroundCoord.y = beaconPos.y + dy;
 
-		writeLog("Heavy calculating leads to alpha: " + alpha + "; tmptheta: "
-				+ alphhlp + "; theta: " + theta + "; dx: " + dx + "; dy: " + dy
-				+ "; myPosition: " + pointGroundCoord.toString());
+		writeLog("Heavy calculating leads to alpha: " + alpha
+				+ "; alpha + beaconoffset: " + alph + "; dx: " + dx + "; dy: "
+				+ dy + "; myPosition: " + pointGroundCoord);
 
-		return new Position(pointGroundCoord.x, pointGroundCoord.y, theta);
+		//
+		// writeLog("findPosition -> Leading to following beacon ID combo: "
+		// + beacIDcomb);
+		//
+		//
+		// double[] ground1 = getGroundPlaneCoordinatesRelRobot(
+		// beacon1.getLowPt(), homographyMatrix);
+		// double[] ground2 = getGroundPlaneCoordinatesRelRobot(
+		// beacon2.getLowPt(), homographyMatrix);
+		// Beacon beaconl;
+		// Beacon beaconr;
+		//
+		// if (ground1[1] > ground2[1]) {
+		// beaconl = beacon2;
+		// beaconr = beacon1;
+		// } else {
+		// beaconl = beacon1;
+		// beaconr = beacon2;
+		// }
+		//
+		// Point pos1 = BeaconPosition.get(beaconl.getColorComb());
+		// Point pos2 = BeaconPosition.get(beaconr.getColorComb());
+		//
+		// writeLog("findPosition -> Beacon 1 position: " + pos1);
+		// writeLog("findPosition -> Beacon 2 position: " + pos2);
+		//
+		// writeLog("findPosition -> First beacon is located at (relative to robot) "
+		// + pos1);
+		// writeLog("findPosition -> Second beacon is located at (relative to robot) "
+		// + pos2);
+		//
+		// ground1 = getGroundPlaneCoordinatesRelRobot(
+		// beaconl.getLowPt(), homographyMatrix);
+		// ground2 = getGroundPlaneCoordinatesRelRobot(
+		// beaconr.getLowPt(), homographyMatrix);
+		//
+		// double r1 = ground1[0];
+		// double r2 = ground2[0];
+		//
+		// double A = (Math.pow(r1,2) - Math.pow(r2,2) + Math.pow(pos2.x,2) -
+		// Math.pow(pos1.x,2) + Math.pow(pos2.y,2) - Math.pow(pos1.y,2)) /
+		// (2*(pos2.x - pos1.x));
+		// double B = ((double) (pos1.y - pos2.y)) / ((double) (pos2.x -
+		// pos1.x));
+		//
+		// double C = Math.pow(B,2) + 1;
+		// // double D = 2*A*B - 2*pos1.x*B - 2*pos1.y;
+		// double D = 2*A*B - 2*pos2.x*B - 2*pos2.y;
+		// double E = Math.pow(A,2) + Math.pow(pos2.x,2) - 2*(pos2.x)*A +
+		// Math.pow(pos2.y, 2)- Math.pow(r2,2);
+		//
+		// Point pointGroundCoord = new Point();
+		// pointGroundCoord.y = (-D + Math.sqrt(Math.pow(D,2) - 4*C*E))/(2*C);
+		// pointGroundCoord.x = A + B*pointGroundCoord.y;
+		//
+		// Point testPoint = new Point();
+		// testPoint.y = (-D - Math.sqrt(Math.pow(D,2) - 4*C*E))/(2*C);
+		// testPoint.x = A + B*testPoint.y;
+		//
+		// double alpha1 = Math.toDegrees(Math.atan2((pos1.y -
+		// pointGroundCoord.y), pointGroundCoord.x));
+		// double alpha2 = Math.toDegrees(Math.atan2(r1*Math.cos(ground1[1]),
+		// r1*Math.sin(ground1[1])));
+		//
+		// writeLog("Heavy calculating leads to A: " + A + "; B: "
+		// + B + "; C: " + C + "; D: " + D + "; E: "
+		// + E + "; r1: " + r1 + "; r2: " + r2 + "; myPosition: " +
+		// pointGroundCoord + "; Second solution: " + testPoint + "; alpha1: " +
+		// alpha1 + "; alpha2: " + alpha2);
+
+		return new Position(pointGroundCoord.x, pointGroundCoord.y, (int) theta);
 	}
 
 	// TODO implement second increment: collect more balls which are lying on
@@ -1724,7 +1740,7 @@ public class Robot {
 		if (turnAndFindABall(mRgbaWork, myColors, confirmedSquares)) {
 			for (Scalar hsvColor : myColors) {
 				ImageProcessor imgProc = new ImageProcessor(TAG);
-				Mat grayImg = imgProc.filter(mRgbaWork, hsvColor);
+				Mat grayImg = imgProc.filter(mRgbaWork, hsvColor, 'c');
 				List<MatOfPoint> contours = imgProc.findContours(grayImg);
 				grayImg.release();
 				Log.e(TAG, "found areas: " + contours.size());
