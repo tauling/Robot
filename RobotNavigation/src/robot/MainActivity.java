@@ -171,10 +171,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// initialize myBeaconColors & myColors
-		myBeaconColors.add(new Scalar(20, 240, 200)); // orange
-		myBeaconColors.add(new Scalar(125, 60, 134)); // blue
-		// myBeaconColors.add(new Scalar(240, 200, 150)); // magenta
-		// myBeaconColors.add(new Scalar(100, 155, 115)); // green
+		myBeaconColors.add(new Scalar(20, 200, 210)); // orange
+		myBeaconColors.add(new Scalar(130, 180, 134)); // blue
+		myBeaconColors.add(new Scalar(240, 200, 150)); // magenta
+		myBeaconColors.add(new Scalar(110, 140, 115)); // green
 
 		myCircleColors.add(new Scalar(95, 240, 110)); // green
 		// myCircleColors.add(new Scalar(248, 200, 180)); // red
@@ -664,21 +664,19 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		// draw squares on CameraFrame
 
-		// Mat grayImg = new Mat();
-		// if (!myBeaconColors.isEmpty()) {
-		// for (Scalar s : myBeaconColors)
-		// grayImg = imageProcessor.filter(mRgbaWork, s);
-		// mRgbaOutput = grayImg;
-		// }
-
-		// out dated, we only draw beacons from now on
+//		Mat grayImg = new Mat();
+//		if (!myBeaconColors.isEmpty()) {
+//			for (Scalar s : myBeaconColors)
+//				grayImg = imageProcessor.filter(mRgbaWork, s);
+//			mRgbaOutput = grayImg;
+//		}
 
 		for (Square s : squareList) {
 			Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
 					s.getUpperRightEdge(), new Scalar(20), -1);
 			Core.putText(mRgbaOutput, "center", s.getCenter(),
-					CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
-					8, false);
+					CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1, 8,
+					false);
 			// robot.writeLog(s.toString());
 		}
 		//

@@ -171,7 +171,7 @@ public class ImageProcessor {
 
 		try {
 
-			Scalar mmColorRadius = new Scalar(10, 100, 100, 0); // Color radius
+			Scalar mmColorRadius = new Scalar(10, 60, 255, 0); // Color radius
 			// for range
 			// checking in
 			// HSV color
@@ -205,7 +205,7 @@ public class ImageProcessor {
 			// Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
 			// new Size(10, 10));
 			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-					new Size(7, 7));
+					new Size(5, 5));
 			Imgproc.dilate(mmMask, mmDilatedMask, element);
 			Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
 			element.release();
