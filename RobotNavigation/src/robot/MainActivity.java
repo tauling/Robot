@@ -383,6 +383,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
+				robot.moveByDistance(-50);
 				collectAllBalls();
 			};
 		};
@@ -782,8 +783,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 		ImageProcessor imgProc = new ImageProcessor(TAG);
 		List<Beacon> beacons = imgProc.findBeacons(confirmedSquares)
 				.getBeaconList();
-		while (beacons.size() < 2) {
-			robot.turnByDistance(15, 'r');
+		int angle = 0;
+		while (beacons.size() < 2 && angle < 360) {
+			angle +=30;
+			robot.turnByDistance(30, 'r');
 			beacons = imgProc.findBeacons(confirmedSquares).getBeaconList();
 		}
 		return beacons;
@@ -796,7 +799,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * this procedure until all balls are at the target)
 	 */
 	public void collectAllBalls() {
-		findTwoBeacons();
+		robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
 		Position targetPoint = new Position(targetX, targetY, targetTheta);
 		robot.moveToTargetCollBalls(targetPoint, mRgbaWork, myBeaconColors,
 				homographyMatrix, confirmedSquares);
@@ -812,6 +815,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 			robot.turnByDistanceBalanced(180, 'r');
 			robot.moveToTarget(targetPoint.x, targetPoint.y);
 			robot.robotSetBar(300);
+			robot.robotSetLeds(200,0);
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// do nothing
+			}
+			robot.robotSetLeds(0, 0);
+			robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
 			nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
 					homographyMatrix, confirmedSquares);
 		}
