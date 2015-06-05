@@ -415,11 +415,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.robotSetLeds(200, 200);
 				Position targetPoint = new Position(targetX, targetY,
 						targetTheta);
-				robot.moveToTarget(targetPoint);
-				robot.robotSetLeds(0, 0);
+				robot.moveToTargetCollBalls(targetPoint, mRgbaWork,
+						myCircleColors, homographyMatrix, confirmedSquares);
+				;
 			};
 		};
 
@@ -461,19 +461,22 @@ public class MainActivity extends Activity implements OnTouchListener,
 					robot.robotSetLeds(200, 200);
 					robot.driveToBallAndCage2(nearestBall, mRgbaWork,
 							myCircleColors, homographyMatrix, confirmedSquares);
+					robot.writeLog("driving forward to next target");
 					robot.moveToTargetWithoutAngle(targetX, targetY, 5);
+					robot.writeLog("target point reached");
 					robot.moveByVelocitySlow(-16, false);
 					robot.robotSetBar(255);
 					robot.moveByVelocitySlow(-30, false);
 					robot.turnByDistance(180, 'r');
+					robot.writeLog("heading back to target point");
+					robot.robotSetLeds(0, 0);
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						// do nothing
 					}
-					robot.robotSetLeds(0, 0);
-//					robot.updateGlobalPosition(findTwoBeacons(),
-//							homographyMatrix);
+					// robot.updateGlobalPosition(findTwoBeacons(),
+					// homographyMatrix);
 					nearestBall = robot.findNearestBall(mRgbaWork,
 							myCircleColors, homographyMatrix, confirmedSquares);
 				}
@@ -806,7 +809,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 				mLoaderCallback);
 	}
 
-	// TODO: test
 	/**
 	 * Turns until two beacons are seen by the robot.
 	 * 
@@ -855,13 +857,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 		} catch (InterruptedException e) {
 			// do nothing
 		}
-		
+
 		// TODO: test this method
 		// robot.driveToTargetCollectAllBalls(targetPoint, mRgbaWork,
 		// myCircleColors, homographyMatrix, foundBalls);
 		robot.robotSetLeds(200, 200);
-		Ball nearestBall = robot.findNearestBall(mRgbaWork,
-				myCircleColors, homographyMatrix, confirmedSquares);
+		Ball nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
+				homographyMatrix, confirmedSquares);
 		robot.robotSetLeds(0, 0);
 		while (nearestBall != null) {
 			robot.robotSetLeds(200, 200);
@@ -872,16 +874,15 @@ public class MainActivity extends Activity implements OnTouchListener,
 			robot.robotSetBar(255);
 			robot.moveByVelocitySlow(-30, false);
 			robot.turnByDistance(180, 'r');
+			robot.robotSetLeds(0, 0);
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				// do nothing
 			}
-			robot.robotSetLeds(0, 0);
-			robot.updateGlobalPosition(findTwoBeacons(),
-					homographyMatrix);
-			nearestBall = robot.findNearestBall(mRgbaWork,
-					myCircleColors, homographyMatrix, confirmedSquares);
+			robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
+			nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
+					homographyMatrix, confirmedSquares);
 		}
 		robot.robotSetLeds(100, 100);
 	}
@@ -889,8 +890,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 	/**
 	 * updates global position using beacons every ~15
 	 */
-	// frames (in case at least two beacons are visible)
-	// TODO: add description
 	public void UpdateselfLocalization() {
 		findTwoBeacons();
 		robot.updateGlobalPosition(beaconList, homographyMatrix);
