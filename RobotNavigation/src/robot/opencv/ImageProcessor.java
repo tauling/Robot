@@ -289,7 +289,7 @@ public class ImageProcessor {
 			// Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
 			// new Size(10, 10));
 			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-					new Size(7, 7));
+					new Size(12, 12));
 			Imgproc.dilate(mmMask, mmDilatedMask, element);
 			Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
 			element.release();
