@@ -421,13 +421,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.findNearestBall(mRgbaWork, myCircleColors,
-						homographyMatrix, confirmedSquares);
-				// List<Beacon> beaconlist = imageProcessor.findBeaconOrdered(
-				// squareList).getBeaconList();
-				// robot.updateGlobalPosition(beaconlist, homographyMatrix);
-				// robot.writeLog("Robot's new position: "
-				// + robot.getMyPosition().toString());
+				//robot.findNearestBall(mRgbaWork, myCircleColors,
+					//	homographyMatrix, confirmedSquares);
+				 List<Beacon> beaconlist = imageProcessor.findBeacons(
+				 squareList).getBeaconList();
+				 robot.updateGlobalPosition(beaconlist, homographyMatrix);
+				 robot.writeLog("Robot's new position: "
+				 + robot.getMyPosition().toString());
 			};
 		};
 
