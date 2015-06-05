@@ -1194,7 +1194,7 @@ public class Robot {
 	 * @param confirmedSquares
 	 * @return
 	 */
-	public boolean FindABall(Mat mRgbaWork, List<Scalar> myColors,
+	public boolean findABall(Mat mRgbaWork, List<Scalar> myColors,
 			List<Square> confirmedSquares) {
 		Log.i(TAG, "turnAndFindABall start");
 		Boolean foundBall = false;
@@ -1203,11 +1203,10 @@ public class Robot {
 				myColors, confirmedSquares);
 		Log.i(TAG, "found circles:" + circles.size());
 		if (circles.size() > 0) {
-			Log.i(TAG, "found circle x:" + circles.get(0).getLowPt().x + " y:"
-					+ circles.get(0).getLowPt().y);
+
 			alignToPoint(circles.get(0).getLowPt(), mRgbaWork, myColors,
 					confirmedSquares);
-			Log.i(TAG, "(turnAndFindABall) found a ball");
+			Log.i(TAG, "(findABall) found a ball on the way to the target");
 			foundBall = true;
 		}
 		Log.i(TAG, "(turnAndFindABall) Finished");
@@ -1330,15 +1329,15 @@ public class Robot {
 		Ball detectedBall = null;
 		if (turnAndFindABall(mRgbaWork, myColors, confirmedSquares)) {
 			for (Scalar hsvColor : myColors) {
-				Mat grayImg = imageProcessor.filter(mRgbaWork, hsvColor, 'c');
-				List<MatOfPoint> contours = imageProcessor
-						.findContours(grayImg);
+				ImageProcessor imgProc = new ImageProcessor(TAG);
+				Mat grayImg = imgProc.filter(mRgbaWork, hsvColor, 'c');
+				List<MatOfPoint> contours = imgProc.findContours(grayImg);
 				grayImg.release();
 				Log.e(TAG, "found areas: " + contours.size());
 				for (MatOfPoint area : contours) {
 
-					Point center = imageProcessor.computeCenterPt(area);
-					double rad = imageProcessor.computeRadius(area, center);
+					Point center = imgProc.computeCenterPt(area);
+					double rad = imgProc.computeRadius(area, center);
 					Point lowestPoint = new Point(center.x, center.y + rad);
 					Point pointGroundPlane = getGroundPlaneCoordinates(
 							lowestPoint, homographyMatrix);
@@ -1402,10 +1401,16 @@ public class Robot {
 																		// in
 																		// image
 																		// coordinates
-		Core.perspectiveTransform(src, dest, homographyMatrix); // homography is
-																// your
-																// homography
-																// matrix
+		try {
+			Core.perspectiveTransform(src, dest, homographyMatrix); // homography
+																	// is
+																	// your
+																	// homography
+																	// matrix
+		} catch (NullPointerException e) {
+			System.out.println("you forgot the homog. matrix ;)");
+			writeLog("you forgot the homog. matrix ;)");
+		}
 		Point pointGroundCoord = new Point(dest.get(0, 0)[0] / 10, dest.get(0,
 				0)[1] / 10);
 		double theta = Math.atan2(pointGroundCoord.x, pointGroundCoord.y);
@@ -1718,7 +1723,8 @@ public class Robot {
 			List<Square> confirmedSquares) {
 		turnByDistanceBalanced(getAngleToTarget(targetPoint.x, targetPoint.y),
 				'r');
-		if (FindABall(mRgbaWork, myColors, confirmedSquares)) {
+		if (findABall(mRgbaWork, myColors, confirmedSquares)) {
+			writeLog("i think there is a ball on the way to the target");
 			driveToBallAndCage2(
 					findNearestBall(mRgbaWork, myColors, homographyMatrix,
 							confirmedSquares), mRgbaWork, myColors,
