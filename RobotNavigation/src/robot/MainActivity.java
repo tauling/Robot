@@ -421,8 +421,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				//robot.findNearestBall(mRgbaWork, myCircleColors,
-					//	homographyMatrix, confirmedSquares);
+				// collectAllBalls();
 				 List<Beacon> beaconlist = imageProcessor.findBeacons(
 				 squareList).getBeaconList();
 				 robot.updateGlobalPosition(beaconlist, homographyMatrix);
@@ -783,13 +782,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * @return List of beacons.
 	 */
 	public List<Square> findTwoBeacons() {
-		List<Square> beacons = imageProcessor.findSquaresOnCamera(mRgbaWork,
+		ImageProcessor imgProc = new ImageProcessor(TAG);
+		List<Square> beacons = imgProc.findSquaresOnCamera(mRgbaWork,
 				myBeaconColors);
 		while (beacons.size() < 2) {
 			// TODO: verify angle value
 			robot.turnByDistance(15, 'r');
-			beacons = imageProcessor.findSquaresOnCamera(mRgbaWork,
-					myBeaconColors);
+			beacons = imgProc.findSquaresOnCamera(mRgbaWork, myBeaconColors);
 		}
 		return beacons;
 	}
@@ -801,10 +800,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * this procedure until all balls are at the target)
 	 */
 	public void collectAllBalls() {
-		findTwoBeacons();
+		// findTwoBeacons();
 		Position targetPoint = new Position(targetX, targetY, targetTheta);
-		robot.moveToTargetCollBalls(targetPoint, mRgbaWork, myBeaconColors,
-				homographyMatrix, confirmedSquares);
+		// robot.moveToTargetCollBalls(targetPoint, mRgbaWork, myBeaconColors,
+		// homographyMatrix, confirmedSquares);
 
 		// TODO: test this method
 		// robot.driveToTargetCollectAllBalls(targetPoint, mRgbaWork,
@@ -816,6 +815,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 					homographyMatrix, confirmedSquares);
 			robot.turnByDistanceBalanced(180, 'r');
 			robot.moveToTarget(targetPoint.x, targetPoint.y);
+			// TODO: release ball at target position
 		} catch (NullPointerException e) {
 			robot.writeLog("finish :D");
 		} finally {

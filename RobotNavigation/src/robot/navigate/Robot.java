@@ -1187,6 +1187,35 @@ public class Robot {
 	}
 
 	/**
+	 * implements the same functionality as turnAndFindABall without turning
+	 * 
+	 * @param mRgbaWork
+	 * @param myColors
+	 * @param confirmedSquares
+	 * @return
+	 */
+	public boolean FindABall(Mat mRgbaWork, List<Scalar> myColors,
+			List<Square> confirmedSquares) {
+		Log.i(TAG, "turnAndFindABall start");
+		Boolean foundBall = false;
+		ImageProcessor imgProc = new ImageProcessor(TAG);
+		List<Circle> circles = imgProc.findCirclesOnCamera2(mRgbaWork,
+				myColors, confirmedSquares);
+		Log.i(TAG, "found circles:" + circles.size());
+		if (circles.size() > 0) {
+			Log.i(TAG, "found circle x:" + circles.get(0).getLowPt().x + " y:"
+					+ circles.get(0).getLowPt().y);
+			alignToPoint(circles.get(0).getLowPt(), mRgbaWork, myColors,
+					confirmedSquares);
+			Log.i(TAG, "(turnAndFindABall) found a ball");
+			foundBall = true;
+		}
+		Log.i(TAG, "(turnAndFindABall) Finished");
+		return foundBall;
+
+	}
+
+	/**
 	 * Drives to the ball and cages it.
 	 * 
 	 * @param ball
@@ -1230,7 +1259,7 @@ public class Robot {
 			List<Scalar> myColors, Mat homographyMatrix,
 			List<Square> confirmedSquares) {
 		Point ballTarget = ball.getPosGroundPlane();
-		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 25);
+		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 10);
 		ballTarget = findNearestBall(mRgbaWork, myColors, homographyMatrix,
 				confirmedSquares).getPosGroundPlane();
 		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 5);
@@ -1424,7 +1453,7 @@ public class Robot {
 			if (Math.abs(diff) > TOL && diff < 0) {
 				turnByDistanceBalanced(30, 'r');
 			} else if (Math.abs(diff) > TOL && diff > 0) {
-				turnByDistanceBalanced(25, 'l');
+				turnByDistanceBalanced(30, 'l');
 			} else {
 				aligned = true;
 			}
@@ -1689,16 +1718,20 @@ public class Robot {
 			List<Square> confirmedSquares) {
 		turnByDistanceBalanced(getAngleToTarget(targetPoint.x, targetPoint.y),
 				'r');
-
-		driveToBallAndCage2(
-				findNearestBall(mRgbaWork, myColors, homographyMatrix,
-						confirmedSquares), mRgbaWork, myColors,
-				homographyMatrix, confirmedSquares);
-		moveToTarget(targetPoint);
+		if (FindABall(mRgbaWork, myColors, confirmedSquares)) {
+			driveToBallAndCage2(
+					findNearestBall(mRgbaWork, myColors, homographyMatrix,
+							confirmedSquares), mRgbaWork, myColors,
+					homographyMatrix, confirmedSquares);
+			moveToTarget(targetPoint);
+			robotSetBar(300);
+		} else {
+			moveToTarget(targetPoint);
+		}
 	}
 
 	/**
-	 * drive to target position and collect all balls on the way
+	 * drive to target position and collect all (multiple) balls on the way
 	 * 
 	 * @param target
 	 * @param mRgbaWork
