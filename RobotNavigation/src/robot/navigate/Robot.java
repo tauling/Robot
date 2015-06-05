@@ -226,8 +226,6 @@ public class Robot {
 	private void comWrite(byte[] data) {
 		if (com.isConnected()) {
 			com.write(data);
-		} else {
-			writeLog("not connected");
 		}
 	}
 
@@ -246,8 +244,6 @@ public class Robot {
 			byte[] buffer = new byte[256];
 			n = com.read(buffer);
 			s += new String(buffer, 0, n);
-		} else {
-			writeLog("not connected");
 		}
 		return s;
 	}
@@ -1273,10 +1269,12 @@ public class Robot {
 			List<Scalar> myColors, Mat homographyMatrix,
 			List<Square> confirmedSquares) {
 		Point ballTarget = ball.getPosGroundPlane();
-		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 10);
+		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 35);
 		ballTarget = findNearestBall(mRgbaWork, myColors, homographyMatrix,
 				confirmedSquares).getPosGroundPlane();
-		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 5);
+		if (ballTarget != null) {
+			moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 5);
+		}
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robotSetBar(50);
 		try {
@@ -1523,9 +1521,9 @@ public class Robot {
 				myPos.x = avgPosition_x / count;
 				myPos.y = avgPosition_y / count;
 				myPos.theta = (int) avgPosition_theta / count;
-			}
 
-			return true;
+				return true;
+			}
 
 		}
 
@@ -1790,8 +1788,7 @@ public class Robot {
 	public void moveToTargetCollBalls(Position targetPoint, Mat mRgbaWork,
 			List<Scalar> myColors, Mat homographyMatrix,
 			List<Square> confirmedSquares) {
-		turnByDistanceBalanced(getAngleToTarget(targetPoint.x, targetPoint.y),
-				'r');
+		turnByDistance(getAngleToTarget(targetPoint.x, targetPoint.y), 'r');
 		if (findABall(mRgbaWork, myColors, confirmedSquares)) {
 			writeLog("i think there is a ball on the way to the target");
 			driveToBallAndCage2(
