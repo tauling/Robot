@@ -1796,43 +1796,24 @@ public class Robot {
 	public Ball findNearestBall(Mat mRgbaWork, List<Scalar> myColors,
 			Mat homographyMatrix, List<Square> confirmedSquares) {
 		Ball detectedBall = null;
-		Map<Double, Ball> ballGaps = new HashMap<Double, Ball>();
 		Log.e(TAG, "find nearest Ball");
 		if (turnAndFindABall(mRgbaWork, myColors, confirmedSquares)) {
-			for (Scalar hsvColor : myColors) {
-				ImageProcessor imgProc = new ImageProcessor(TAG);
-				Mat grayImg = imgProc.filter(mRgbaWork, hsvColor, 'c');
-				List<MatOfPoint> contours = imgProc.findContours(grayImg);
-				grayImg.release();
-				Log.e(TAG, "found areas: " + contours.size());
-
-				for (MatOfPoint area : contours) {
-
-					Point center = imgProc.computeCenterPt(area);
-					double rad = imgProc.computeRadius(area, center);
-					Point lowestPoint = new Point(center.x, center.y + rad);
-					Point pointGroundPlane = getGroundPlaneCoordinates(
-							lowestPoint, homographyMatrix);
-
-					detectedBall = new Ball(center, pointGroundPlane, rad);
-					Point groundPoint = detectedBall.getPosGroundPlane();
-					Double distToBall = Math.sqrt(Math.pow(groundPoint.x
-							- myPos.x, 2)
-							+ Math.pow(groundPoint.y - myPos.y, 2));
-					ballGaps.put(distToBall, detectedBall);
-					writeLog("found a ball");
+			ImageProcessor imgProc = new ImageProcessor(TAG);
+			List<Circle> listCircles = imgProc.findCirclesOnCamera2(mRgbaWork, myColors, confirmedSquares);
+			
+			for (Circle circle: listCircles) {
+				Point posNewBall = getGroundPlaneCoordinates(
+						circle.getLowPt(), homographyMatrix);
+				double distToNewBall = imgProc.distPointToPoint(posNewBall, new Point(getMyPosition().x, getMyPosition().y));
+				double distToDetectedBall = imgProc.distPointToPoint(detectedBall.getPosGroundPlane(), new Point(getMyPosition().x, getMyPosition().y));
+				if (detectedBall == null || distToNewBall < distToDetectedBall) {
+					detectedBall = new Ball(circle.getCenter(), posNewBall, circle.getRadius());
 				}
 			}
+			writeLog("found a ball");
 		}
-
-		Entry<Double, Ball> nearestBall = null;
-		for (Entry<Double, Ball> entry : ballGaps.entrySet()) {
-			if (nearestBall == null || nearestBall.getKey() > entry.getKey()) {
-				nearestBall = entry;
-			}
-		}
-		// TODO: returns NULL object, if no ball in view
-		Log.e(TAG, "nearest Ball:" + nearestBall.getValue());
-		return nearestBall.getValue();
+		
+		Log.e(TAG, "nearest Ball:" + detectedBall);
+		return detectedBall;
 	}
 }
