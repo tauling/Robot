@@ -806,7 +806,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 				mLoaderCallback);
 	}
 
-	// TODO: test
 	/**
 	 * Turns until two beacons are seen by the robot.
 	 * 
@@ -879,8 +878,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 	/**
 	 * updates global position using beacons every ~15
 	 */
-	// frames (in case at least two beacons are visible)
-	// TODO: add description
 	public void UpdateselfLocalization() {
 		findTwoBeacons();
 		robot.updateGlobalPosition(beaconList, homographyMatrix);
