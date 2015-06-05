@@ -415,11 +415,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.robotSetLeds(200, 200);
 				Position targetPoint = new Position(targetX, targetY,
 						targetTheta);
-				robot.moveToTarget(targetPoint);
-				robot.robotSetLeds(0, 0);
+				robot.moveToTargetCollBalls(targetPoint, mRgbaWork,
+						myCircleColors, homographyMatrix, confirmedSquares);
+				;
 			};
 		};
 
