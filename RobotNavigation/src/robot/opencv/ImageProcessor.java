@@ -427,14 +427,25 @@ public class ImageProcessor {
 				if (radius != null) {
 					Log.i(TAG, "Radius of found circle: " + radius);
 					Circle foundCircle = new Circle(center, (double) radius[0]);
-					if (checkCircleVsSquares(foundCircle, confirmedSquares))
+					if (checkCircleVsSquares(foundCircle, confirmedSquares)
+							&& checkCircleInsideWorkspace(foundCircle)
+							&& foundCircle.getRadius() > 30) {
 						circlesList.add(foundCircle);
+					}
 				}
 			}
 		}
 		Log.i(TAG,
 				"found circles in findCirclesOnCamera2:" + circlesList.size());
 		return circlesList;
+	}
+
+	private boolean checkCircleInsideWorkspace(Circle foundCircle) {
+		Point lowPt = foundCircle.getLowPt();
+		boolean insideWorkspace = true;
+		if (Math.abs(lowPt.x) >= 125 || Math.abs(lowPt.y) >= 125)
+			insideWorkspace = false;
+		return insideWorkspace;
 	}
 
 	/**

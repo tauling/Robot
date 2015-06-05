@@ -778,14 +778,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * 
 	 * @return List of beacons.
 	 */
-	public List<Square> findTwoBeacons() {
+	public List<Beacon> findTwoBeacons() {
 		ImageProcessor imgProc = new ImageProcessor(TAG);
-		List<Square> beacons = imgProc.findSquaresOnCamera(mRgbaWork,
-				myBeaconColors);
+		List<Beacon> beacons = imgProc.findBeacons(confirmedSquares)
+				.getBeaconList();
 		while (beacons.size() < 2) {
-			// TODO: verify angle value
 			robot.turnByDistance(15, 'r');
-			beacons = imgProc.findSquaresOnCamera(mRgbaWork, myBeaconColors);
+			beacons = imgProc.findBeacons(confirmedSquares).getBeaconList();
 		}
 		return beacons;
 	}
@@ -805,20 +804,18 @@ public class MainActivity extends Activity implements OnTouchListener,
 		// TODO: test this method
 		// robot.driveToTargetCollectAllBalls(targetPoint, mRgbaWork,
 		// myCircleColors, homographyMatrix, foundBalls);
-		try {
-			Ball nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
-					homographyMatrix, confirmedSquares);
+		Ball nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
+				homographyMatrix, confirmedSquares);
+		while (nearestBall != null) {
 			robot.driveToBallAndCage2(nearestBall, mRgbaWork, myCircleColors,
 					homographyMatrix, confirmedSquares);
 			robot.turnByDistanceBalanced(180, 'r');
 			robot.moveToTarget(targetPoint.x, targetPoint.y);
-			// TODO: release ball at target position
 			robot.robotSetBar(300);
-		} catch (NullPointerException e) {
-			robot.writeLog("finish :D");
-		} finally {
-			robot.robotSetLeds(100, 100);
+			nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
+					homographyMatrix, confirmedSquares);
 		}
+		robot.robotSetLeds(100, 100);
 	}
 
 	/**
