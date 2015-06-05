@@ -1042,7 +1042,7 @@ public class Robot {
 			boolean checkTol) {
 		int angle = 0, dist;
 		Boolean goalReached = false;
-		int TOL = 5;
+		int TOL = 10;
 		do {
 			angle = getAngleToTarget(x, y);
 			dist = getDistanceToTarget(x, y);
