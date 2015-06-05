@@ -1831,8 +1831,10 @@ public class Robot {
 				nearestBall = entry;
 			}
 		}
+		if (nearestBall == null) {
+			writeLog("didn't detect a single ball");
+		}
 		// TODO: returns NULL object, if no ball in view
-		Log.e(TAG, "nearest Ball:" + nearestBall.getValue());
 		return nearestBall.getValue();
 	}
 }

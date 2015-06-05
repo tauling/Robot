@@ -168,19 +168,19 @@ public class MainActivity extends Activity implements OnTouchListener,
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// initialize myBeaconColors & myColors
-		myBeaconColors.add(new Scalar(20, 190, 180)); // orange
-		myBeaconColors.add(new Scalar(127, 130, 135)); // blue // TODO:
+		myBeaconColors.add(new Scalar(18, 190, 180)); // orange
+		myBeaconColors.add(new Scalar(132, 130, 135)); // blue // TODO:
 														// recalibrate after
 														// green was changed
 		myBeaconColors.add(new Scalar(235, 170, 170)); // magenta
-		myBeaconColors.add(new Scalar(107, 140, 115)); // green // TODO:
+		myBeaconColors.add(new Scalar(100, 140, 115)); // green // TODO:
 														// recalibrate after
 														// green is changed.
 
 		myCircleColors.add(new Scalar(100, 230, 170)); // green
 		myCircleColors.add(new Scalar(252, 240, 190)); // red
 		myCircleColors.add(new Scalar(144, 230, 150)); // blue
-		myCircleColors.add(new Scalar(8, 210, 170)); // orange
+		myCircleColors.add(new Scalar(4, 210, 170)); // orange
 	}
 
 	public void buttonMoveToGoalN3_onClick(View v) {
@@ -785,7 +785,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 				.getBeaconList();
 		int angle = 0;
 		while (beacons.size() < 2 && angle < 360) {
-			angle +=30;
+			angle += 30;
 			robot.turnByDistance(30, 'r');
 			beacons = imgProc.findBeacons(confirmedSquares).getBeaconList();
 		}
@@ -815,7 +815,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			robot.turnByDistanceBalanced(180, 'r');
 			robot.moveToTarget(targetPoint.x, targetPoint.y);
 			robot.robotSetBar(300);
-			robot.robotSetLeds(200,0);
+			robot.robotSetLeds(200, 0);
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
