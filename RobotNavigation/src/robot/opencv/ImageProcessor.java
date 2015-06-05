@@ -421,17 +421,24 @@ public class ImageProcessor {
 				// Circle foundCircle = new Circle(center, radius);
 				// check if circle is not in confirmedSquares-list
 				Point center = new Point();
-				float[] radius = new float[01];
-				Imgproc.minEnclosingCircle(new MatOfPoint2f(contours.get(j)
-						.toArray()), center, radius);
+				float[] radius = new float[1];
+				MatOfPoint2f circl2f = new MatOfPoint2f(contours.get(j)
+						.toArray());
+				Imgproc.minEnclosingCircle(circl2f, center, radius);
 				if (radius != null) {
-					Log.i(TAG, "Radius of found circle: " + radius);
-					Circle foundCircle = new Circle(center, (double) radius[0]);
-					if (checkCircleVsSquares(foundCircle, confirmedSquares)
-							&& foundCircle.getRadius() > 12) {
-						circlesList.add(foundCircle);
+					RotatedRect rect = Imgproc.minAreaRect(circl2f);
+					
+					MatOfPoint2f d;
+					if (!squareTest(rect)) {
+						Log.i(TAG, "Radius of found circle: " + radius);
+						Circle foundCircle = new Circle(center, (double) radius[0]);
+						if (checkCircleVsSquares(foundCircle, confirmedSquares)
+								&& foundCircle.getRadius() > 12) {
+							circlesList.add(foundCircle);
+						}						
 					}
 				}
+				circl2f.release();
 			}
 		}
 		Log.i(TAG,
@@ -483,9 +490,10 @@ public class ImageProcessor {
 
 				// Point center = computeCenterPt(contours.get(j));
 
+				MatOfPoint2f rect2f = new MatOfPoint2f(contours.get(j)
+						.toArray());
 				Square foundSquare = new Square(
-						Imgproc.minAreaRect(new MatOfPoint2f(contours.get(j)
-								.toArray())), i + 1);
+						Imgproc.minAreaRect(rect2f), i + 1);
 				// double[] squareSize = squareSize(contours.get(j), center);
 
 				// Point lowerEdgeLeft = computeLowerEdgeLeft(center,
@@ -682,19 +690,40 @@ public class ImageProcessor {
 		Double width = s.size.width;
 		Double height = s.size.height;
 		if (height > width) {
-			if (height / width > 1.2) {
+			if (height / width > 1.3) {
 				return true;
 			} else {
 				return false;
 			}
 		} else {
-			if (width / height > 1.2) {
+			if (width / height > 1.3) {
 				return true;
 			} else {
 				return false;
 			}
 		}
+	}
 
+	/**
+	 * tests if surrendered squares has the width and height relation to be a
+	 * real square and not a circle
+	 */
+	private Boolean squareTest(RotatedRect s) {
+		Double width = s.size.width;
+		Double height = s.size.height;
+		if (height > width) {
+			if (height / width > 1.3) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			if (width / height > 1.3) {
+				return true;
+			} else {
+				return false;
+			}
+		}
 	}
 
 	// TODO update description
