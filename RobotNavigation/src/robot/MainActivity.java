@@ -396,13 +396,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.robotSetLeds(200, 200);
-				robot.moveByVelocity(-130, false);
-				while (!robot.updateGlobalPosition(findTwoBeacons(),
-						homographyMatrix)) {
-					robot.writeLog("Trying to update Position");
-				}
-				robot.robotSetLeds(0, 0);
+				robot.moveToTarget(100, 100, 180);
 			};
 		};
 
