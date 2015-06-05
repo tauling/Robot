@@ -448,29 +448,27 @@ public class MainActivity extends Activity implements OnTouchListener,
 			@Override
 			public void run() {
 				robot.robotSetLeds(200, 200);
-				Position targetPoint = new Position(targetX, targetY,
-						targetTheta);
 				Ball nearestBall = robot.findNearestBall(mRgbaWork,
 						myCircleColors, homographyMatrix, confirmedSquares);
 				robot.robotSetLeds(0, 0);
 				while (nearestBall != null) {
+					robot.robotSetLeds(200, 200);
 					robot.driveToBallAndCage2(nearestBall, mRgbaWork,
 							myCircleColors, homographyMatrix, confirmedSquares);
 					robot.writeLog("driving forward to next target");
 					robot.moveToTargetWithoutAngle(targetX, targetY, 5);
 					robot.writeLog("target point reached");
 					robot.moveByVelocitySlow(-16, false);
+					robot.robotSetBar(255);
+					robot.moveByVelocitySlow(-30, false);
 					robot.turnByDistance(180, 'r');
 					robot.writeLog("heading back to target point");
+					robot.robotSetLeds(0, 0);
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						// do nothing
 					}
-					robot.moveToTarget(targetPoint.x, targetPoint.y);
-					robot.robotSetBar(260);
-					robot.robotSetLeds(200, 200);
-					robot.robotSetLeds(0, 0);
 					// robot.updateGlobalPosition(findTwoBeacons(),
 					// homographyMatrix);
 					nearestBall = robot.findNearestBall(mRgbaWork,
@@ -862,20 +860,20 @@ public class MainActivity extends Activity implements OnTouchListener,
 				homographyMatrix, confirmedSquares);
 		robot.robotSetLeds(0, 0);
 		while (nearestBall != null) {
-			robot.driveToBallAndCage2(nearestBall, mRgbaWork, myCircleColors,
-					homographyMatrix, confirmedSquares);
+			robot.robotSetLeds(200, 200);
+			robot.driveToBallAndCage2(nearestBall, mRgbaWork,
+					myCircleColors, homographyMatrix, confirmedSquares);
 			robot.moveToTargetWithoutAngle(targetX, targetY, 5);
 			robot.moveByVelocitySlow(-16, false);
+			robot.robotSetBar(255);
+			robot.moveByVelocitySlow(-30, false);
 			robot.turnByDistance(180, 'r');
+			robot.robotSetLeds(0, 0);
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				// do nothing
 			}
-			robot.moveToTarget(targetPoint.x, targetPoint.y);
-			robot.robotSetBar(300);
-			robot.robotSetLeds(200, 200);
-			robot.robotSetLeds(0, 0);
 			robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
 			nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
 					homographyMatrix, confirmedSquares);
