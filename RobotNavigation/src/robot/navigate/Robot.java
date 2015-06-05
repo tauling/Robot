@@ -1523,9 +1523,9 @@ public class Robot {
 				myPos.x = avgPosition_x / count;
 				myPos.y = avgPosition_y / count;
 				myPos.theta = (int) avgPosition_theta / count;
-			}
 
-			return true;
+				return true;
+			}
 
 		}
 
