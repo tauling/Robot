@@ -396,9 +396,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				Ball nearestBall = robot.findNearestBall(mRgbaWork,
-						myCircleColors, homographyMatrix, confirmedSquares);
-				robot.writeLog("nearest ball:" + nearestBall);
+				robot.robotSetLeds(200, 200);
+				robot.moveByVelocity(-130, false);
+				while (!robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix)) {
+					robot.writeLog("Trying to update Position");
+				}
+				robot.robotSetLeds(0, 0);
 			};
 		};
 
@@ -411,10 +414,11 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				Position targetPoint = new Position(targetX, targetY,
-						targetTheta);
-				robot.moveToTargetCollBalls(targetPoint, mRgbaWork,
-						myBeaconColors, homographyMatrix, confirmedSquares);
+				robot.robotSetLeds(200, 200);
+				Position targetPoint = new Position(targetX, targetY, targetTheta);
+				robot.moveToTargetCollBalls(targetPoint, mRgbaWork, myBeaconColors,
+						homographyMatrix, confirmedSquares);
+				robot.robotSetLeds(0, 0);
 			};
 		};
 
@@ -427,12 +431,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				// collectAllBalls();
-				List<Beacon> beaconlist = imageProcessor
-						.findBeacons(squareList).getBeaconList();
-				robot.updateGlobalPosition(beaconlist, homographyMatrix);
-				robot.writeLog("Robot's new position: "
-						+ robot.getMyPosition().toString());
+
+				robot.robotSetLeds(200, 200);
+				// TODO: test this method
+				// robot.driveToTargetCollectAllBalls(targetPoint, mRgbaWork,
+				// myCircleColors, homographyMatrix, foundBalls);
+				Ball nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
+						homographyMatrix, confirmedSquares);
+				robot.robotSetLeds(0, 0);
 			};
 		};
 
@@ -445,8 +451,29 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.moveByDistance(-130);
-				collectAllBalls();
+				robot.robotSetLeds(200, 200);
+				Position targetPoint = new Position(targetX, targetY, targetTheta);
+				Ball nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
+						homographyMatrix, confirmedSquares);
+				robot.robotSetLeds(0, 0);
+				while (nearestBall != null) {
+					robot.driveToBallAndCage2(nearestBall, mRgbaWork, myCircleColors,
+							homographyMatrix, confirmedSquares);
+					robot.turnByDistanceBalanced(180, 'r');
+					robot.moveToTarget(targetPoint.x, targetPoint.y);
+					robot.robotSetBar(300);
+					robot.robotSetLeds(200, 200);
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// do nothing
+					}
+					robot.robotSetLeds(0, 0);
+					robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
+					nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
+							homographyMatrix, confirmedSquares);
+				}
+				robot.robotSetLeds(100, 100);
 			};
 		};
 
@@ -811,15 +838,18 @@ public class MainActivity extends Activity implements OnTouchListener,
 		while (!robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix)) {
 			robot.writeLog("Trying to update Position");
 		}
+		robot.robotSetLeds(200, 200);
 		Position targetPoint = new Position(targetX, targetY, targetTheta);
 		robot.moveToTargetCollBalls(targetPoint, mRgbaWork, myBeaconColors,
 				homographyMatrix, confirmedSquares);
+		robot.robotSetLeds(0, 0);
 
 		// TODO: test this method
 		// robot.driveToTargetCollectAllBalls(targetPoint, mRgbaWork,
 		// myCircleColors, homographyMatrix, foundBalls);
 		Ball nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
 				homographyMatrix, confirmedSquares);
+		robot.robotSetLeds(200, 200);
 		while (nearestBall != null) {
 			robot.driveToBallAndCage2(nearestBall, mRgbaWork, myCircleColors,
 					homographyMatrix, confirmedSquares);
