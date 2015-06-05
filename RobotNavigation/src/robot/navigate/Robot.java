@@ -1617,7 +1617,10 @@ public class Robot {
 
 		double dy = c * Math.cos(Math.toRadians(alph));
 
-		double theta = 0; // TODO calc
+		double bx = Math.abs(c * Math.sin(Math.toRadians(thetaRel))); // x-coord of left beacon in robot's egocentric coordinate system
+	    double by = Math.abs(c * Math.cos(Math.toRadians(thetaRel))); // y-coord of left beacon in robot's egocentric coordinate system 
+		double thet2 = Math.atan2(by,bx); // angle between y-axes (through robot) and left beacon.
+		double theta = reduceAngle(90 - ImageProcessor.BeaconsAngleOffs.get(beacIDcomb)) + (thetaRel - thet2);
 
 		Point pointGroundCoord = new Point();
 		pointGroundCoord.x = beaconPos.x + dx;
@@ -1625,7 +1628,7 @@ public class Robot {
 
 		writeLog("Heavy calculating leads to alpha: " + alpha
 				+ "; alpha + beaconoffset: " + alph + "; dx: " + dx + "; dy: "
-				+ dy + "; myPosition: " + pointGroundCoord);
+				+ dy + "; myPosition: " + pointGroundCoord + "; bx: " + bx + "; by: " + by + "; thet2: " + thet2 + "; theta: " + theta);
 
 		//
 		// writeLog("findPosition -> Leading to following beacon ID combo: "
