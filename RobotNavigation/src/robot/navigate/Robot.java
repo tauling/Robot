@@ -1803,33 +1803,6 @@ public class Robot {
 	}
 
 	/**
-	 * drive to target position and collect all (multiple) balls on the way
-	 * 
-	 * @param target
-	 * @param mRgbaWork
-	 * @param myColors
-	 * @param homographyMatrix
-	 * @param foundBalls
-	 */
-	public void driveToTargetCollectAllBalls(Position target, Mat mRgbaWork,
-			List<Scalar> myColors, Mat homographyMatrix, List<Ball> foundBalls,
-			List<Square> confirmedSquares) {
-		double TOL = 15; // target tolerance
-		double distCurPosTarget = Math.sqrt(Math.pow(target.x
-				- getMyPosition().x, 2)
-				+ Math.pow(target.y - getMyPosition().y, 2));
-		while (distCurPosTarget > TOL) {
-			driveToBallAndCage2(
-					findNearestBall(mRgbaWork, myColors, homographyMatrix,
-							confirmedSquares), mRgbaWork, myColors,
-					homographyMatrix, confirmedSquares);
-			distCurPosTarget = Math.sqrt(Math.pow(target.x - getMyPosition().x,
-					2) + Math.pow(target.y - getMyPosition().y, 2));
-		}
-		writeLog("target reached");
-	}
-
-	/**
 	 * Turns and looks for the nearest ball with a clear line of sight.
 	 * 
 	 * Robot should turn until he sees at least one ball, in case he founds
@@ -1850,22 +1823,29 @@ public class Robot {
 			listCircles = deleteBallsOutsideRange(listCircles, homographyMatrix);
 
 			for (Circle circle : listCircles) {
-//				Point posNewBall = getGroundPlaneCoordinates(circle.getLowPt(),
-//						homographyMatrix);
-//				double distToNewBall = imgProc.distPointToPoint(posNewBall,
-//						new Point(getMyPosition().x, getMyPosition().y));
-//				if (detectedBall == null || distToNewBall < imgProc.distPointToPoint(
-//						detectedBall.getPosGroundPlane(), new Point(
-//								getMyPosition().x, getMyPosition().y))) {
-//					detectedBall = new Ball(circle.getCenter(), posNewBall,
-//							circle.getRadius());
-//				}
-				if (detectedBall == null || (circle.getLowPt().y < detectedBall.getBallCenterCameraFrame().y + detectedBall.getRadius())) {
+				// Point posNewBall =
+				// getGroundPlaneCoordinates(circle.getLowPt(),
+				// homographyMatrix);
+				// double distToNewBall = imgProc.distPointToPoint(posNewBall,
+				// new Point(getMyPosition().x, getMyPosition().y));
+				// if (detectedBall == null || distToNewBall <
+				// imgProc.distPointToPoint(
+				// detectedBall.getPosGroundPlane(), new Point(
+				// getMyPosition().x, getMyPosition().y))) {
+				// detectedBall = new Ball(circle.getCenter(), posNewBall,
+				// circle.getRadius());
+				// }
+				if (detectedBall == null
+						|| (circle.getLowPt().y < detectedBall
+								.getBallCenterCameraFrame().y
+								+ detectedBall.getRadius())) {
 					try {
-					Point posNewBall = getGroundPlaneCoordinates(circle.getLowPt(),	homographyMatrix);
-					detectedBall = new Ball(circle.getCenter(), posNewBall,
-							circle.getRadius());
-					} catch(Exception e) {
+						Point posNewBall = getGroundPlaneCoordinates(
+								circle.getLowPt(), homographyMatrix);
+
+						detectedBall = new Ball(circle.getCenter(), posNewBall,
+								circle.getRadius());
+					} catch (Exception e) {
 						writeLog("Not supposed to happen -> Error while getting groundplane coords of ball in findNearestBall");
 					}
 				}
