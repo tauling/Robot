@@ -416,8 +416,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			public void run() {
 				robot.robotSetLeds(200, 200);
 				Position targetPoint = new Position(targetX, targetY, targetTheta);
-				robot.moveToTargetCollBalls(targetPoint, mRgbaWork, myBeaconColors,
-						homographyMatrix, confirmedSquares);
+				robot.moveToTarget(targetPoint);
 				robot.robotSetLeds(0, 0);
 			};
 		};
@@ -439,6 +438,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 				Ball nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
 						homographyMatrix, confirmedSquares);
 				robot.robotSetLeds(0, 0);
+				robot.writeLog(nearestBall.getPosGroundPlane().toString());
 			};
 		};
 
