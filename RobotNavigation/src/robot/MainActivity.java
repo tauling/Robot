@@ -462,20 +462,23 @@ public class MainActivity extends Activity implements OnTouchListener,
 				while (nearestBall != null) {
 					robot.driveToBallAndCage2(nearestBall, mRgbaWork,
 							myCircleColors, homographyMatrix, confirmedSquares);
+					robot.writeLog("driving forward to next target");
 					robot.moveToTargetWithoutAngle(targetX, targetY, 5);
+					robot.writeLog("target point reached");
 					robot.moveByVelocitySlow(-16, false);
 					robot.turnByDistance(180, 'r');
+					robot.writeLog("heading back to target point");
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						// do nothing
 					}
 					robot.moveToTarget(targetPoint.x, targetPoint.y);
-					robot.robotSetBar(300);
+					robot.robotSetBar(260);
 					robot.robotSetLeds(200, 200);
 					robot.robotSetLeds(0, 0);
-//					robot.updateGlobalPosition(findTwoBeacons(),
-//							homographyMatrix);
+					// robot.updateGlobalPosition(findTwoBeacons(),
+					// homographyMatrix);
 					nearestBall = robot.findNearestBall(mRgbaWork,
 							myCircleColors, homographyMatrix, confirmedSquares);
 				}
@@ -856,17 +859,17 @@ public class MainActivity extends Activity implements OnTouchListener,
 		} catch (InterruptedException e) {
 			// do nothing
 		}
-		
+
 		// TODO: test this method
 		// robot.driveToTargetCollectAllBalls(targetPoint, mRgbaWork,
 		// myCircleColors, homographyMatrix, foundBalls);
 		robot.robotSetLeds(200, 200);
-		Ball nearestBall = robot.findNearestBall(mRgbaWork,
-				myCircleColors, homographyMatrix, confirmedSquares);
+		Ball nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
+				homographyMatrix, confirmedSquares);
 		robot.robotSetLeds(0, 0);
 		while (nearestBall != null) {
-			robot.driveToBallAndCage2(nearestBall, mRgbaWork,
-					myCircleColors, homographyMatrix, confirmedSquares);
+			robot.driveToBallAndCage2(nearestBall, mRgbaWork, myCircleColors,
+					homographyMatrix, confirmedSquares);
 			robot.moveToTargetWithoutAngle(targetX, targetY, 5);
 			robot.moveByVelocitySlow(-16, false);
 			robot.turnByDistance(180, 'r');
@@ -879,10 +882,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 			robot.robotSetBar(300);
 			robot.robotSetLeds(200, 200);
 			robot.robotSetLeds(0, 0);
-			robot.updateGlobalPosition(findTwoBeacons(),
-					homographyMatrix);
-			nearestBall = robot.findNearestBall(mRgbaWork,
-					myCircleColors, homographyMatrix, confirmedSquares);
+			robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
+			nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
+					homographyMatrix, confirmedSquares);
 		}
 		robot.robotSetLeds(100, 100);
 	}

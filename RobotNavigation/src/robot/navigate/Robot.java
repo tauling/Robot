@@ -1276,7 +1276,8 @@ public class Robot {
 			moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 5);
 		}
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
-		robotSetBar(50);
+		writeLog("ball caged");
+		robotSetBar(0);
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
