@@ -1147,6 +1147,20 @@ public class Robot {
 		}
 	}
 
+	public List<Circle> deleteBallsOutsideRange(List<Circle> circles,
+			Mat homographyMatrix) {
+		int nrCircles = circles.size();
+		for (int i = 0; i < nrCircles; i++) {
+			Point posNewBall = getGroundPlaneCoordinates(circles.get(i)
+					.getLowPt(), homographyMatrix);
+			if (Math.abs(posNewBall.x) > 125 || Math.abs(posNewBall.y) > 125) {
+				circles.remove(i);
+			}
+		}
+
+		return circles;
+	}
+
 	/**
 	 * Turns robot for a maximum of 360°, stops when ball is adjusted to the
 	 * center of the camera frame.
@@ -1159,7 +1173,7 @@ public class Robot {
 	 * @return true if ball is found, false otherwise.
 	 */
 	public boolean turnAndFindABall(Mat mRgbaWork, List<Scalar> myColors,
-			List<Square> confirmedSquares) {
+			List<Square> confirmedSquares, Mat homographyMatrix) {
 		Log.i(TAG, "turnAndFindABall start");
 		Boolean foundBall = false;
 		int turnedAngle = 0;
@@ -1168,6 +1182,7 @@ public class Robot {
 			List<Circle> circles = imgProc.findCirclesOnCamera2(mRgbaWork,
 					myColors, confirmedSquares);
 			Log.i(TAG, "found circles:" + circles.size());
+			circles = deleteBallsOutsideRange(circles, homographyMatrix);
 			if (circles.size() > 0) {
 				Log.i(TAG, "found circle x:" + circles.get(0).getLowPt().x
 						+ " y:" + circles.get(0).getLowPt().y);
@@ -1327,7 +1342,8 @@ public class Robot {
 	public Ball detectOneBall(Mat mRgbaWork, List<Scalar> myColors,
 			Mat homographyMatrix, List<Square> confirmedSquares) {
 		Ball detectedBall = null;
-		if (turnAndFindABall(mRgbaWork, myColors, confirmedSquares)) {
+		if (turnAndFindABall(mRgbaWork, myColors, confirmedSquares,
+				homographyMatrix)) {
 			for (Scalar hsvColor : myColors) {
 				ImageProcessor imgProc = new ImageProcessor(TAG);
 				Mat grayImg = imgProc.filter(mRgbaWork, hsvColor, 'c');
@@ -1529,25 +1545,27 @@ public class Robot {
 	private Position findPosition(Beacon beacon1, Beacon beacon2,
 			Mat homographyMatrix) {
 
+		ImageProcessor imgProc = new ImageProcessor(TAG);
 		writeLog("findPosition -> Trying to find the position by having a look at Beacon "
-				+ ImageProcessor.BeaconID.get(beacon1.getColorComb())
+				+ imgProc.BeaconID.get(beacon1.getColorComb())
 				+ " with color "
 				+ beacon1.getColorComb()
 				+ " and  Beacon "
-				+ ImageProcessor.BeaconID.get(beacon2.getColorComb())
-				+ " with color " + beacon2.getColorComb());
+				+ imgProc.BeaconID.get(beacon2.getColorComb())
+				+ " with color "
+				+ beacon2.getColorComb());
 
 		// Creates the ID of a pair of beacons which consists of two numbers:
 		// First number -> ID of beacon with lower ID,
 		// Second number -> ID of beacon with higher ID
 		int beacIDcomb;
-		if (ImageProcessor.BeaconID.get(beacon1.getColorComb()) > ImageProcessor.BeaconID
+		if (imgProc.BeaconID.get(beacon1.getColorComb()) > imgProc.BeaconID
 				.get(beacon2.getColorComb())) {
-			beacIDcomb = ImageProcessor.BeaconID.get(beacon2.getColorComb())
-					* 10 + ImageProcessor.BeaconID.get(beacon1.getColorComb());
+			beacIDcomb = imgProc.BeaconID.get(beacon2.getColorComb()) * 10
+					+ imgProc.BeaconID.get(beacon1.getColorComb());
 		} else {
-			beacIDcomb = ImageProcessor.BeaconID.get(beacon1.getColorComb())
-					* 10 + ImageProcessor.BeaconID.get(beacon2.getColorComb());
+			beacIDcomb = imgProc.BeaconID.get(beacon1.getColorComb()) * 10
+					+ imgProc.BeaconID.get(beacon2.getColorComb());
 		}
 
 		writeLog("findPosition -> Leading to following beacon ID combo: "
@@ -1573,8 +1591,8 @@ public class Robot {
 		ground2 = getGroundPlaneCoordinatesRelRobot(beaconr.getLowPt(),
 				homographyMatrix);
 
-		Point pos1 = ImageProcessor.BeaconPosition.get(beaconl.getColorComb());
-		Point pos2 = ImageProcessor.BeaconPosition.get(beaconr.getColorComb());
+		Point pos1 = imgProc.BeaconPosition.get(beaconl.getColorComb());
+		Point pos2 = imgProc.BeaconPosition.get(beaconr.getColorComb());
 
 		writeLog("findPosition -> Beaconl position: " + pos1);
 		writeLog("findPosition -> Beaconr position: " + pos2);
@@ -1588,8 +1606,7 @@ public class Robot {
 		double c = ground1[0];
 		double a = ground2[0];
 		double thetaRel = ground1[1];
-		Point beaconPos = ImageProcessor.BeaconPosition.get(beaconl
-				.getColorComb());
+		Point beaconPos = imgProc.BeaconPosition.get(beaconl.getColorComb());
 
 		writeLog("findPosition -> Left beacon is located at (relative to robot) "
 				+ ground1[0] + ", " + Math.toDegrees(ground1[1]));
@@ -1608,9 +1625,9 @@ public class Robot {
 
 		// Angle in global coordinate system between robot and beacon
 		writeLog("beacIDcomb: " + beacIDcomb + "BeaconsAngleOffs: "
-				+ ImageProcessor.BeaconsAngleOffs.get(beacIDcomb));
+				+ imgProc.BeaconsAngleOffs.get(beacIDcomb));
 		double alph = reduceAngle((int) alpha
-				+ ImageProcessor.BeaconsAngleOffs.get(beacIDcomb));
+				+ imgProc.BeaconsAngleOffs.get(beacIDcomb));
 
 		// int alphhlp = reduceAngle((int) (180 - (alph -
 		// Math.toDegrees(thetaRel))));
@@ -1642,7 +1659,7 @@ public class Robot {
 																		// system
 		double thet2 = Math.atan2(by, bx); // angle between y-axes (through
 											// robot) and left beacon.
-		double theta = reduceAngle(90 - ImageProcessor.BeaconsAngleOffs
+		double theta = reduceAngle(90 - imgProc.BeaconsAngleOffs
 				.get(beacIDcomb)) + (thetaRel - thet2);
 
 		Point pointGroundCoord = new Point();
@@ -1797,10 +1814,13 @@ public class Robot {
 			Mat homographyMatrix, List<Square> confirmedSquares) {
 		Ball detectedBall = null;
 		Log.e(TAG, "find nearest Ball");
-		if (turnAndFindABall(mRgbaWork, myColors, confirmedSquares)) {
+		if (turnAndFindABall(mRgbaWork, myColors, confirmedSquares,
+				homographyMatrix)) {
 			ImageProcessor imgProc = new ImageProcessor(TAG);
 			List<Circle> listCircles = imgProc.findCirclesOnCamera2(mRgbaWork,
 					myColors, confirmedSquares);
+
+			listCircles = deleteBallsOutsideRange(listCircles, homographyMatrix);
 
 			for (Circle circle : listCircles) {
 				Point posNewBall = getGroundPlaneCoordinates(circle.getLowPt(),

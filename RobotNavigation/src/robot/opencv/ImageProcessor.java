@@ -389,6 +389,7 @@ public class ImageProcessor {
 		return mRgbaWithBalls;
 	}
 
+	// TODO update description
 	/**
 	 * Finds the centers of all circles on a given image matrix..
 	 * 
@@ -400,7 +401,6 @@ public class ImageProcessor {
 	 * @return a list of centers of circles that are currently present on the
 	 *         camera frame
 	 */
-	@SuppressWarnings("unused")
 	public List<Circle> findCirclesOnCamera2(Mat mRgbaWork,
 			List<Scalar> myColors, List<Square> confirmedSquares) {
 		List<Circle> circlesList = new ArrayList<Circle>();
@@ -428,8 +428,7 @@ public class ImageProcessor {
 					Log.i(TAG, "Radius of found circle: " + radius);
 					Circle foundCircle = new Circle(center, (double) radius[0]);
 					if (checkCircleVsSquares(foundCircle, confirmedSquares)
-							&& checkCircleInsideWorkspace(foundCircle)
-							&& foundCircle.getRadius() > 30) {
+							&& foundCircle.getRadius() > 12) {
 						circlesList.add(foundCircle);
 					}
 				}
@@ -438,14 +437,6 @@ public class ImageProcessor {
 		Log.i(TAG,
 				"found circles in findCirclesOnCamera2:" + circlesList.size());
 		return circlesList;
-	}
-
-	private boolean checkCircleInsideWorkspace(Circle foundCircle) {
-		Point lowPt = foundCircle.getLowPt();
-		boolean insideWorkspace = true;
-		if (Math.abs(lowPt.x) >= 125 || Math.abs(lowPt.y) >= 125)
-			insideWorkspace = false;
-		return insideWorkspace;
 	}
 
 	/**

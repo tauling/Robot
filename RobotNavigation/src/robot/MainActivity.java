@@ -445,7 +445,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.moveByDistance(-50);
+				robot.moveByDistance(-130);
 				collectAllBalls();
 			};
 		};
@@ -785,9 +785,18 @@ public class MainActivity extends Activity implements OnTouchListener,
 				.getBeaconList();
 		int angle = 0;
 		while (beacons.size() < 2 && angle < 360) {
-			angle += 30;
-			robot.turnByDistance(30, 'r');
+			angle += 15;
+			robot.turnByDistance(15, 'r');
 			beacons = imgProc.findBeacons(confirmedSquares).getBeaconList();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if (angle >= 360) {
+			robot.moveByVelocitySlow(10.0, false);
 		}
 		return beacons;
 	}
