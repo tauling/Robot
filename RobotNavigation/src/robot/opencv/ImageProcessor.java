@@ -539,12 +539,9 @@ public class ImageProcessor {
 		Collections.sort(squareList);
 		// Log.i(TAG, "squareList: " + squareList.toString());
 		List<Beacon> beaconList = new ArrayList<Beacon>();
-		Double TOLx = 50.0;
-		Double TOLy = 25.0;
 		int squareListLength = squareList.size();
 		for (int i = 0; i < squareListLength - 1; i++) {
 			for (int j = i + 1; j < squareListLength; j++) {
-				int squareFoundBelow = 0;
 				Square squareA = squareList.get(i);
 				Square squareB = squareList.get(j);
 				Log.i(TAG,
@@ -585,7 +582,7 @@ public class ImageProcessor {
 							squareA.getColorID());
 					if (checkIfNew(beaconList, newBeacon) &&
 					// squareFoundBelow < 2
-							// && checkIntersection(beaconList, newBeacon)
+					//		 checkIntersection(beaconList, newBeacon) &&
 							BeaconID.get(newBeacon.getColorComb()) != null) {
 						Log.i(TAG,
 								"Made Beacon out of Square A: "
@@ -636,34 +633,34 @@ public class ImageProcessor {
 		return false;
 	}
 
-	// TODO Needed? checkIntersection should be enough
+	// TODO Needed
 	private boolean checkIfNew(List<Beacon> beaconList, Beacon newBeacon) {
 		boolean unique = true;
-		double TOL = 50;
+		double TOL = 300;
 		int beaconListLength = beaconList.size();
 		for (int i = 0; i < beaconListLength; i++) {
-			Point refPt = beaconList.get(i).center;
-			if (distPointToPoint(refPt, newBeacon.center) < TOL) {
+			double refX = beaconList.get(i).center.x;
+			if (Math.abs(refX - newBeacon.center.x) < TOL) {
 				unique = false;
 			}
 		}
 		return unique;
 	}
-
-	// private boolean checkIntersection(List<Beacon> beaconList, Beacon
-	// newBeacon) {
-	// boolean noconflict = true;
-	// int beaconListLength = beaconList.size();
-	// for (int i = 0; i < beaconListLength; i++) {
-	// double left = beaconList.get(i).getLowerLeftEdge().x;
-	// double right = beaconList.get(i).getUpperRightEdge().x;
-	// if (left <= newBeacon.getCenter().x
-	// && newBeacon.getCenter().x <= right) {
-	// noconflict = false;
-	// }
-	// }
-	// return noconflict;
-	// }
+//
+//	 private boolean checkIntersection(List<Beacon> beaconList, Beacon
+//	 newBeacon) {
+//	 boolean noconflict = true;
+//	 int beaconListLength = beaconList.size();
+//	 for (int i = 0; i < beaconListLength; i++) {
+//	 double left = beaconList.get(i).getLowerLeftEdge().x;
+//	 double right = beaconList.get(i).getUpperRightEdge().x;
+//	 if (left <= newBeacon.getCenter().x
+//	 && newBeacon.getCenter().x <= right) {
+//	 noconflict = false;
+//	 }
+//	 }
+//	 return noconflict;
+//	 }
 
 	/**
 	 * tests if surrendered squares has the width and height relation to be a
