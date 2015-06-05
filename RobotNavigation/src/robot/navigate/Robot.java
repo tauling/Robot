@@ -1850,15 +1850,24 @@ public class Robot {
 			listCircles = deleteBallsOutsideRange(listCircles, homographyMatrix);
 
 			for (Circle circle : listCircles) {
-				Point posNewBall = getGroundPlaneCoordinates(circle.getLowPt(),
-						homographyMatrix);
-				double distToNewBall = imgProc.distPointToPoint(posNewBall,
-						new Point(getMyPosition().x, getMyPosition().y));
-				if (detectedBall == null || distToNewBall < imgProc.distPointToPoint(
-						detectedBall.getPosGroundPlane(), new Point(
-								getMyPosition().x, getMyPosition().y))) {
+//				Point posNewBall = getGroundPlaneCoordinates(circle.getLowPt(),
+//						homographyMatrix);
+//				double distToNewBall = imgProc.distPointToPoint(posNewBall,
+//						new Point(getMyPosition().x, getMyPosition().y));
+//				if (detectedBall == null || distToNewBall < imgProc.distPointToPoint(
+//						detectedBall.getPosGroundPlane(), new Point(
+//								getMyPosition().x, getMyPosition().y))) {
+//					detectedBall = new Ball(circle.getCenter(), posNewBall,
+//							circle.getRadius());
+//				}
+				if (detectedBall == null || (circle.getLowPt().y < detectedBall.getBallCenterCameraFrame().y + detectedBall.getRadius())) {
+					try {
+					Point posNewBall = getGroundPlaneCoordinates(circle.getLowPt(),	homographyMatrix);
 					detectedBall = new Ball(circle.getCenter(), posNewBall,
 							circle.getRadius());
+					} catch(Exception e) {
+						writeLog("Not supposed to happen -> Error while getting groundplane coords of ball in findNearestBall");
+					}
 				}
 			}
 			writeLog("found a ball");

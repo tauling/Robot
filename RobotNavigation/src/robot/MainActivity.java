@@ -814,13 +814,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 		while (beacons.size() < 2 && angle < 360) {
 			angle += 15;
 			robot.turnByDistance(15, 'r');
-			beacons = imgProc.findBeacons(confirmedSquares).getBeaconList();
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			beacons = imgProc.findBeacons(confirmedSquares).getBeaconList();
 		}
 		if (angle >= 360) {
 			robot.moveByVelocitySlow(10.0, false);
