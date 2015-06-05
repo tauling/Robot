@@ -1659,7 +1659,7 @@ public class Robot {
 			double thet2 = Math.atan2(by, bx); // angle between y-axes (through
 												// robot) and left beacon.
 			double theta = reduceAngle(90 - ImageProcessor.BeaconsAngleOffs
-					.get(beacIDcomb)) + (thetaRel - thet2);
+					.get(beacIDcomb)) + (thetaRel - Math.toDegrees(thet2));
 
 			Point pointGroundCoord = new Point();
 			pointGroundCoord.x = beaconPos.x + dx;
