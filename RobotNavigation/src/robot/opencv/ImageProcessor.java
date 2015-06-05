@@ -494,6 +494,7 @@ public class ImageProcessor {
 						.toArray());
 				Square foundSquare = new Square(
 						Imgproc.minAreaRect(rect2f), i + 1);
+				rect2f.release();
 				// double[] squareSize = squareSize(contours.get(j), center);
 
 				// Point lowerEdgeLeft = computeLowerEdgeLeft(center,
