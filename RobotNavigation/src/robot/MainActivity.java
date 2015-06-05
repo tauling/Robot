@@ -383,7 +383,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.moveByDistance(-50);
 				collectAllBalls();
 			};
 		};
@@ -446,6 +445,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
+				robot.moveByDistance(-50);
 				collectAllBalls();
 			};
 		};
@@ -799,7 +799,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * this procedure until all balls are at the target)
 	 */
 	public void collectAllBalls() {
-		robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
+		while (!robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix)) {
+			robot.writeLog("Trying to update Position");
+		}
 		Position targetPoint = new Position(targetX, targetY, targetTheta);
 		robot.moveToTargetCollBalls(targetPoint, mRgbaWork, myBeaconColors,
 				homographyMatrix, confirmedSquares);
