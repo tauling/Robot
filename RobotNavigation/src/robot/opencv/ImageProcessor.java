@@ -243,14 +243,14 @@ public class ImageProcessor {
 
 		switch (mode) {
 		case 'b':
-			mmColorRadius = new Scalar(10, 60, 255, 0); // Color radius
+			mmColorRadius = new Scalar(10, 70, 150, 0); // Color radius
 			// for range
 			// checking in
 			// HSV color
 			// space
 			break;
 		case 'c':
-			mmColorRadius = new Scalar(6, 40, 70, 0); // Color radius
+			mmColorRadius = new Scalar(10, 50, 110, 0); // Color radius
 			// for range
 			// checking in
 			// HSV color
@@ -289,7 +289,7 @@ public class ImageProcessor {
 			// Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
 			// new Size(10, 10));
 			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-					new Size(5, 5));
+					new Size(7, 7));
 			Imgproc.dilate(mmMask, mmDilatedMask, element);
 			Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
 			element.release();
@@ -400,6 +400,7 @@ public class ImageProcessor {
 	 * @return a list of centers of circles that are currently present on the
 	 *         camera frame
 	 */
+	@SuppressWarnings("unused")
 	public List<Circle> findCirclesOnCamera2(Mat mRgbaWork,
 			List<Scalar> myColors, List<Square> confirmedSquares) {
 		List<Circle> circlesList = new ArrayList<Circle>();
@@ -413,14 +414,22 @@ public class ImageProcessor {
 			int contoursLength = contours.size();
 			for (int j = 0; j < contoursLength; j++) {
 
-				Point center = computeCenterPt(contours.get(j));
-
-				Double radius = computeRadius(contours.get(j), center);
-
-				Circle foundCircle = new Circle(center, radius);
+				// Point center = computeCenterPt(contours.get(j));
+				//
+				// Double radius = computeRadius(contours.get(j), center);
+				//
+				// Circle foundCircle = new Circle(center, radius);
 				// check if circle is not in confirmedSquares-list
-				if (checkCircleVsSquares(foundCircle, confirmedSquares))
-					circlesList.add(foundCircle);
+				Point center = new Point();
+				float[] radius = new float[01];
+				Imgproc.minEnclosingCircle(new MatOfPoint2f(contours.get(j)
+						.toArray()), center, radius);
+				if (radius != null) {
+					Log.i(TAG, "Radius of found circle: " + radius);
+					Circle foundCircle = new Circle(center, (double) radius[0]);
+					if (checkCircleVsSquares(foundCircle, confirmedSquares))
+						circlesList.add(foundCircle);
+				}
 			}
 		}
 		Log.i(TAG,
@@ -439,7 +448,7 @@ public class ImageProcessor {
 			List<Square> confirmedSquares) {
 		boolean unique = true;
 		int squareAm = confirmedSquares.size();
-		double TOL = 15.0;
+		double TOL = 30.0;
 		for (int i = 0; i < squareAm; i++) {
 			if (distPointToPoint(foundCircle.getCenter(),
 					confirmedSquares.get(i).center) < TOL)
@@ -539,12 +548,9 @@ public class ImageProcessor {
 		Collections.sort(squareList);
 		// Log.i(TAG, "squareList: " + squareList.toString());
 		List<Beacon> beaconList = new ArrayList<Beacon>();
-		Double TOLx = 50.0;
-		Double TOLy = 25.0;
 		int squareListLength = squareList.size();
 		for (int i = 0; i < squareListLength - 1; i++) {
 			for (int j = i + 1; j < squareListLength; j++) {
-				int squareFoundBelow = 0;
 				Square squareA = squareList.get(i);
 				Square squareB = squareList.get(j);
 				Log.i(TAG,
@@ -585,7 +591,7 @@ public class ImageProcessor {
 							squareA.getColorID());
 					if (checkIfNew(beaconList, newBeacon) &&
 					// squareFoundBelow < 2
-							// && checkIntersection(beaconList, newBeacon)
+					// checkIntersection(beaconList, newBeacon) &&
 							BeaconID.get(newBeacon.getColorComb()) != null) {
 						Log.i(TAG,
 								"Made Beacon out of Square A: "
@@ -626,7 +632,7 @@ public class ImageProcessor {
 
 	private boolean twoSquaresMakeBeacon(Square squareA, Square squareB) {
 
-		int TOL = 25;
+		int TOL = 15;
 
 		if (distPointToPoint(squareA.getLowPt(), squareB.getHighPt()) < TOL
 				|| distPointToPoint(squareB.getLowPt(), squareA.getHighPt()) < TOL) {
@@ -636,20 +642,21 @@ public class ImageProcessor {
 		return false;
 	}
 
-	// TODO Needed? checkIntersection should be enough
+	// TODO Needed
 	private boolean checkIfNew(List<Beacon> beaconList, Beacon newBeacon) {
 		boolean unique = true;
-		double TOL = 50;
+		double TOL = 300;
 		int beaconListLength = beaconList.size();
 		for (int i = 0; i < beaconListLength; i++) {
-			Point refPt = beaconList.get(i).center;
-			if (distPointToPoint(refPt, newBeacon.center) < TOL) {
+			double refX = beaconList.get(i).center.x;
+			if (Math.abs(refX - newBeacon.center.x) < TOL) {
 				unique = false;
 			}
 		}
 		return unique;
 	}
 
+	//
 	// private boolean checkIntersection(List<Beacon> beaconList, Beacon
 	// newBeacon) {
 	// boolean noconflict = true;

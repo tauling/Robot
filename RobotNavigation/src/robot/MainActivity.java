@@ -167,15 +167,15 @@ public class MainActivity extends Activity implements OnTouchListener,
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// initialize myBeaconColors & myColors
-		myBeaconColors.add(new Scalar(20, 200, 210)); // orange
-		myBeaconColors.add(new Scalar(130, 180, 134)); // blue
-		myBeaconColors.add(new Scalar(240, 200, 150)); // magenta
-		myBeaconColors.add(new Scalar(110, 140, 115)); // green
+		 myBeaconColors.add(new Scalar(20, 190, 180)); // orange
+		 myBeaconColors.add(new Scalar(127, 130, 135)); // blue // TODO: recalibrate after green was changed
+		 myBeaconColors.add(new Scalar(235, 170, 170)); // magenta
+		 myBeaconColors.add(new Scalar(107, 140, 115)); // green // TODO: recalibrate after green is changed.
 
-		myCircleColors.add(new Scalar(95, 240, 110)); // green
-		// myCircleColors.add(new Scalar(248, 200, 180)); // red
-		myCircleColors.add(new Scalar(147, 245, 140)); // blue
-		// myCircleColors.add(new Scalar(5, 215, 200)); // orange
+		myCircleColors.add(new Scalar(100, 230, 170)); // green
+		myCircleColors.add(new Scalar(252, 240, 190)); // red
+		myCircleColors.add(new Scalar(144, 230, 150)); // blue
+		myCircleColors.add(new Scalar(8, 210, 170)); // orange
 	}
 
 	public void buttonMoveToGoalN3_onClick(View v) {
@@ -664,87 +664,87 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		// draw squares on CameraFrame
 
-		// Mat grayImg = new Mat();
-		// if (!myBeaconColors.isEmpty()) {
-		// for (Scalar s : myBeaconColors)
-		// grayImg = imageProcessor.filter(mRgbaWork, s);
-		// mRgbaOutput = grayImg;
-		// }
+//		Mat grayImg = new Mat();
+//		if (!myCircleColors.isEmpty()) {
+//			for (Scalar s : myCircleColors)
+//				grayImg = imageProcessor.filter(mRgbaWork, s, 'c');
+//			mRgbaOutput = grayImg;
+//		}
 
-		for (Square s : squareList) {
-
-			Point[] rect_points = new Point[4];
-			s.points(rect_points);
-			Core.circle(mRgbaOutput, s.getLowPt(), 10, new Scalar(255, 0, 0));
-			Core.circle(mRgbaOutput, s.getHighPt(), 10, new Scalar(0, 0, 255));
-
-			// Log.i(TAG, s.toString());
-			for (int j = 0; j < 4; j++)
-				Core.line(mRgbaOutput, rect_points[j],
-						rect_points[(j + 1) % 4], new Scalar(0, 0, 0), 5);
-			//
-			// Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-			// s.getUpperRightEdge(), new Scalar(20), -1);
-			Core.putText(mRgbaOutput, "center", s.center,
-					CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1, 8,
-					false);
-			// robot.writeLog(s.toString());
-		}
-		//
-		// // draw confirmed squares
-		for (Square s : confirmedSquares) {
-
-			Point[] rect_points = new Point[4];
-			s.points(rect_points);
-			Core.circle(mRgbaOutput, s.getLowPt(), 10, new Scalar(255, 0, 0));
-			Core.circle(mRgbaOutput, s.getHighPt(), 10, new Scalar(0, 0, 255));
-
-			for (int j = 0; j < 4; j++)
-				Core.line(mRgbaOutput, rect_points[j],
-						rect_points[(j + 1) % 4], new Scalar(0, 0, 255), 5);
-			//
-
-			// Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-			// s.getUpperRightEdge(), new Scalar(0, 0, 0), -1);
-			// robot.writeLog(s.toString());
-		}
-
-		// draw circles on camera frame
-		if (!circleList.isEmpty()) {
-			for (Circle c : circleList) {
-				Core.circle(mRgbaOutput, c.getCenter(), (int) c.getRadius(),
-						new Scalar(160, 245, 5));
-			}
-		}
-
-		// draw Beacons
-		if (!beaconList.isEmpty()) {
-			for (Beacon b : beaconList) {
-				Point[] rect_points = new Point[4];
-				b.points(rect_points);
-
-				for (int j = 0; j < 4; j++)
-					Core.line(mRgbaOutput, rect_points[j],
-							rect_points[(j + 1) % 4], new Scalar(240, 126, 12),
-							5);
-				//
-				Core.putText(mRgbaOutput, "center", b.center,
-						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
-						8, false);
-				Core.circle(mRgbaOutput, b.center, 10, new Scalar(0));
-				// Core.circle(mRgbaOutput, b.getLowerLeftEdge(), 10, new
-				// Scalar(
-				// 255, 0, 0));
-				// Core.circle(mRgbaOutput, b.getUpperRightEdge(), 10, new
-				// Scalar(
-				// 255, 0, 0));
-				Core.circle(mRgbaOutput, b.getLowPt(), 10,
-						new Scalar(255, 0, 0));
-				// Core.putText(mRgbaOutput, b.toString(), b.getLowerLeftEdge(),
-				// CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
-				// 8, false);
-			}
-		}
+		 for (Square s : squareList) {
+		
+		 Point[] rect_points = new Point[4];
+		 s.points(rect_points);
+		 Core.circle(mRgbaOutput, s.getLowPt(), 10, new Scalar(255, 0, 0));
+		 Core.circle(mRgbaOutput, s.getHighPt(), 10, new Scalar(0, 0, 255));
+		
+		 // Log.i(TAG, s.toString());
+		 for (int j = 0; j < 4; j++)
+		 Core.line(mRgbaOutput, rect_points[j],
+		 rect_points[(j + 1) % 4], new Scalar(0, 0, 0), 5);
+		 //
+		 // Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+		 // s.getUpperRightEdge(), new Scalar(20), -1);
+		 Core.putText(mRgbaOutput, "center", s.center,
+		 CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1, 8,
+		 false);
+		 // robot.writeLog(s.toString());
+		 }
+		 //
+		 // // draw confirmed squares
+		 for (Square s : confirmedSquares) {
+		
+		 Point[] rect_points = new Point[4];
+		 s.points(rect_points);
+		 Core.circle(mRgbaOutput, s.getLowPt(), 10, new Scalar(255, 0, 0));
+		 Core.circle(mRgbaOutput, s.getHighPt(), 10, new Scalar(0, 0, 255));
+		
+		 for (int j = 0; j < 4; j++)
+		 Core.line(mRgbaOutput, rect_points[j],
+		 rect_points[(j + 1) % 4], new Scalar(0, 0, 255), 5);
+		 //
+		
+		 // Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+		 // s.getUpperRightEdge(), new Scalar(0, 0, 0), -1);
+		 // robot.writeLog(s.toString());
+		 }
+		
+		 // draw circles on camera frame
+		 if (!circleList.isEmpty()) {
+		 for (Circle c : circleList) {
+		 Core.circle(mRgbaOutput, c.getCenter(), (int) c.getRadius(),
+		 new Scalar(160, 245, 5));
+		 }
+		 }
+		
+		 // draw Beacons
+		 if (!beaconList.isEmpty()) {
+		 for (Beacon b : beaconList) {
+		 Point[] rect_points = new Point[4];
+		 b.points(rect_points);
+		
+		 for (int j = 0; j < 4; j++)
+		 Core.line(mRgbaOutput, rect_points[j],
+		 rect_points[(j + 1) % 4], new Scalar(240, 126, 12),
+		 5);
+		 //
+		 Core.putText(mRgbaOutput, "center", b.center,
+		 CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
+		 8, false);
+		 Core.circle(mRgbaOutput, b.center, 10, new Scalar(0));
+		 // Core.circle(mRgbaOutput, b.getLowerLeftEdge(), 10, new
+		 // Scalar(
+		 // 255, 0, 0));
+		 // Core.circle(mRgbaOutput, b.getUpperRightEdge(), 10, new
+		 // Scalar(
+		 // 255, 0, 0));
+		 Core.circle(mRgbaOutput, b.getLowPt(), 10,
+		 new Scalar(255, 0, 0));
+		 // Core.putText(mRgbaOutput, b.toString(), b.getLowerLeftEdge(),
+		 // CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
+		 // 8, false);
+		 }
+		 }
 
 		frameInterval++;
 		return mRgbaOutput;

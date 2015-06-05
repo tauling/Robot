@@ -34,6 +34,7 @@ public class Square extends RotatedRect implements Comparable<Square> {
 		
 		for (Point pt: pts) {
 			if (minPoint.y > pt.y) {
+				minPoint2 = minPoint;
 				minPoint = pt;
 			} else {
 				if (minPoint2.y > pt.y) {
@@ -55,6 +56,7 @@ public class Square extends RotatedRect implements Comparable<Square> {
 		
 		for (Point pt: pts) {
 			if (maxPoint.y < pt.y) {
+				maxPoint2 = maxPoint;
 				maxPoint = pt;
 			} else {
 				if (maxPoint2.y < pt.y) {
