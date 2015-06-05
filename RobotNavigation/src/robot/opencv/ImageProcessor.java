@@ -185,14 +185,14 @@ public class ImageProcessor {
 		// pattern
 		float x = -95.0f; // coordinates of first detected inner corner on
 		// chessboard
-		float y = 224.0f;
+		float y = 228.0f;
 		float delta = 22.0f; // size of a single square edge in chessboard
 		LinkedList<Point> PointList = new LinkedList<Point>();
 		// Define real-world coordinates for given chessboard pattern:
 		double mPatternSizeHeight = mPatternSize.height;
 		double mPatternSizeWidth = mPatternSize.width;
 		for (int i = 0; i < mPatternSizeHeight; i++) {
-			y = 224.0f;
+			y = 228.0f;
 			for (int j = 0; j < mPatternSizeWidth; j++) {
 				PointList.addLast(new Point(x, y));
 				y += delta;

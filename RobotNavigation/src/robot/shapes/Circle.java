@@ -8,7 +8,7 @@ public class Circle extends Shape {
 
 	public Circle(Point center, Double radius) {
 		this.center = center;
-		this.lowPt = new Point(center.x, center.y - radius);
+		this.lowPt = new Point(center.x, center.y + radius);
 		this.radius = radius;
 	}
 
