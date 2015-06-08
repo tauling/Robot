@@ -1042,7 +1042,7 @@ public class Robot {
 			boolean checkTol) {
 		int angle = 0, dist;
 		Boolean goalReached = false;
-		int TOL = 10;
+		int TOL = 5;
 		do {
 			angle = getAngleToTarget(x, y);
 			dist = getDistanceToTarget(x, y);
@@ -1058,7 +1058,7 @@ public class Robot {
 				goalReached = true;
 			}
 		} while (!goalReached && checkTol);
-		turnByDistanceBalanced((int) theta - myPos.theta, 'r');
+		turnByDistanceBalanced(reduceAngle((int) (theta - myPos.theta)), 'r');
 		robotSetLeds(127, 127);
 	}
 
@@ -1658,8 +1658,8 @@ public class Robot {
 																			// system
 			double thet2 = Math.atan2(by, bx); // angle between y-axes (through
 												// robot) and left beacon.
-			double theta = reduceAngle(90 - ImageProcessor.BeaconsAngleOffs
-					.get(beacIDcomb)) + (thetaRel - Math.toDegrees(thet2));
+			double theta = reduceAngle((int) (ImageProcessor.BeaconsAngleOffs
+					.get(beacIDcomb) - 90 + (thetaRel - Math.toDegrees(thet2))));
 
 			Point pointGroundCoord = new Point();
 			pointGroundCoord.x = beaconPos.x + dx;
