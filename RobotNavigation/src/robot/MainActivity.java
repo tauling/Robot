@@ -169,19 +169,19 @@ public class MainActivity extends Activity implements OnTouchListener,
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// initialize myBeaconColors & myColors
-		myBeaconColors.add(new Scalar(18, 190, 180)); // orange
-		myBeaconColors.add(new Scalar(132, 130, 135)); // blue // TODO:
+		myBeaconColors.add(new Scalar(15, 230, 170)); // orange
+		myBeaconColors.add(new Scalar(129, 150, 125)); // blue // TODO:
 														// recalibrate after
 														// green was changed
-		myBeaconColors.add(new Scalar(235, 170, 170)); // magenta
-		myBeaconColors.add(new Scalar(100, 140, 115)); // green // TODO:
+		myBeaconColors.add(new Scalar(232, 220, 165)); // magenta
+		myBeaconColors.add(new Scalar(95, 180, 60)); // green // TODO:
 														// recalibrate after
 														// green is changed.
 
-		myCircleColors.add(new Scalar(100, 230, 170)); // green
-		myCircleColors.add(new Scalar(252, 240, 190)); // red
-		myCircleColors.add(new Scalar(144, 230, 150)); // blue
-		myCircleColors.add(new Scalar(4, 210, 170)); // orange
+		myCircleColors.add(new Scalar(100, 235, 170)); // green
+		myCircleColors.add(new Scalar(252, 250, 180)); // red
+		myCircleColors.add(new Scalar(152, 245, 140)); // blue
+		myCircleColors.add(new Scalar(10, 225, 205)); // orange
 	}
 
 	public void buttonMoveToGoalN3_onClick(View v) {
