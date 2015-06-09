@@ -73,6 +73,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// TODO: Ex3: About 10 balls of known colors are placed at arbitrary
 	// locations within the workspace. Find them and bring to target position.
 
+	// TODO: don't use squareTest for Beacons (use it for balls)
+
 	// GUI Elements
 	private TextView textLog; // Textview on GUI which contains the robot's log
 	private EditText editText1; // Textfield on GUI for entering x-coordinate of
@@ -391,13 +393,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.robotSetLeds(200, 200);
-				//robot.moveByVelocity(-130, false);
-				while (!robot.updateGlobalPosition(findTwoBeacons(),
-						homographyMatrix)) {
-					robot.writeLog("Trying to update Position");
-				}
-				robot.robotSetLeds(0, 0);
+				robot.riseBarUp();
+				// robot.updateGlobalPosition(findTwoBeacons(),
+				// homographyMatrix);
+				// robot.moveToTarget(100, 100, 0);
 			};
 		};
 
@@ -410,11 +409,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				Position targetPoint = new Position(targetX, targetY,
-						targetTheta);
-				robot.moveToTargetCollBalls(targetPoint, mRgbaWork,
-						myCircleColors, homographyMatrix, confirmedSquares);
-				;
+				robot.robotSetBar(0);
+				// findTwoBeacons();
 			};
 		};
 
@@ -460,7 +456,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 					robot.moveToTargetWithoutAngle(targetX, targetY, 5);
 					robot.writeLog("target point reached");
 					robot.moveByVelocitySlow(-16, false);
-					robot.robotSetBar(255);
+					robot.riseBarUp();
 					robot.moveByVelocitySlow(-30, false);
 					robot.turnByDistance(180, 'r');
 					robot.writeLog("heading back to target point");
@@ -470,6 +466,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 					} catch (InterruptedException e) {
 						// do nothing
 					}
+					// search again two beacons
 					// robot.updateGlobalPosition(findTwoBeacons(),
 					// homographyMatrix);
 					nearestBall = robot.findNearestBall(mRgbaWork,
@@ -838,44 +835,34 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * this procedure until all balls are at the target)
 	 */
 	public void collectAllBalls() {
-		while (!robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix)) {
-			robot.writeLog("Trying to update Position");
-		}
-		robot.robotSetLeds(200, 200);
-		Position targetPoint = new Position(targetX, targetY, targetTheta);
-		robot.moveToTargetCollBalls(targetPoint, mRgbaWork, myBeaconColors,
-				homographyMatrix, confirmedSquares);
-		robot.robotSetLeds(0, 0);
-
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// do nothing
-		}
-
-		// TODO: test this method
-		// robot.driveToTargetCollectAllBalls(targetPoint, mRgbaWork,
-		// myCircleColors, homographyMatrix, foundBalls);
+		// while (!robot.updateGlobalPosition(findTwoBeacons(),
+		// homographyMatrix)) {
+		// robot.writeLog("Trying to update Position");
+		// }
 		robot.robotSetLeds(200, 200);
 		Ball nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
 				homographyMatrix, confirmedSquares);
 		robot.robotSetLeds(0, 0);
 		while (nearestBall != null) {
 			robot.robotSetLeds(200, 200);
-			robot.driveToBallAndCage2(nearestBall, mRgbaWork,
-					myCircleColors, homographyMatrix, confirmedSquares);
+			robot.driveToBallAndCage2(nearestBall, mRgbaWork, myCircleColors,
+					homographyMatrix, confirmedSquares);
+			robot.writeLog("driving forward to next target");
 			robot.moveToTargetWithoutAngle(targetX, targetY, 5);
+			robot.writeLog("target point reached");
 			robot.moveByVelocitySlow(-16, false);
-			robot.robotSetBar(255);
+			robot.riseBarUp();
 			robot.moveByVelocitySlow(-30, false);
 			robot.turnByDistance(180, 'r');
+			robot.writeLog("heading back to target point");
 			robot.robotSetLeds(0, 0);
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				// do nothing
 			}
-			robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
+			// robot.updateGlobalPosition(findTwoBeacons(),
+			// homographyMatrix);
 			nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
 					homographyMatrix, confirmedSquares);
 		}

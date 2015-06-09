@@ -433,6 +433,7 @@ public class ImageProcessor {
 				MatOfPoint2f circl2f = new MatOfPoint2f(contours.get(j)
 						.toArray());
 				Imgproc.minEnclosingCircle(circl2f, center, radius);
+
 				if (radius[0] > 0) {
 					// RotatedRect rect = Imgproc.minAreaRect(circl2f);
 					if (!squareTest(contours.get(j)) && isContourConvex(contours.get(j))) {
