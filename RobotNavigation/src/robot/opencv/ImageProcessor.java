@@ -16,6 +16,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -243,7 +244,7 @@ public class ImageProcessor {
 
 		Scalar mmColorRadius = new Scalar(6, 40, 70, 0);
 		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-				new Size(12, 12));
+				new Size(6, 6));
 
 		switch (mode) {
 		case 'b':
@@ -259,8 +260,8 @@ public class ImageProcessor {
 		case 'c':
 			mmColorRadius = new Scalar(10, 50, 110, 0); // Color radius
 			element.release();
-			element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-					new Size(12, 12));
+			element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
+					new Size(6, 6));
 			// for range
 			// checking in
 			// HSV color
@@ -436,7 +437,8 @@ public class ImageProcessor {
 
 				if (radius[0] > 0) {
 					// RotatedRect rect = Imgproc.minAreaRect(circl2f);
-					if (!squareTest(contours.get(j)) && isContourConvex(contours.get(j))) {
+					if (getShape(contours.get(j), 'c')
+							&& isContourConvex(contours.get(j))) {
 						Log.i(TAG, "Radius of found circle: " + radius);
 						Circle foundCircle = new Circle(center,
 								(double) radius[0]);
@@ -466,14 +468,14 @@ public class ImageProcessor {
 				Imgproc.arcLength(contour2f, true) * 0.04, true);
 
 		approx2f.convertTo(approx, CvType.CV_32S);
-		
+
 		if (Imgproc.isContourConvex(approx))
 			ret = true;
-		
+
 		approx2f.release();
 		approx.release();
 		contour2f.release();
-		
+
 		return ret;
 	}
 
@@ -521,7 +523,7 @@ public class ImageProcessor {
 
 				// Point center = computeCenterPt(contours.get(j));
 
-				if (squareTest(contours.get(j))) {
+				if (getShape(contours.get(j), 'b')) {
 					MatOfPoint2f rect2f = new MatOfPoint2f(contours.get(j)
 							.toArray());
 					Square foundSquare = new Square(
@@ -607,14 +609,11 @@ public class ImageProcessor {
 				// Log.i(TAG, "lower Square passed the test");
 				// }
 
-				if (twoSquaresMakeBeacon(squareA, squareB)) {
-					Log.i(TAG, "the two squares make a beacon");
-				}
-
 				// if (squareTest(squareA)
 				// && twoSquaresMakeBeacon(squareA, squareB)) {
 
 				if (twoSquaresMakeBeacon(squareA, squareB)) {
+					Log.i(TAG, "the two squares make a beacon");
 
 					Point newCenterPt = squareA.getLowPt();
 					Size newSize;
@@ -678,7 +677,7 @@ public class ImageProcessor {
 
 	private boolean twoSquaresMakeBeacon(Square squareA, Square squareB) {
 
-		int TOL = 15;
+		int TOL = 25;
 
 		if (distPointToPoint(squareA.getLowPt(), squareB.getHighPt()) < TOL
 				|| distPointToPoint(squareB.getLowPt(), squareA.getHighPt()) < TOL) {
@@ -818,6 +817,96 @@ public class ImageProcessor {
 		approx2f.release();
 		approx.release();
 		contour2f.release();
+
+		return ret;
+		// return true;
+	}
+
+	// TODO Update description
+	/**
+	 * tests if surrendered squares has the width and height relation to be a
+	 * real square and not a circle
+	 * 
+	 * Based on:
+	 * http://opencv-code.com/tutorials/detecting-simple-shapes-in-an-image/
+	 */
+	private Boolean getShape(MatOfPoint contour, char mode) {
+		MatOfPoint2f approx2f = new MatOfPoint2f();
+		MatOfPoint approx = new MatOfPoint();
+		MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
+		Boolean ret = false;
+
+		switch (mode) {
+		case 'b':
+			Imgproc.approxPolyDP(contour2f, approx2f,
+					Imgproc.arcLength(contour2f, true) * 0.05, true);
+
+			approx2f.convertTo(approx, CvType.CV_32S);
+
+			if (approx.total() == 4 && Imgproc.isContourConvex(approx)) {
+
+				double maxCosine = 0;
+
+				Log.i(TAG, "xxxPossibly detected rectangle");
+				for (int j = 2; j < 5; j++) {
+					// find the maximum cosine of the angle between joint edges
+					double cosine = Math.abs(angle(approx.toArray()[j % 4],
+							approx.toArray()[j - 2], approx.toArray()[j - 1]));
+					maxCosine = Math.max(maxCosine, cosine);
+				}
+
+				Log.i(TAG, "xxxmaxCosine: " + maxCosine);
+
+				// if cosines of all angles are small
+				// (all angles are ~90 degree) then write quandrange
+				// vertices to resultant sequence
+				if (maxCosine < 0.4) {
+					ret = true;
+				}
+			}
+			break;
+		case 'c':
+			// approximate contour with accuracy proportional
+			// to the contour perimeter
+			Imgproc.approxPolyDP(contour2f, approx2f,
+					Imgproc.arcLength(contour2f, true) * 0.02, true);
+
+			approx2f.convertTo(approx, CvType.CV_32S);
+
+			// square contours should have 4 vertices after approximation
+			// relatively large area (to filter out noisy contours)
+			// and be convex.
+			// Note: absolute value of an area is used because
+			// area may be positive or negative - in accordance with the
+			// contour orientation
+			Log.i(TAG, "xxxShape has " + approx.total() + " edges");
+
+			if (Imgproc.isContourConvex(approx)) {
+				Log.i(TAG, "xxxShape is convex");
+
+				if (approx.total() > 4) {
+					// Detect and label circles
+					double area = Imgproc.contourArea(contour);
+					Rect rrect = Imgproc.boundingRect(contour);
+					int radius = rrect.width / 2;
+					Log.i(TAG, "xxxPossibly detected circle; radius = "
+							+ radius + "; area = " + area + "; half height = "
+							+ rrect.height);
+
+					if (Math.abs(1 - ((double) rrect.width / rrect.height)) <= 0.2
+							&& Math.abs(1 - (area / (Math.PI * Math.pow(radius,
+									2)))) <= 0.25) {
+						ret = true;
+					}
+				}
+			}
+			break;
+		}
+
+		approx2f.release();
+		approx.release();
+		contour2f.release();
+		Log.i(TAG, "xxxDetected: " + ret);
 
 		return ret;
 		// return true;
