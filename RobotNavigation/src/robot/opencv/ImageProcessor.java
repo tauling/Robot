@@ -7,9 +7,11 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
@@ -51,26 +53,27 @@ public class ImageProcessor {
 	// world coordinates
 
 	static {
+		// blue = 1; yellow = 2; red = 3; green = 4
 		Map<Integer, Point> tmpPosition = new LinkedHashMap<Integer, Point>();
 		tmpPosition.put(12, new Point(-125.0, 125.0));
-		tmpPosition.put(21, new Point(0.0, 125.0));
-		tmpPosition.put(13, new Point(125.0, 125.0));
-		tmpPosition.put(42, new Point(-125.0, 0.0));
-		tmpPosition.put(24, new Point(125.0, 0.0));
-		tmpPosition.put(41, new Point(-125.0, -125.0));
-		tmpPosition.put(14, new Point(0.0, -125.0));
-		tmpPosition.put(31, new Point(125.0, -125.0));
+		tmpPosition.put(13, new Point(0.0, 125.0));
+		tmpPosition.put(32, new Point(125.0, 125.0));
+		tmpPosition.put(41, new Point(-125.0, 0.0));
+		tmpPosition.put(14, new Point(125.0, 0.0));
+		tmpPosition.put(21, new Point(-125.0, -125.0));
+		tmpPosition.put(31, new Point(0.0, -125.0));
+		tmpPosition.put(23, new Point(125.0, -125.0));
 		BeaconPosition = Collections.unmodifiableMap(tmpPosition);
 
 		Map<Integer, Integer> tmpID = new LinkedHashMap<Integer, Integer>();
 		tmpID.put(12, 1);
-		tmpID.put(21, 2);
-		tmpID.put(13, 3);
-		tmpID.put(42, 4);
-		tmpID.put(24, 5);
-		tmpID.put(41, 6);
-		tmpID.put(14, 7);
-		tmpID.put(31, 8);
+		tmpID.put(13, 2);
+		tmpID.put(32, 3);
+		tmpID.put(41, 4);
+		tmpID.put(14, 5);
+		tmpID.put(21, 6);
+		tmpID.put(31, 7);
+		tmpID.put(23, 8);
 		BeaconID = Collections.unmodifiableMap(tmpID);
 
 		Map<Integer, Integer> tmpAngles = new LinkedHashMap<Integer, Integer>();
@@ -132,7 +135,6 @@ public class ImageProcessor {
 
 			// Find max contour area
 			double maxArea = 0;
-			Iterator<MatOfPoint> each = contours.iterator();
 			int contourSize = contours.size();
 			for (int i = 0; i < contourSize; i++) {
 				MatOfPoint wrapper = contours.get(i);
@@ -240,10 +242,15 @@ public class ImageProcessor {
 		Mat mmDilatedMask = new Mat();
 
 		Scalar mmColorRadius = new Scalar(6, 40, 70, 0);
+		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
+				new Size(12, 12));
 
 		switch (mode) {
 		case 'b':
 			mmColorRadius = new Scalar(10, 70, 150, 0); // Color radius
+			element.release();
+			element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
+					new Size(12, 12));
 			// for range
 			// checking in
 			// HSV color
@@ -251,6 +258,9 @@ public class ImageProcessor {
 			break;
 		case 'c':
 			mmColorRadius = new Scalar(10, 50, 110, 0); // Color radius
+			element.release();
+			element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
+					new Size(12, 12));
 			// for range
 			// checking in
 			// HSV color
@@ -288,8 +298,6 @@ public class ImageProcessor {
 			// Mat element =
 			// Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
 			// new Size(10, 10));
-			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-					new Size(12, 12));
 			Imgproc.dilate(mmMask, mmDilatedMask, element);
 			Imgproc.erode(mmDilatedMask, mmDilatedMask, element);
 			element.release();
@@ -425,11 +433,10 @@ public class ImageProcessor {
 				MatOfPoint2f circl2f = new MatOfPoint2f(contours.get(j)
 						.toArray());
 				Imgproc.minEnclosingCircle(circl2f, center, radius);
-				if (radius != null) {
-					RotatedRect rect = Imgproc.minAreaRect(circl2f);
 
-					MatOfPoint2f d;
-					if (!squareTest(rect)) {
+				if (radius[0] > 0) {
+					// RotatedRect rect = Imgproc.minAreaRect(circl2f);
+					if (!squareTest(contours.get(j)) && isContourConvex(contours.get(j))) {
 						Log.i(TAG, "Radius of found circle: " + radius);
 						Circle foundCircle = new Circle(center,
 								(double) radius[0]);
@@ -445,6 +452,29 @@ public class ImageProcessor {
 		Log.i(TAG,
 				"found circles in findCirclesOnCamera2:" + circlesList.size());
 		return circlesList;
+	}
+
+	private boolean isContourConvex(MatOfPoint contour) {
+		MatOfPoint2f approx2f = new MatOfPoint2f();
+		MatOfPoint approx = new MatOfPoint();
+		MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
+		Boolean ret = false;
+
+		// approximate contour with accuracy proportional
+		// to the contour perimeter
+		Imgproc.approxPolyDP(contour2f, approx2f,
+				Imgproc.arcLength(contour2f, true) * 0.04, true);
+
+		approx2f.convertTo(approx, CvType.CV_32S);
+		
+		if (Imgproc.isContourConvex(approx))
+			ret = true;
+		
+		approx2f.release();
+		approx.release();
+		contour2f.release();
+		
+		return ret;
 	}
 
 	/**
@@ -491,11 +521,14 @@ public class ImageProcessor {
 
 				// Point center = computeCenterPt(contours.get(j));
 
-				MatOfPoint2f rect2f = new MatOfPoint2f(contours.get(j)
-						.toArray());
-				Square foundSquare = new Square(Imgproc.minAreaRect(rect2f),
-						i + 1);
-				rect2f.release();
+				if (squareTest(contours.get(j))) {
+					MatOfPoint2f rect2f = new MatOfPoint2f(contours.get(j)
+							.toArray());
+					Square foundSquare = new Square(
+							Imgproc.minAreaRect(rect2f), i + 1);
+					rect2f.release();
+					squareList.add(foundSquare);
+				}
 				// double[] squareSize = squareSize(contours.get(j), center);
 
 				// Point lowerEdgeLeft = computeLowerEdgeLeft(center,
@@ -503,11 +536,6 @@ public class ImageProcessor {
 
 				// Square foundSquare = new Square(center, squareSize[0],
 				// lowerEdgeLeft, i + 1);
-
-				/**
-				 * squareSize[0] -> halfWidth squareSize[1] -> halfHeight
-				 */
-				squareList.add(foundSquare);
 
 			}
 
@@ -571,16 +599,22 @@ public class ImageProcessor {
 								+ squareB.toString());
 				// squareA is always above squareB
 
-				if (squareTest(squareA)) {
-					Log.i(TAG, "upper Square passed the test");
-				}
+				// if (squareTest(squareA)) {
+				// Log.i(TAG, "upper Square passed the test");
+				// }
+				//
+				// if (squareTest(squareB)) {
+				// Log.i(TAG, "lower Square passed the test");
+				// }
 
 				if (twoSquaresMakeBeacon(squareA, squareB)) {
 					Log.i(TAG, "the two squares make a beacon");
 				}
 
-				if (squareTest(squareA)
-						&& twoSquaresMakeBeacon(squareA, squareB)) {
+				// if (squareTest(squareA)
+				// && twoSquaresMakeBeacon(squareA, squareB)) {
+
+				if (twoSquaresMakeBeacon(squareA, squareB)) {
 
 					Point newCenterPt = squareA.getLowPt();
 					Size newSize;
@@ -684,48 +718,122 @@ public class ImageProcessor {
 	// return noconflict;
 	// }
 
-	/**
-	 * tests if surrendered squares has the width and height relation to be a
-	 * real square and not a circle
-	 */
-	private Boolean squareTest(Square s) {
-		Double width = s.size.width;
-		Double height = s.size.height;
-		if (height > width) {
-			if (height / width > 1.3) {
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			if (width / height > 1.3) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-	}
+	// /**
+	// * tests if surrendered squares has the width and height relation to be a
+	// * real square and not a circle
+	// */
+	// private Boolean squareTest(Square s) {
+	// Double width = s.size.width;
+	// Double height = s.size.height;
+	// if (height > width) {
+	// if (height / width > 1.15) {
+	// return true;
+	// } else {
+	// return false;
+	// }
+	// } else {
+	// if (width / height > 1.15) {
+	// return true;
+	// } else {
+	// return false;
+	// }
+	// }
+	// }
+	//
+	// /**
+	// * tests if surrendered squares has the width and height relation to be a
+	// * real square and not a circle
+	// */
+	// private Boolean squareTest(RotatedRect s) {
+	// Double width = s.size.width;
+	// Double height = s.size.height;
+	// if (height > width) {
+	// if (height / width > 1.3) {
+	// return true;
+	// } else {
+	// return false;
+	// }
+	// } else {
+	// if (width / height > 1.3) {
+	// return true;
+	// } else {
+	// return false;
+	// }
+	// }
+	// }
 
 	/**
 	 * tests if surrendered squares has the width and height relation to be a
 	 * real square and not a circle
+	 * 
+	 * Based on:
+	 * http://opencv-code.com/tutorials/detecting-simple-shapes-in-an-image/
 	 */
-	private Boolean squareTest(RotatedRect s) {
-		Double width = s.size.width;
-		Double height = s.size.height;
-		if (height > width) {
-			if (height / width > 1.3) {
-				return true;
-			} else {
-				return false;
+	private Boolean squareTest(MatOfPoint contour) {
+		MatOfPoint2f approx2f = new MatOfPoint2f();
+		MatOfPoint approx = new MatOfPoint();
+		MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
+		Boolean ret = false;
+
+		// approximate contour with accuracy proportional
+		// to the contour perimeter
+		Imgproc.approxPolyDP(contour2f, approx2f,
+				Imgproc.arcLength(contour2f, true) * 0.04, true);
+
+		approx2f.convertTo(approx, CvType.CV_32S);
+
+		// square contours should have 4 vertices after approximation
+		// relatively large area (to filter out noisy contours)
+		// and be convex.
+		// Note: absolute value of an area is used because
+		// area may be positive or negative - in accordance with the
+		// contour orientation
+		Log.i(TAG, "xxxSquare has " + approx.total() + " edges");
+
+		if (Imgproc.isContourConvex(approx)) {
+			Log.i(TAG, "xxxSquare is convex");
+		}
+
+		if (approx.total() == 4 && isContourConvex(contour)) {
+
+			double maxCosine = 0;
+
+			for (int j = 2; j < 5; j++) {
+				// find the maximum cosine of the angle between joint edges
+				double cosine = Math.abs(angle(approx.toArray()[j % 4],
+						approx.toArray()[j - 2], approx.toArray()[j - 1]));
+				maxCosine = Math.max(maxCosine, cosine);
 			}
-		} else {
-			if (width / height > 1.3) {
-				return true;
-			} else {
-				return false;
+
+			// if cosines of all angles are small
+			// (all angles are ~90 degree) then write quandrange
+			// vertices to resultant sequence
+			if (maxCosine < 0.3) {
+
+				Log.i(TAG, "xxxmaxCosine: " + maxCosine);
+				ret = true;
 			}
 		}
+
+		approx2f.release();
+		approx.release();
+		contour2f.release();
+
+		return ret;
+		// return true;
+	}
+
+	// TODO comment
+	// Based on:
+	// http://stackoverflow.com/questions/17512234/android-opencv-find-largest-square-or-rectangle
+	double angle(Point pt1, Point pt2, Point pt0) {
+		double dx1 = pt1.x - pt0.x;
+		double dy1 = pt1.y - pt0.y;
+		double dx2 = pt2.x - pt0.x;
+		double dy2 = pt2.y - pt0.y;
+		return (dx1 * dx2 + dy1 * dy2)
+				/ Math.sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2)
+						+ 1e-10);
 	}
 
 	// TODO update description
