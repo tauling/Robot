@@ -1638,7 +1638,7 @@ public class Robot {
 
 			double dy = c * Math.cos(Math.toRadians(alph));
 
-			double bx = Math.abs(c * Math.sin(Math.toRadians(thetaRel))); // x-coord
+			double bx = Math.abs(c * Math.sin(thetaRel)); // x-coord
 																			// of
 																			// left
 																			// beacon
@@ -1647,7 +1647,7 @@ public class Robot {
 																			// egocentric
 																			// coordinate
 																			// system
-			double by = Math.abs(c * Math.cos(Math.toRadians(thetaRel))); // y-coord
+			double by = Math.abs(c * Math.cos(thetaRel)); // y-coord
 																			// of
 																			// left
 																			// beacon
@@ -1658,8 +1658,8 @@ public class Robot {
 																			// system
 			double thet2 = Math.atan2(by, bx); // angle between y-axes (through
 												// robot) and left beacon.
-			double theta = reduceAngle(90 - ImageProcessor.BeaconsAngleOffs
-					.get(beacIDcomb)) + (thetaRel - Math.toDegrees(thet2));
+			double theta = reduceAngle((int) (ImageProcessor.BeaconsAngleOffs
+					.get(beacIDcomb) - 90 + (Math.toDegrees(thetaRel) - Math.toDegrees(thet2))));
 
 			Point pointGroundCoord = new Point();
 			pointGroundCoord.x = beaconPos.x + dx;
@@ -1668,7 +1668,7 @@ public class Robot {
 			writeLog("Heavy calculating leads to alpha: " + alpha
 					+ "; alpha + beaconoffset: " + alph + "; dx: " + dx
 					+ "; dy: " + dy + "; myPosition: " + pointGroundCoord
-					+ "; bx: " + bx + "; by: " + by + "; thet2: " + thet2
+					+ "; bx: " + bx + "; by: " + by + "; thetaRel: " + Math.toDegrees(thetaRel) + "; thet2: " + Math.toDegrees(thet2)
 					+ "; theta: " + theta);
 
 			//

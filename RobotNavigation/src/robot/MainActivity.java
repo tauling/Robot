@@ -65,8 +65,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// robot's egocentric ground-plane coordinates, as well as their distances
 	// to the robot, using a pre-calibrated homography matrix
 
-	// TODO: Do not allow the mobile phone to suspend
-
 	// TODO: Ex3: The robot is placed at an arbitrary location within a
 	// rectangular workspace of roughly 2.5m by 2.5m in size, surrounded by 8
 	// beacons spaced 125cm apart and placed around the setup. Update the robot
@@ -150,7 +148,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		textLog = (TextView) findViewById(R.id.textLog);
 		editText1 = (EditText) findViewById(R.id.editText1);
@@ -169,14 +167,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// initialize myBeaconColors & myColors
-		myBeaconColors.add(new Scalar(15, 230, 170)); // orange
-		myBeaconColors.add(new Scalar(129, 150, 125)); // blue // TODO:
-														// recalibrate after
-														// green was changed
-		myBeaconColors.add(new Scalar(232, 220, 165)); // magenta
-		myBeaconColors.add(new Scalar(95, 180, 60)); // green // TODO:
-														// recalibrate after
-														// green is changed.
+		myBeaconColors.add(new Scalar(139, 220, 100)); // blue
+		myBeaconColors.add(new Scalar(40, 235, 150)); // yellow
+		myBeaconColors.add(new Scalar(252, 220, 145)); // red
+		myBeaconColors.add(new Scalar(67, 160, 120)); // green
 
 		myCircleColors.add(new Scalar(100, 235, 170)); // green
 		myCircleColors.add(new Scalar(252, 250, 180)); // red
@@ -398,7 +392,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			@Override
 			public void run() {
 				robot.robotSetLeds(200, 200);
-				robot.moveByVelocity(-130, false);
+				//robot.moveByVelocity(-130, false);
 				while (!robot.updateGlobalPosition(findTwoBeacons(),
 						homographyMatrix)) {
 					robot.writeLog("Trying to update Position");
