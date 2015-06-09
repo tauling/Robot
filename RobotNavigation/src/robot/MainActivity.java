@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import jp.ksksue.driver.serial.FTDriver;
 
@@ -23,7 +22,6 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import robot.generated.R;
-import robot.navigate.Position;
 import robot.navigate.Robot;
 import robot.opencv.ImageProcessor;
 import robot.shapes.Ball;
@@ -169,6 +167,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+		robot.moveBar('-'); // lower the bar a bit
 
 		// initialize myBeaconColors & myColors
 		myBeaconColors.add(new Scalar(15, 230, 170)); // orange
@@ -431,7 +431,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 			public void run() {
 
 				robot.robotSetLeds(200, 200);
-				// TODO: test this method
 				// robot.driveToTargetCollectAllBalls(targetPoint, mRgbaWork,
 				// myCircleColors, homographyMatrix, foundBalls);
 				Ball nearestBall = robot.findNearestBall(mRgbaWork,
@@ -823,8 +822,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Log.e(TAG, e.getMessage());
 			}
 			beacons = imgProc.findBeacons(confirmedSquares).getBeaconList();
 		}
@@ -834,7 +832,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return beacons;
 	}
 
-	// TODO: test / implement
 	/**
 	 * 1)findTwoBeacons 2)drive to goal and cage ball one the way 3)after goal
 	 * position reached -> search for one ball and bring it to the goal (repeat
@@ -867,10 +864,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 			} catch (InterruptedException e) {
 				// do nothing
 			}
-			// robot.updateGlobalPosition(findTwoBeacons(),
-			// homographyMatrix);
-			nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
-					homographyMatrix, confirmedSquares);
+			// robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
+			// nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
+			// homographyMatrix, confirmedSquares);
 		}
 		robot.robotSetLeds(100, 100);
 	}

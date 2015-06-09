@@ -1485,7 +1485,6 @@ public class Robot {
 					aligned = true;
 				}
 			} catch (ArrayIndexOutOfBoundsException e) {
-				Log.e(TAG, "ball is not on the camera frame anymore");
 				writeLog("ball is not on the camera frame anymore");
 			}
 		}
