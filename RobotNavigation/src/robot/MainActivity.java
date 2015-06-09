@@ -75,6 +75,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	// TODO: Ex3: About 10 balls of known colors are placed at arbitrary
 	// locations within the workspace. Find them and bring to target position.
 
+	// TODO: don't use squareTest for Beacons (use it for balls)
+
 	// GUI Elements
 	private TextView textLog; // Textview on GUI which contains the robot's log
 	private EditText editText1; // Textfield on GUI for entering x-coordinate of
@@ -150,7 +152,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		textLog = (TextView) findViewById(R.id.textLog);
 		editText1 = (EditText) findViewById(R.id.editText1);
@@ -397,8 +399,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
-				robot.moveToTarget(100, 100, 0);
+				robot.riseBarUp();
+				// robot.updateGlobalPosition(findTwoBeacons(),
+				// homographyMatrix);
+				// robot.moveToTarget(100, 100, 0);
 			};
 		};
 
@@ -411,7 +415,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				findTwoBeacons();
+				robot.robotSetBar(0);
+				// findTwoBeacons();
 			};
 		};
 
@@ -457,7 +462,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 					robot.moveToTargetWithoutAngle(targetX, targetY, 5);
 					robot.writeLog("target point reached");
 					robot.moveByVelocitySlow(-16, false);
-					robot.robotSetBar(255);
+					robot.riseBarUp();
 					robot.moveByVelocitySlow(-30, false);
 					robot.turnByDistance(180, 'r');
 					robot.writeLog("heading back to target point");
@@ -467,6 +472,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 					} catch (InterruptedException e) {
 						// do nothing
 					}
+					// search again two beacons
 					// robot.updateGlobalPosition(findTwoBeacons(),
 					// homographyMatrix);
 					nearestBall = robot.findNearestBall(mRgbaWork,
@@ -835,9 +841,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * this procedure until all balls are at the target)
 	 */
 	public void collectAllBalls() {
-		while (!robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix)) {
-			robot.writeLog("Trying to update Position");
-		}
+		// while (!robot.updateGlobalPosition(findTwoBeacons(),
+		// homographyMatrix)) {
+		// robot.writeLog("Trying to update Position");
+		// }
 		robot.robotSetLeds(200, 200);
 		Ball nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
 				homographyMatrix, confirmedSquares);
@@ -850,7 +857,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			robot.moveToTargetWithoutAngle(targetX, targetY, 5);
 			robot.writeLog("target point reached");
 			robot.moveByVelocitySlow(-16, false);
-			robot.robotSetBar(255);
+			robot.riseBarUp();
 			robot.moveByVelocitySlow(-30, false);
 			robot.turnByDistance(180, 'r');
 			robot.writeLog("heading back to target point");

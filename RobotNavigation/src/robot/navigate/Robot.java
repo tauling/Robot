@@ -189,9 +189,8 @@ public class Robot {
 	 *            value 127)
 	 */
 	public void robotSetLeds(int red, int blue) {
-		writeLog(comReadWrite(new byte[] { 'u',
-				(byte) Math.max(Math.min(red, 127), 0),
-				(byte) Math.max(Math.min(blue, 127), 0), '\r', '\n' }));
+		comReadWrite(new byte[] { 'u', (byte) Math.max(Math.min(red, 127), 0),
+				(byte) Math.max(Math.min(blue, 127), 0), '\r', '\n' });
 	}
 
 	/**
@@ -204,6 +203,17 @@ public class Robot {
 			value = (int) (Math.signum(value) * 127);
 		}
 		comReadWrite(new byte[] { 'o', (byte) value, '\r', '\n' });
+	}
+
+	/**
+	 * robots moves bar completely up
+	 * 
+	 * (i know it's ugly)
+	 */
+	public void riseBarUp() {
+		robotSetBar(127);
+		for (int i = 0; i < 4; i++)
+			comReadWrite(new byte[] { '+', '\r', '\n' });
 	}
 
 	/**
@@ -708,14 +718,12 @@ public class Robot {
 														// from -128 to
 			// 127
 			degrees -= (int) (Math.signum(degrees)) * maxDegreesByOnce;
-			writeLog(comReadWrite(
-					new byte[] {
-							'l',
-							(byte) ((int) (Math.signum(degrees)) * maxDegreesByOnce),
-							'\r', '\n' }, waitTimeFact * maxDegreesByOnce));
+			comReadWrite(new byte[] { 'l',
+					(byte) ((int) (Math.signum(degrees)) * maxDegreesByOnce),
+					'\r', '\n' }, waitTimeFact * maxDegreesByOnce);
 		}
-		writeLog(comReadWrite(new byte[] { 'l', (byte) degrees, '\r', '\n' },
-				waitTimeFact * Math.abs(degrees)));
+		comReadWrite(new byte[] { 'l', (byte) degrees, '\r', '\n' },
+				waitTimeFact * Math.abs(degrees));
 	}
 
 	/**
@@ -798,15 +806,13 @@ public class Robot {
 										// near
 				// obstacle
 				comReadWrite(new byte[] { 'i', 0, 0, '\r', '\n' });
-				writeLog(comReadWrite(new byte[] { 'u', (byte) 127, (byte) 0,
-						'\r', '\n' }));
+				comReadWrite(new byte[] { 'u', (byte) 127, (byte) 0, '\r', '\n' });
 				turnByDistance(90, 'l');
 				try {
 					Thread.sleep(1000);
 				} catch (Exception e) {
 				}
-				writeLog(comReadWrite(new byte[] { 'u', (byte) 0, (byte) 127,
-						'\r', '\n' }));
+				comReadWrite(new byte[] { 'u', (byte) 0, (byte) 127, '\r', '\n' });
 				comReadWrite(new byte[] { 'i', 15, 15, '\r', '\n' });
 				i++;
 			}
@@ -1465,17 +1471,22 @@ public class Robot {
 		double TOL = 150.0;
 		double ballXAxis = p.x;
 		while (!aligned) {
-			ImageProcessor imgProc = new ImageProcessor(TAG);
-			ballXAxis = imgProc
-					.findCirclesOnCamera2(mRgbaWork, myColors, confirmedSquares)
-					.get(0).getCenter().x;
-			double diff = centerXAxis - ballXAxis;
-			if (Math.abs(diff) > TOL && diff < 0) {
-				turnByDistanceBalanced(30, 'r');
-			} else if (Math.abs(diff) > TOL && diff > 0) {
-				turnByDistanceBalanced(30, 'l');
-			} else {
-				aligned = true;
+			try {
+				ImageProcessor imgProc = new ImageProcessor(TAG);
+				ballXAxis = imgProc
+						.findCirclesOnCamera2(mRgbaWork, myColors,
+								confirmedSquares).get(0).getCenter().x;
+				double diff = centerXAxis - ballXAxis;
+				if (Math.abs(diff) > TOL && diff < 0) {
+					turnByDistanceBalanced(30, 'r');
+				} else if (Math.abs(diff) > TOL && diff > 0) {
+					turnByDistanceBalanced(30, 'l');
+				} else {
+					aligned = true;
+				}
+			} catch (ArrayIndexOutOfBoundsException e) {
+				Log.e(TAG, "ball is not on the camera frame anymore");
+				writeLog("ball is not on the camera frame anymore");
 			}
 		}
 		writeLog("(alignToPoint) aligned");

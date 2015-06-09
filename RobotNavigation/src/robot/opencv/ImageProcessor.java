@@ -427,15 +427,16 @@ public class ImageProcessor {
 				Imgproc.minEnclosingCircle(circl2f, center, radius);
 				if (radius != null) {
 					RotatedRect rect = Imgproc.minAreaRect(circl2f);
-					
+
 					MatOfPoint2f d;
 					if (!squareTest(rect)) {
 						Log.i(TAG, "Radius of found circle: " + radius);
-						Circle foundCircle = new Circle(center, (double) radius[0]);
+						Circle foundCircle = new Circle(center,
+								(double) radius[0]);
 						if (checkCircleVsSquares(foundCircle, confirmedSquares)
 								&& foundCircle.getRadius() > 12) {
 							circlesList.add(foundCircle);
-						}						
+						}
 					}
 				}
 				circl2f.release();
@@ -492,8 +493,8 @@ public class ImageProcessor {
 
 				MatOfPoint2f rect2f = new MatOfPoint2f(contours.get(j)
 						.toArray());
-				Square foundSquare = new Square(
-						Imgproc.minAreaRect(rect2f), i + 1);
+				Square foundSquare = new Square(Imgproc.minAreaRect(rect2f),
+						i + 1);
 				rect2f.release();
 				// double[] squareSize = squareSize(contours.get(j), center);
 
