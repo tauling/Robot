@@ -808,8 +808,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public void collectAllBalls() {
 
-		boolean obstacleMatter = true;
-		boolean beaconMatter = false;
+		boolean obstacleMatter = false;
+		boolean beaconMatter = true;
 
 		boolean stopped = false;
 
