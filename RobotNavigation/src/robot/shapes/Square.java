@@ -96,7 +96,7 @@ public class Square extends RotatedRect implements Comparable<Square> {
 		Point[] pts = new Point[4];
 		super.points(pts);
 		return "square, center: {" + (int) this.center.x + ","
-				+ (int) this.center.y + "} points: " + pts[0] + ", " + pts[1] + ", " + pts[2] + ", " + pts[3] + " and colorid: " + getColorID();
+				+ (int) this.center.y + "} points: " + pts[0] + ", " + pts[1] + ", " + pts[2] + ", " + pts[3] + "; angle: " + angle + " and colorid: " + getColorID();
 	}
 
 //	public Point getLowerLeftEdge() {

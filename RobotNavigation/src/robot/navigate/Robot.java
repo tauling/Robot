@@ -1649,7 +1649,7 @@ public class Robot {
 
 			double dy = c * Math.cos(Math.toRadians(alph));
 
-			double bx = Math.abs(c * Math.sin(thetaRel)); // x-coord
+			double bx = c * Math.sin(thetaRel); // x-coord
 																			// of
 																			// left
 																			// beacon
@@ -1658,7 +1658,7 @@ public class Robot {
 																			// egocentric
 																			// coordinate
 																			// system
-			double by = Math.abs(c * Math.cos(thetaRel)); // y-coord
+			double by = c * Math.cos(thetaRel); // y-coord
 																			// of
 																			// left
 																			// beacon
@@ -1667,18 +1667,22 @@ public class Robot {
 																			// egocentric
 																			// coordinate
 																			// system
-			double thet2 = Math.atan2(by, bx); // angle between y-axes (through
-												// robot) and left beacon.
-			double theta = reduceAngle((int) (ImageProcessor.BeaconsAngleOffs
-					.get(beacIDcomb) - 90 + (Math.toDegrees(thetaRel) - Math.toDegrees(thet2))));
 
 			Point pointGroundCoord = new Point();
 			pointGroundCoord.x = beaconPos.x + dx;
 			pointGroundCoord.y = beaconPos.y + dy;
+			
+			
+			double thet2 = Math.atan2(-dx, -dy); // angle between y-axes (through
+												// robot) and left beacon.
+//			double theta = reduceAngle((int) (ImageProcessor.BeaconsAngleOffs
+//					.get(beacIDcomb) - 90 + (Math.toDegrees(thet2) - Math.toDegrees(thetaRel))));
+			double theta = reduceAngle((int) (Math.toDegrees(thet2) - Math.toDegrees(thetaRel)));
+
 
 			writeLog("Heavy calculating leads to alpha: " + alpha
-					+ "; alpha + beaconoffset: " + alph + "; dx: " + dx
-					+ "; dy: " + dy + "; myPosition: " + pointGroundCoord
+					+ "; alpha + beaconoffset: " + alph + "; dx: " + -dx
+					+ "; dy: " + -dy + "; myPosition: " + pointGroundCoord
 					+ "; bx: " + bx + "; by: " + by + "; thetaRel: " + Math.toDegrees(thetaRel) + "; thet2: " + Math.toDegrees(thet2)
 					+ "; theta: " + theta);
 
@@ -1756,8 +1760,11 @@ public class Robot {
 			// "; alpha1: " +
 			// alpha1 + "; alpha2: " + alpha2);
 
-			return new Position(pointGroundCoord.x, pointGroundCoord.y,
+			if (Math.max(Math.abs(pointGroundCoord.x), Math.abs(pointGroundCoord.y)) < 150) { // check if robot thinks he's inside the workspace (sometimes - for beacons near camera horizon - poor Robert thinks he is lost although he is not)
+				return new Position(pointGroundCoord.x, pointGroundCoord.y,
 					(int) theta);
+			} else
+				return null;
 		} else
 			return null;
 	}

@@ -169,7 +169,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// initialize myBeaconColors & myColors
-		myBeaconColors.add(new Scalar(139, 220, 100)); // blue
+		myBeaconColors.add(new Scalar(147, 220, 100)); // blue
 		myBeaconColors.add(new Scalar(40, 235, 150)); // yellow
 		myBeaconColors.add(new Scalar(252, 220, 145)); // red
 		myBeaconColors.add(new Scalar(67, 160, 120)); // green
@@ -393,9 +393,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.riseBarUp();
-				// robot.updateGlobalPosition(findTwoBeacons(),
-				// homographyMatrix);
+//				robot.riseBarUp();
+				robot.updateGlobalPosition(findTwoBeacons(),
+				homographyMatrix);
 				// robot.moveToTarget(100, 100, 0);
 			};
 		};

@@ -251,7 +251,7 @@ public class ImageProcessor {
 			mmColorRadius = new Scalar(10, 70, 150, 0); // Color radius
 			element.release();
 			element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-					new Size(12, 12));
+					new Size(15, 15));
 			// for range
 			// checking in
 			// HSV color
@@ -617,13 +617,16 @@ public class ImageProcessor {
 
 					Point newCenterPt = squareA.getLowPt();
 					Size newSize;
-					if (squareA.size.width > squareA.size.height) {
-						newSize = new Size(squareA.size.width * 2,
-								squareA.size.height);
-					} else {
-						newSize = new Size(squareA.size.width,
-								squareA.size.height * 2);
-					}
+//					if (squareA.size.width > squareA.size.height) {
+////						newSize = new Size(squareA.size.width * 2,
+////								squareA.size.height);
+//						System.out.println("yyy Width greater equal height; angle: " + squareA.angle);
+//					} else {
+////						newSize = new Size(squareA.size.width,
+////								squareA.size.height * 2);
+//						System.out.println("yyy Width smaller height; angle: " + squareA.angle);
+//					}
+					System.out.println("yyy Width: " + squareA.size.width + "; height: " + squareA.size.height + "; angle: " + squareA.angle);
 					// Point newLowerLeftEdge;
 					// squareFoundBelow++;
 					// newCenterPt = squareA.
@@ -631,9 +634,27 @@ public class ImageProcessor {
 					// Point(squareA.getLowerLeftEdge().x,
 					// squareA.getLowerLeftEdge().y
 					// + (2 * squareA.getHalfHeight()));
+					double newAngle = -0.0;
+					
+					if (Math.abs(squareA.angle) < 45 ) {
+						newAngle = squareA.angle;
+						newSize = new Size(squareA.size.width,
+								squareA.size.height * 2);
+					}
+					else  {
+						newAngle = 90.0 + squareA.angle;
+						newSize = new Size(squareA.size.height,
+								squareA.size.width * 2);
+					}
+					
+
+					newSize = new Size(squareA.size.width,
+							squareA.size.height * 2);
+					
 					Beacon newBeacon = new Beacon(newCenterPt, newSize,
-							squareA.angle, squareB.getColorID(),
-							squareA.getColorID());
+								newAngle, squareB.getColorID(),
+								squareA.getColorID());
+						
 					if (checkIfNew(beaconList, newBeacon) &&
 					// squareFoundBelow < 2
 					// checkIntersection(beaconList, newBeacon) &&
