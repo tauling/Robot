@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import jp.ksksue.driver.serial.FTDriver;
 
@@ -150,7 +149,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		// getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		textLog = (TextView) findViewById(R.id.textLog);
 		editText1 = (EditText) findViewById(R.id.editText1);
@@ -167,6 +166,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+		robot.moveBar('-'); // lower the bar a bit
 
 		// initialize myBeaconColors & myColors
 		myBeaconColors.add(new Scalar(147, 220, 100)); // blue
@@ -393,9 +394,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-//				robot.riseBarUp();
-				robot.updateGlobalPosition(findTwoBeacons(),
-				homographyMatrix);
+				// robot.riseBarUp();
+				robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
 				// robot.moveToTarget(100, 100, 0);
 			};
 		};
@@ -425,11 +425,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 			public void run() {
 
 				robot.robotSetLeds(200, 200);
-				// TODO: test this method
 				// robot.driveToTargetCollectAllBalls(targetPoint, mRgbaWork,
 				// myCircleColors, homographyMatrix, foundBalls);
 				Ball nearestBall = robot.findNearestBall(mRgbaWork,
-						myCircleColors, homographyMatrix, confirmedSquares);
+						myCircleColors, homographyMatrix, myBeaconColors);
 				robot.robotSetLeds(0, 0);
 				robot.writeLog(nearestBall.getPosGroundPlane().toString());
 			};
@@ -444,35 +443,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.robotSetLeds(200, 200);
-				Ball nearestBall = robot.findNearestBall(mRgbaWork,
-						myCircleColors, homographyMatrix, confirmedSquares);
-				robot.robotSetLeds(0, 0);
-				while (nearestBall != null) {
-					robot.robotSetLeds(200, 200);
-					robot.driveToBallAndCage2(nearestBall, mRgbaWork,
-							myCircleColors, homographyMatrix, confirmedSquares);
-					robot.writeLog("driving forward to next target");
-					robot.moveToTargetWithoutAngle(targetX, targetY, 5);
-					robot.writeLog("target point reached");
-					robot.moveByVelocitySlow(-16, false);
-					robot.riseBarUp();
-					robot.moveByVelocitySlow(-30, false);
-					robot.turnByDistance(180, 'r');
-					robot.writeLog("heading back to target point");
-					robot.robotSetLeds(0, 0);
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						// do nothing
-					}
-					// search again two beacons
-					// robot.updateGlobalPosition(findTwoBeacons(),
-					// homographyMatrix);
-					nearestBall = robot.findNearestBall(mRgbaWork,
-							myCircleColors, homographyMatrix, confirmedSquares);
-				}
-				robot.robotSetLeds(100, 100);
+				Position targetPos = new Position(targetX, targetY, targetTheta);
+				robot.moveToTargetCollBalls(targetPos, mRgbaWork,
+						myCircleColors, homographyMatrix, myBeaconColors);
 			};
 		};
 
@@ -552,8 +525,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 			@Override
 			public void run() {
 				robot.findAndDeliverBall(targetX, targetY, mRgbaWork,
-						myCircleColors, homographyMatrix, confirmedSquares);
-				robot.moveToTarget(0.0, 0.0, 0);
+						myCircleColors, homographyMatrix, myBeaconColors);
+				robot.moveToTarget(0.0, 0.0, 0, false);
 			};
 		};
 
@@ -685,7 +658,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			beaconList = beaconsAndSquares.getBeaconList();
 			confirmedSquares = beaconsAndSquares.getSquareList();
 			circleList = imageProcessor.findCirclesOnCamera2(mRgbaWork,
-					myCircleColors, confirmedSquares);
+					myCircleColors, myBeaconColors);
 			frameInterval = 0;
 		}
 
@@ -817,8 +790,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Log.e(TAG, e.getMessage());
 			}
 			beacons = imgProc.findBeacons(confirmedSquares).getBeaconList();
 		}
@@ -828,43 +800,52 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return beacons;
 	}
 
-	// TODO: test / implement
 	/**
 	 * 1)findTwoBeacons 2)drive to goal and cage ball one the way 3)after goal
 	 * position reached -> search for one ball and bring it to the goal (repeat
 	 * this procedure until all balls are at the target)
 	 */
 	public void collectAllBalls() {
-		// while (!robot.updateGlobalPosition(findTwoBeacons(),
-		// homographyMatrix)) {
-		// robot.writeLog("Trying to update Position");
-		// }
+
+		boolean obstacleMatter = true;
+		boolean beaconMatter = false;
+
+		boolean stopped = false;
+
+		if (beaconMatter) {
+			while (!robot.updateGlobalPosition(findTwoBeacons(),
+					homographyMatrix)) {
+				robot.writeLog("Trying to update Position");
+			}
+		}
 		robot.robotSetLeds(200, 200);
 		Ball nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
-				homographyMatrix, confirmedSquares);
+				homographyMatrix, myBeaconColors);
 		robot.robotSetLeds(0, 0);
 		while (nearestBall != null) {
 			robot.robotSetLeds(200, 200);
 			robot.driveToBallAndCage2(nearestBall, mRgbaWork, myCircleColors,
-					homographyMatrix, confirmedSquares);
-			robot.writeLog("driving forward to next target");
-			robot.moveToTargetWithoutAngle(targetX, targetY, 5);
-			robot.writeLog("target point reached");
-			robot.moveByVelocitySlow(-16, false);
-			robot.riseBarUp();
-			robot.moveByVelocitySlow(-30, false);
+					homographyMatrix, myBeaconColors);
+			robot.writeLog("rotate 180°");
 			robot.turnByDistance(180, 'r');
 			robot.writeLog("heading back to target point");
+			stopped = robot.moveToTarget(new Position(targetX, targetX, 0),
+					obstacleMatter);
+			if (stopped && obstacleMatter)
+				robot.writeLog("i stopped because i detected an obstacle");
+			robot.riseBarUp();
+			robot.writeLog("delivered a ball and ready for the next one");
 			robot.robotSetLeds(0, 0);
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				// do nothing
 			}
-			// robot.updateGlobalPosition(findTwoBeacons(),
-			// homographyMatrix);
-			nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
-					homographyMatrix, confirmedSquares);
+			if (beaconMatter) {
+				robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
+				nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
+						homographyMatrix, myBeaconColors);
+			}
 		}
 		robot.robotSetLeds(100, 100);
 	}
