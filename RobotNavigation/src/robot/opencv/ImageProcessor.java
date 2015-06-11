@@ -410,7 +410,7 @@ public class ImageProcessor {
 	 *         camera frame
 	 */
 	public List<Circle> findCirclesOnCamera2(Mat mRgbaWork,
-			List<Scalar> myColors, List<Square> confirmedSquares) {
+			List<Scalar> myColors, List<Scalar> myBeaconColors) {
 		List<Circle> circlesList = new ArrayList<Circle>();
 		double colorAmount = myColors.size();
 		for (int i = 0; i < colorAmount; i++) {
@@ -436,10 +436,16 @@ public class ImageProcessor {
 
 				if (radius[0] > 0) {
 					// RotatedRect rect = Imgproc.minAreaRect(circl2f);
-					if (!squareTest(contours.get(j)) && isContourConvex(contours.get(j))) {
+					if (!squareTest(contours.get(j))
+							&& isContourConvex(contours.get(j))) {
 						Log.i(TAG, "Radius of found circle: " + radius);
 						Circle foundCircle = new Circle(center,
 								(double) radius[0]);
+						List<Square> squareList = findSquaresOnCamera(
+								mRgbaWork, myBeaconColors);
+						BeaconSquareHolder beaconsAndSquares = findBeacons(squareList);
+						List<Square> confirmedSquares = beaconsAndSquares
+								.getSquareList();
 						if (checkCircleVsSquares(foundCircle, confirmedSquares)
 								&& foundCircle.getRadius() > 12) {
 							circlesList.add(foundCircle);
@@ -466,14 +472,14 @@ public class ImageProcessor {
 				Imgproc.arcLength(contour2f, true) * 0.04, true);
 
 		approx2f.convertTo(approx, CvType.CV_32S);
-		
+
 		if (Imgproc.isContourConvex(approx))
 			ret = true;
-		
+
 		approx2f.release();
 		approx.release();
 		contour2f.release();
-		
+
 		return ret;
 	}
 
