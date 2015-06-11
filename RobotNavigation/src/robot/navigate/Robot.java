@@ -970,10 +970,12 @@ public class Robot {
 	 * @param offset
 	 *            offset to the target [cm]
 	 */
-	public void moveToTargetWithoutAngle(double x, double y, double offset,
+	public boolean moveToTargetWithoutAngle(double x, double y, double offset,
 			boolean detectobstacle) {
 		int totalAngleToGoal = getAngleToTarget(x, y) + getMyPosition().theta;
-		moveToTarget(x, y, totalAngleToGoal, offset, false, detectobstacle);
+		boolean stopped = moveToTarget(x, y, totalAngleToGoal, offset, false,
+				detectobstacle);
+		return stopped;
 	}
 
 	/**
@@ -1009,9 +1011,13 @@ public class Robot {
 	 * 
 	 * @param target
 	 *            (x, y, theta) of the target point.
+	 * @return
 	 */
-	public void moveToTarget(Position target, boolean detectobstacle) {
-		moveToTarget(target.x, target.y, target.theta, 0.0, detectobstacle);
+	public boolean moveToTarget(Position target, boolean detectobstacle) {
+		boolean stopped;
+		stopped = moveToTarget(target.x, target.y, target.theta, 0.0,
+				detectobstacle);
+		return stopped;
 	}
 
 	/**
@@ -1027,9 +1033,11 @@ public class Robot {
 	 * @param offset
 	 *            offset to the target [cm]
 	 */
-	public void moveToTarget(double x, double y, double theta, double offset,
-			boolean detectobstacle) {
-		moveToTarget(x, y, theta, offset, true, detectobstacle);
+	public boolean moveToTarget(double x, double y, double theta,
+			double offset, boolean detectobstacle) {
+		boolean stopped;
+		stopped = moveToTarget(x, y, theta, offset, true, detectobstacle);
+		return stopped;
 	}
 
 	/**
@@ -1065,6 +1073,14 @@ public class Robot {
 			turnByDistanceBalanced(angle, 'r');
 			robotSetLeds(127, 0);
 			stopped = moveByVelocity(dist, true);
+			if (stopped && checkForObstalces) {
+				writeLog("i will sleep now for 1s and hope the ostacle moved away");
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
 			if (Math.abs((getDistanceToTarget(x, y) - offset)) < TOL) {
 				goalReached = true;
 			}
@@ -1809,13 +1825,13 @@ public class Robot {
 		}
 	}
 
-	// TODO implement second increment: collect more balls which are lying on
-	// the robot's way
 	/**
-	 * Moves to a given target point. Collects balls that are lying on the way
+	 * Moves to a given target point. Collects a ball that is lying on the way
 	 * to the target.
 	 * 
 	 * firstly turn robot to target
+	 * 
+	 * if the roboter detects an obstacle, he stops
 	 * 
 	 * method uses list of balls and tries to determine which one is the nearest
 	 * to catch on the way to the goal, that's the one to cage first...

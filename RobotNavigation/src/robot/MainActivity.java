@@ -808,8 +808,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public void collectAllBalls() {
 
-		boolean obstacleMatter = false;
+		boolean obstacleMatter = true;
 		boolean beaconMatter = false;
+
+		boolean stopped = false;
 
 		if (beaconMatter) {
 			while (!robot.updateGlobalPosition(findTwoBeacons(),
@@ -828,8 +830,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 			robot.writeLog("rotate 180°");
 			robot.turnByDistance(180, 'r');
 			robot.writeLog("heading back to target point");
-			robot.moveToTarget(new Position(targetX, targetX, 0),
+			stopped = robot.moveToTarget(new Position(targetX, targetX, 0),
 					obstacleMatter);
+			if (stopped && obstacleMatter)
+				robot.writeLog("i stopped because i detected an obstacle");
 			robot.riseBarUp();
 			robot.writeLog("delivered a ball and ready for the next one");
 			robot.robotSetLeds(0, 0);
