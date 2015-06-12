@@ -170,9 +170,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 		robot.moveBar('-'); // lower the bar a bit
 
 		// initialize myBeaconColors & myColors
-		myBeaconColors.add(new Scalar(147, 220, 100)); // blue
-		myBeaconColors.add(new Scalar(40, 235, 150)); // yellow
-		myBeaconColors.add(new Scalar(252, 220, 145)); // red
+		myBeaconColors.add(new Scalar(147, 190, 100)); // blue
+		myBeaconColors.add(new Scalar(40, 190, 150)); // yellow
+		myBeaconColors.add(new Scalar(252, 190, 145)); // red
 		myBeaconColors.add(new Scalar(67, 160, 120)); // green
 
 		myCircleColors.add(new Scalar(100, 235, 170)); // green
