@@ -248,7 +248,7 @@ public class ImageProcessor {
 
 		switch (mode) {
 		case 'b':
-			mmColorRadius = new Scalar(10, 70, 150, 0); // Color radius
+			mmColorRadius = new Scalar(10, 100, 85, 0); // Color radius
 			element.release();
 			element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
 					new Size(15, 15));
@@ -258,7 +258,7 @@ public class ImageProcessor {
 			// space
 			break;
 		case 'c':
-			mmColorRadius = new Scalar(10, 70, 110, 0); // Color radius
+			mmColorRadius = new Scalar(8, 95, 80, 0); // Color radius
 			element.release();
 			element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
 					new Size(8, 8));
@@ -448,7 +448,8 @@ public class ImageProcessor {
 						Circle foundCircle = new Circle(center,
 								(double) radius[0]);
 						if (checkCircleVsSquares(foundCircle, confirmedSquares)
-								&& foundCircle.getRadius() > 8) {
+	//							&& foundCircle.getRadius() > 2
+								) {
 							circlesList.add(foundCircle);
 						}
 					}

@@ -167,18 +167,18 @@ public class MainActivity extends Activity implements OnTouchListener,
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-		robot.moveBar('-'); // lower the bar a bit
+		robot.riseBarUp(); // lower the bar a bit
 
 		// initialize myBeaconColors & myColors
-		myBeaconColors.add(new Scalar(147, 190, 100)); // blue
-		myBeaconColors.add(new Scalar(40, 190, 150)); // yellow
-		myBeaconColors.add(new Scalar(252, 190, 145)); // red
-		myBeaconColors.add(new Scalar(67, 160, 120)); // green
+		myBeaconColors.add(new Scalar(144, 220, 120)); // blue
+		myBeaconColors.add(new Scalar(40, 235, 200)); // yellow
+		myBeaconColors.add(new Scalar(251, 170, 180)); // red
+		myBeaconColors.add(new Scalar(95, 120, 170)); // green
 
-		myCircleColors.add(new Scalar(100, 235, 170)); // green
-		myCircleColors.add(new Scalar(252, 250, 180)); // red
-		myCircleColors.add(new Scalar(152, 245, 140)); // blue
-		myCircleColors.add(new Scalar(10, 225, 205)); // orange
+		myCircleColors.add(new Scalar(103, 235, 130)); // green
+		myCircleColors.add(new Scalar(251, 170, 180)); // red
+		myCircleColors.add(new Scalar(148, 200, 140)); // blue
+		myCircleColors.add(new Scalar(9, 240, 160)); // orange
 	}
 
 	public void buttonMoveToGoalN3_onClick(View v) {
@@ -381,7 +381,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				collectAllBalls();
+				collectAllBalls(true, true);
 			};
 		};
 
@@ -409,7 +409,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				robot.robotSetBar(0);
+				collectAllBalls(false, true);
 				// findTwoBeacons();
 			};
 		};
@@ -423,14 +423,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-
-				robot.robotSetLeds(200, 200);
-				// robot.driveToTargetCollectAllBalls(targetPoint, mRgbaWork,
-				// myCircleColors, homographyMatrix, foundBalls);
-				Ball nearestBall = robot.findNearestBall(mRgbaWork,
-						myCircleColors, homographyMatrix, myBeaconColors);
-				robot.robotSetLeds(0, 0);
-				robot.writeLog(nearestBall.getPosGroundPlane().toString());
+				collectAllBalls(false, false);
 			};
 		};
 
@@ -790,18 +783,18 @@ public class MainActivity extends Activity implements OnTouchListener,
 		while (beacons.size() < 2 && angle < 360) {
 			angle += 15;
 			robot.turnByDistance(15, 'r');
+			if (angle >= 360 && activeSearch) {
+				robot.moveByVelocity(45.0, true);
+				angle = 0;
+				robot.turnByDistance(30, 'r');
+			}
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(600);
 			} catch (InterruptedException e) {
 				Log.e(TAG, e.getMessage());
 			}
 			squares = imgProc.findSquaresOnCamera(mRgbaWork, myBeaconColors);
 			beacons = imgProc.findBeacons(squares).getBeaconList();
-			if (angle >= 360) {
-				robot.moveByVelocity(25.0, true);
-				angle = 0;
-				robot.turnByDistance(30, 'r');
-			}
 		}
 		return beacons;
 	}
@@ -811,10 +804,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 * position reached -> search for one ball and bring it to the goal (repeat
 	 * this procedure until all balls are at the target)
 	 */
-	public void collectAllBalls() {
-
-		boolean obstacleMatter = false;
-		boolean beaconMatter = true;
+	public void collectAllBalls(boolean obstacleMatter, boolean beaconMatter) {
 
 		boolean stopped;
 
@@ -840,9 +830,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 	//			robot.writeLog("rotate 180°");
 	//			robot.turnByDistance(180, 'r');
 				robot.writeLog("heading back to target point");
-				stopped = robot.moveToTargetWithoutAngle(targetX, targetY, 21, obstacleMatter);
+				stopped = robot.moveToTargetWithoutAngle(targetX, targetY, 21, obstacleMatter, false);
 				
-				if (stopped) {
+				if (stopped && obstacleMatter) {
 					robot.writeLog("i move backwards because i detected an obstacle");
 					robot.robotSetLeds(0, 200);
 					robot.moveByVelocity(-20, false);
@@ -852,8 +842,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 					}
 	
 					robot.writeLog("heading back to target point again");
-					stopped = robot.moveToTargetWithoutAngle(targetX, targetY, 21, obstacleMatter);
-					
+					stopped = robot.moveToTargetWithoutAngle(targetX, targetY, 21, obstacleMatter, false);
 				}
 	
 				robot.riseBarUp();

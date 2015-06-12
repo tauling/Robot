@@ -39,13 +39,13 @@ public class Robot {
 	private ImageProcessor imageProcessor; // Used for image processing.
 
 	// -> Robot Calibration
-	private Integer ObsDetectBorderLR = 25; // Measurements in front of the
+	private Integer ObsDetectBorderLR = 35; // Measurements in front of the
 											// robot
 											// below this value are treated as
 											// obstacle (Working range of
 											// left/right
 											// sensor is 10 to 80cm)
-	private Integer ObsDetectBorderM = 20; // Measurements below this value are
+	private Integer ObsDetectBorderM = 30; // Measurements below this value are
 											// treated as obstacle (Working
 											// range of middle sensor is 20 to
 											// 80cm)
@@ -69,7 +69,7 @@ public class Robot {
 	// moveByVelocitySlow(100) moves
 	// the
 	// the robot for 100cm.
-	private double CorrFactAngleByDist = (1332.0 / 1000.0); // Should
+	private double CorrFactAngleByDist = (1332.0 / 1000.0) * (360.0 / 350.0); // Should
 	// be
 	// set, such
 	// that
@@ -213,7 +213,7 @@ public class Robot {
 	 */
 	public void riseBarUp() {
 		robotSetBar(127);
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < 2; i++)
 			comReadWrite(new byte[] { '+', '\r', '\n' });
 	}
 
@@ -971,10 +971,10 @@ public class Robot {
 	 *            offset to the target [cm]
 	 */
 	public boolean moveToTargetWithoutAngle(double x, double y, double offset,
-			boolean detectobstacle) {
+			boolean detectobstacle, boolean slow) {
 		int totalAngleToGoal = getAngleToTarget(x, y) + getMyPosition().theta;
 		boolean stopped = moveToTarget(x, y, totalAngleToGoal, offset, false,
-				detectobstacle);
+				detectobstacle, slow);
 		return stopped;
 	}
 
@@ -1036,7 +1036,7 @@ public class Robot {
 	public boolean moveToTarget(double x, double y, double theta,
 			double offset, boolean detectobstacle) {
 		boolean stopped;
-		stopped = moveToTarget(x, y, theta, offset, true, detectobstacle);
+		stopped = moveToTarget(x, y, theta, offset, true, detectobstacle, false);
 		return stopped;
 	}
 
@@ -1057,7 +1057,8 @@ public class Robot {
 	 *            target within the given tolerance
 	 */
 	private boolean moveToTarget(double x, double y, double theta,
-			double offset, boolean checkTol, boolean checkForObstacles) {
+			double offset, boolean checkTol, boolean checkForObstacles,
+			boolean slow) {
 		int angle = 0, dist;
 		Boolean goalReached = false;
 		int TOL = 5;
@@ -1070,14 +1071,18 @@ public class Robot {
 					+ "cm distance" + " offset of " + offset);
 			dist = (int) (dist - offset);
 
-			turnByDistanceBalanced(angle, 'r');
+			turnByDistance(angle, 'r');
 			robotSetLeds(127, 0);
-			stopped = moveByVelocity(dist, true);
+			if (slow) {
+				stopped = moveByVelocitySlow(dist, true);
+			} else {
+				stopped = moveByVelocity(dist, true);
+			}
 			if (Math.abs((getDistanceToTarget(x, y) - offset)) < TOL) {
 				goalReached = true;
 			}
 		} while (!goalReached && checkTol);
-		turnByDistanceBalanced(reduceAngle((int) (theta - myPos.theta)), 'r');
+		turnByDistance(reduceAngle((int) (theta - myPos.theta)), 'r');
 		robotSetLeds(127, 127);
 		return stopped;
 	}
@@ -1148,7 +1153,7 @@ public class Robot {
 		if (myBall != null) {
 			driveToBallAndCage(myBall, mRgbaWork, myColors, homographyMatrix,
 					myBeaconColors);
-			moveToTargetWithoutAngle(targetX, targetY, 5, false);
+			moveToTargetWithoutAngle(targetX, targetY, 5, false, false);
 			moveByVelocitySlow(-16, false);
 			try {
 				Thread.sleep(500);
@@ -1211,7 +1216,7 @@ public class Robot {
 				foundBall = true;
 				break;
 			} else {
-				turnByDistanceBalanced(30, 'r');
+				turnByDistance(30, 'r');
 				turnedAngle += 30;
 			}
 		}
@@ -1263,10 +1268,10 @@ public class Robot {
 			List<Scalar> myColors, Mat homographyMatrix,
 			List<Scalar> myBeaconColors) {
 		Point ballTarget = ball.getPosGroundPlane();
-		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 25, false);
+		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 25, false, false);
 		ballTarget = detectOneBall(mRgbaWork, myColors, homographyMatrix,
 				myBeaconColors).getPosGroundPlane();
-		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 5, false);
+		moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 5, false, false);
 		Log.i(TAG, "(driveToBallAndCage) lowering bar");
 		robotSetBar(50);
 		try {
@@ -1292,11 +1297,12 @@ public class Robot {
 			List<Scalar> myBeaconColors) {
 		try {
 			Point ballTarget = ball.getPosGroundPlane();
-			moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 35, true);
+			moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 35, true, false);
 			ballTarget = findNearestBall(mRgbaWork, myColors, homographyMatrix,
 					myBeaconColors).getPosGroundPlane();
 			if (ballTarget != null) {
-				moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 5, true);
+				moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 3,
+						true, true);
 			}
 		} catch (NullPointerException e) {
 			writeLog("cannot find Ball in driveToBallAndCage2"
@@ -1485,23 +1491,23 @@ public class Robot {
 	 */
 	public void alignToPoint(Point p, Mat mRgbaWork, List<Scalar> myColors,
 			List<Scalar> myBeaconColors) {
+		ImageProcessor imgProc = new ImageProcessor(TAG);
 		writeLog("(alignToPoint) p = " + p.toString());
 		Boolean aligned = false;
 		double centerXAxis = mRgbaWork.width() / 2;
 		writeLog("(alignToPoint) robot Camera xAxis: " + centerXAxis);
-		double TOL = 150.0;
+		double TOL = 250.0;
 		double ballXAxis = p.x;
 		while (!aligned) {
 			try {
-				ImageProcessor imgProc = new ImageProcessor(TAG);
 				ballXAxis = imgProc
 						.findCirclesOnCamera2(mRgbaWork, myColors,
 								myBeaconColors).get(0).getCenter().x;
 				double diff = centerXAxis - ballXAxis;
 				if (Math.abs(diff) > TOL && diff < 0) {
-					turnByDistanceBalanced(30, 'r');
+					turnByDistance(20, 'r');
 				} else if (Math.abs(diff) > TOL && diff > 0) {
-					turnByDistanceBalanced(30, 'l');
+					turnByDistance(20, 'l');
 				} else {
 					aligned = true;
 				}
@@ -1512,7 +1518,6 @@ public class Robot {
 				writeLog("ball is not on the camera frame anymore"
 						+ e.getMessage());
 			}
-
 		}
 		writeLog("(alignToPoint) aligned");
 	}
@@ -1568,60 +1573,59 @@ public class Robot {
 
 	}
 
-
-//	/**
-//	 * Uses beacons (with known positions) to update current position. Needs at
-//	 * least 2 beacons to update global position. Otherwise position is not
-//	 * updated.
-//	 * 
-//	 * @param beacons
-//	 *            list of currently seen beacons
-//	 * @param homographyMatrix
-//	 *            matrix which was received with the checkboard pattern
-//	 * @return true when position is updated, false when less than 2 beacons
-//	 *         were given.
-//	 */
-//	public Boolean updateGlobalPositionInit(Mat homographyMatrix) {
-//		
-//		for (int i = 0; i < 2; i++) {
-//			List<Beacon> beacons = ;
-//			if (beacons.size() > 1) {
-//				int count = 0;
-//				double avgPosition_x = 0;
-//				double avgPosition_y = 0;
-//				double avgPosition_theta = 0;
-//	
-//				for (int i = 0; i < beacons.size(); i++) {
-//					for (int j = i + 1; j < beacons.size(); j++) {
-//	
-//						Position foundPosition = findPosition(beacons.get(i),
-//								beacons.get(j), homographyMatrix);
-//						if (foundPosition != null) {
-//							count++;
-//							Log.i(TAG, "Beacon " + i + " and " + j
-//									+ "; Found position: " + foundPosition);
-//							avgPosition_x += foundPosition.x;
-//							avgPosition_y += foundPosition.y;
-//							avgPosition_theta += foundPosition.theta;
-//						}
-//					}
-//				}
-//		}
-//
-//			if (count > 0) {
-//				myPos.x = avgPosition_x / count;
-//				myPos.y = avgPosition_y / count;
-//				myPos.theta = (int) avgPosition_theta / count;
-//
-//				return true;
-//			}
-//
-//		}
-//
-//		return false;
-//
-//	}
-
+	// /**
+	// * Uses beacons (with known positions) to update current position. Needs
+	// at
+	// * least 2 beacons to update global position. Otherwise position is not
+	// * updated.
+	// *
+	// * @param beacons
+	// * list of currently seen beacons
+	// * @param homographyMatrix
+	// * matrix which was received with the checkboard pattern
+	// * @return true when position is updated, false when less than 2 beacons
+	// * were given.
+	// */
+	// public Boolean updateGlobalPositionInit(Mat homographyMatrix) {
+	//
+	// for (int i = 0; i < 2; i++) {
+	// List<Beacon> beacons = ;
+	// if (beacons.size() > 1) {
+	// int count = 0;
+	// double avgPosition_x = 0;
+	// double avgPosition_y = 0;
+	// double avgPosition_theta = 0;
+	//
+	// for (int i = 0; i < beacons.size(); i++) {
+	// for (int j = i + 1; j < beacons.size(); j++) {
+	//
+	// Position foundPosition = findPosition(beacons.get(i),
+	// beacons.get(j), homographyMatrix);
+	// if (foundPosition != null) {
+	// count++;
+	// Log.i(TAG, "Beacon " + i + " and " + j
+	// + "; Found position: " + foundPosition);
+	// avgPosition_x += foundPosition.x;
+	// avgPosition_y += foundPosition.y;
+	// avgPosition_theta += foundPosition.theta;
+	// }
+	// }
+	// }
+	// }
+	//
+	// if (count > 0) {
+	// myPos.x = avgPosition_x / count;
+	// myPos.y = avgPosition_y / count;
+	// myPos.theta = (int) avgPosition_theta / count;
+	//
+	// return true;
+	// }
+	//
+	// }
+	//
+	// return false;
+	//
+	// }
 
 	// TODO: test
 	/**
