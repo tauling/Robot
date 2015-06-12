@@ -258,10 +258,10 @@ public class ImageProcessor {
 			// space
 			break;
 		case 'c':
-			mmColorRadius = new Scalar(10, 50, 110, 0); // Color radius
+			mmColorRadius = new Scalar(10, 70, 110, 0); // Color radius
 			element.release();
 			element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
-					new Size(6, 6));
+					new Size(8, 8));
 			// for range
 			// checking in
 			// HSV color
@@ -448,7 +448,7 @@ public class ImageProcessor {
 						List<Square> confirmedSquares = beaconsAndSquares
 								.getSquareList();
 						if (checkCircleVsSquares(foundCircle, confirmedSquares)
-								&& foundCircle.getRadius() > 12) {
+								&& foundCircle.getRadius() > 8) {
 							circlesList.add(foundCircle);
 						}
 					}

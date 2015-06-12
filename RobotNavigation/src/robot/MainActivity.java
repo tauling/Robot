@@ -170,15 +170,15 @@ public class MainActivity extends Activity implements OnTouchListener,
 		robot.moveBar('-'); // lower the bar a bit
 
 		// initialize myBeaconColors & myColors
-		myBeaconColors.add(new Scalar(147, 220, 100)); // blue
-		myBeaconColors.add(new Scalar(40, 235, 150)); // yellow
-		myBeaconColors.add(new Scalar(252, 220, 145)); // red
-		myBeaconColors.add(new Scalar(67, 160, 120)); // green
+		myBeaconColors.add(new Scalar(147, 170, 100)); // blue
+		myBeaconColors.add(new Scalar(40, 190, 150)); // yellow
+		myBeaconColors.add(new Scalar(0, 190, 145)); // red
+		myBeaconColors.add(new Scalar(75, 160, 120)); // green
 
-		myCircleColors.add(new Scalar(100, 235, 170)); // green
-		myCircleColors.add(new Scalar(252, 250, 180)); // red
-		myCircleColors.add(new Scalar(152, 245, 140)); // blue
-		myCircleColors.add(new Scalar(10, 225, 205)); // orange
+		myCircleColors.add(new Scalar(98, 160, 110)); // green
+		myCircleColors.add(new Scalar(250, 200, 165)); // red
+		myCircleColors.add(new Scalar(152, 200, 80)); // blue
+		myCircleColors.add(new Scalar(6, 190, 148)); // orange
 	}
 
 	public void buttonMoveToGoalN3_onClick(View v) {
@@ -813,6 +813,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		boolean stopped = false;
 
 		if (beaconMatter) {
+			robot.writeLog("searching two beacons");
 			while (!robot.updateGlobalPosition(findTwoBeacons(),
 					homographyMatrix)) {
 				robot.writeLog("Trying to update Position");
@@ -842,6 +843,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 				// do nothing
 			}
 			if (beaconMatter) {
+				robot.writeLog("searching two beacons");
 				robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
 				nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
 						homographyMatrix, myBeaconColors);

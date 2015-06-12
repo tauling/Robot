@@ -213,7 +213,7 @@ public class Robot {
 	 */
 	public void riseBarUp() {
 		robotSetBar(127);
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 3; i++)
 			comReadWrite(new byte[] { '+', '\r', '\n' });
 	}
 
