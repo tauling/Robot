@@ -258,10 +258,10 @@ public class ImageProcessor {
 			// space
 			break;
 		case 'c':
-			mmColorRadius = new Scalar(10, 50, 110, 0); // Color radius
+			mmColorRadius = new Scalar(10, 70, 110, 0); // Color radius
 			element.release();
 			element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
-					new Size(6, 6));
+					new Size(8, 8));
 			// for range
 			// checking in
 			// HSV color
@@ -414,6 +414,11 @@ public class ImageProcessor {
 			List<Scalar> myColors, List<Scalar> myBeaconColors) {
 		List<Circle> circlesList = new ArrayList<Circle>();
 		double colorAmount = myColors.size();
+		List<Square> squareList = findSquaresOnCamera(
+				mRgbaWork, myBeaconColors);
+		BeaconSquareHolder beaconsAndSquares = findBeacons(squareList);
+		List<Square> confirmedSquares = beaconsAndSquares
+				.getSquareList();
 		for (int i = 0; i < colorAmount; i++) {
 			Mat grayImg;
 			grayImg = filter(mRgbaWork, myColors.get(i), 'c');
@@ -442,13 +447,8 @@ public class ImageProcessor {
 						Log.i(TAG, "Radius of found circle: " + radius);
 						Circle foundCircle = new Circle(center,
 								(double) radius[0]);
-						List<Square> squareList = findSquaresOnCamera(
-								mRgbaWork, myBeaconColors);
-						BeaconSquareHolder beaconsAndSquares = findBeacons(squareList);
-						List<Square> confirmedSquares = beaconsAndSquares
-								.getSquareList();
 						if (checkCircleVsSquares(foundCircle, confirmedSquares)
-								&& foundCircle.getRadius() > 12) {
+								&& foundCircle.getRadius() > 8) {
 							circlesList.add(foundCircle);
 						}
 					}

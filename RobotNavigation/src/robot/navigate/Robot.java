@@ -213,7 +213,7 @@ public class Robot {
 	 */
 	public void riseBarUp() {
 		robotSetBar(127);
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 3; i++)
 			comReadWrite(new byte[] { '+', '\r', '\n' });
 	}
 
@@ -1057,7 +1057,7 @@ public class Robot {
 	 *            target within the given tolerance
 	 */
 	private boolean moveToTarget(double x, double y, double theta,
-			double offset, boolean checkTol, boolean checkForObstalces) {
+			double offset, boolean checkTol, boolean checkForObstacles) {
 		int angle = 0, dist;
 		Boolean goalReached = false;
 		int TOL = 5;
@@ -1073,18 +1073,10 @@ public class Robot {
 			turnByDistanceBalanced(angle, 'r');
 			robotSetLeds(127, 0);
 			stopped = moveByVelocity(dist, true);
-			if (stopped && checkForObstalces) {
-				writeLog("i will sleep now for 1s and hope the ostacle moved away");
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
 			if (Math.abs((getDistanceToTarget(x, y) - offset)) < TOL) {
 				goalReached = true;
 			}
-		} while (!goalReached && checkTol && !stopped);
+		} while (!goalReached && checkTol);
 		turnByDistanceBalanced(reduceAngle((int) (theta - myPos.theta)), 'r');
 		robotSetLeds(127, 127);
 		return stopped;
@@ -1206,11 +1198,6 @@ public class Robot {
 		int turnedAngle = 0;
 		while (turnedAngle < 360) {
 			ImageProcessor imgProc = new ImageProcessor(TAG);
-			List<Square> squareList = imgProc.findSquaresOnCamera(mRgbaWork,
-					myBeaconColors);
-			BeaconSquareHolder beaconsAndSquares = imgProc
-					.findBeacons(squareList);
-			List<Square> confirmedSquares = beaconsAndSquares.getSquareList();
 			List<Circle> circles = imgProc.findCirclesOnCamera2(mRgbaWork,
 					myColors, myBeaconColors);
 			Log.i(TAG, "found circles:" + circles.size());
@@ -1238,7 +1225,6 @@ public class Robot {
 	 * 
 	 * @param mRgbaWork
 	 * @param myColors
-	 * @param confirmedSquares
 	 * @return
 	 */
 	public boolean findABall(Mat mRgbaWork, List<Scalar> myColors,
@@ -1582,6 +1568,61 @@ public class Robot {
 
 	}
 
+
+//	/**
+//	 * Uses beacons (with known positions) to update current position. Needs at
+//	 * least 2 beacons to update global position. Otherwise position is not
+//	 * updated.
+//	 * 
+//	 * @param beacons
+//	 *            list of currently seen beacons
+//	 * @param homographyMatrix
+//	 *            matrix which was received with the checkboard pattern
+//	 * @return true when position is updated, false when less than 2 beacons
+//	 *         were given.
+//	 */
+//	public Boolean updateGlobalPositionInit(Mat homographyMatrix) {
+//		
+//		for (int i = 0; i < 2; i++) {
+//			List<Beacon> beacons = ;
+//			if (beacons.size() > 1) {
+//				int count = 0;
+//				double avgPosition_x = 0;
+//				double avgPosition_y = 0;
+//				double avgPosition_theta = 0;
+//	
+//				for (int i = 0; i < beacons.size(); i++) {
+//					for (int j = i + 1; j < beacons.size(); j++) {
+//	
+//						Position foundPosition = findPosition(beacons.get(i),
+//								beacons.get(j), homographyMatrix);
+//						if (foundPosition != null) {
+//							count++;
+//							Log.i(TAG, "Beacon " + i + " and " + j
+//									+ "; Found position: " + foundPosition);
+//							avgPosition_x += foundPosition.x;
+//							avgPosition_y += foundPosition.y;
+//							avgPosition_theta += foundPosition.theta;
+//						}
+//					}
+//				}
+//		}
+//
+//			if (count > 0) {
+//				myPos.x = avgPosition_x / count;
+//				myPos.y = avgPosition_y / count;
+//				myPos.theta = (int) avgPosition_theta / count;
+//
+//				return true;
+//			}
+//
+//		}
+//
+//		return false;
+//
+//	}
+
+
 	// TODO: test
 	/**
 	 * Takes two visible beacons as input, calculates the global position using
@@ -1890,11 +1931,6 @@ public class Robot {
 		if (turnAndFindABall(mRgbaWork, myColors, homographyMatrix,
 				myBeaconColors)) {
 			ImageProcessor imgProc = new ImageProcessor(TAG);
-			List<Square> squareList = imgProc.findSquaresOnCamera(mRgbaWork,
-					myBeaconColors);
-			BeaconSquareHolder beaconsAndSquares = imgProc
-					.findBeacons(squareList);
-			List<Square> confirmedSquares = beaconsAndSquares.getSquareList();
 			List<Circle> listCircles = imgProc.findCirclesOnCamera2(mRgbaWork,
 					myColors, myBeaconColors);
 

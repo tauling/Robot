@@ -395,7 +395,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			@Override
 			public void run() {
 				// robot.riseBarUp();
-				robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
+				robot.updateGlobalPosition(findTwoBeacons(true), homographyMatrix);
 				// robot.moveToTarget(100, 100, 0);
 			};
 		};
@@ -774,14 +774,17 @@ public class MainActivity extends Activity implements OnTouchListener,
 				mLoaderCallback);
 	}
 
+	
+	// TODO update description
 	/**
 	 * Turns until two beacons are seen by the robot.
 	 * 
 	 * @return List of beacons.
 	 */
-	public List<Beacon> findTwoBeacons() {
+	public List<Beacon> findTwoBeacons(Boolean activeSearch) {
 		ImageProcessor imgProc = new ImageProcessor(TAG);
-		List<Beacon> beacons = imgProc.findBeacons(confirmedSquares)
+		List<Square> squares = imgProc.findSquaresOnCamera(mRgbaWork, myBeaconColors);
+		List<Beacon> beacons = imgProc.findBeacons(squares)
 				.getBeaconList();
 		int angle = 0;
 		while (beacons.size() < 2 && angle < 360) {
@@ -792,10 +795,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 			} catch (InterruptedException e) {
 				Log.e(TAG, e.getMessage());
 			}
-			beacons = imgProc.findBeacons(confirmedSquares).getBeaconList();
-		}
-		if (angle >= 360) {
-			robot.moveByVelocity(30.0, false);
+			squares = imgProc.findSquaresOnCamera(mRgbaWork, myBeaconColors);
+			beacons = imgProc.findBeacons(squares).getBeaconList();
+			if (angle >= 360) {
+				robot.moveByVelocity(25.0, true);
+				angle = 0;
+				robot.turnByDistance(30, 'r');
+			}
 		}
 		return beacons;
 	}
@@ -807,54 +813,77 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public void collectAllBalls() {
 
-		boolean obstacleMatter = true;
-		boolean beaconMatter = false;
+		boolean obstacleMatter = false;
+		boolean beaconMatter = true;
 
-		boolean stopped = false;
+		boolean stopped;
 
+		// Update global position - keep trying until current position is found.
 		if (beaconMatter) {
-			while (!robot.updateGlobalPosition(findTwoBeacons(),
+			while (!robot.updateGlobalPosition(findTwoBeacons(true),
 					homographyMatrix)) {
 				robot.writeLog("Trying to update Position");
 			}
 		}
 		robot.robotSetLeds(200, 200);
-		Ball nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
-				homographyMatrix, myBeaconColors);
+		Ball nearestBall;
 		robot.robotSetLeds(0, 0);
-		while (nearestBall != null) {
-			robot.robotSetLeds(200, 200);
-			robot.driveToBallAndCage2(nearestBall, mRgbaWork, myCircleColors,
+//		while (nearestBall != null) {
+		while (true) {
+			nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
 					homographyMatrix, myBeaconColors);
-			robot.writeLog("rotate 180°");
-			robot.turnByDistance(180, 'r');
-			robot.writeLog("heading back to target point");
-			stopped = robot.moveToTarget(new Position(targetX, targetX, 0),
-					obstacleMatter);
-			if (stopped && obstacleMatter)
-				robot.writeLog("i stopped because i detected an obstacle");
-			robot.riseBarUp();
-			robot.writeLog("delivered a ball and ready for the next one");
-			robot.robotSetLeds(0, 0);
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// do nothing
-			}
-			if (beaconMatter) {
-				robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
-				nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
+			
+			if (nearestBall != null) {
+				robot.robotSetLeds(200, 200);
+				robot.driveToBallAndCage2(nearestBall, mRgbaWork, myCircleColors,
 						homographyMatrix, myBeaconColors);
+	//			robot.writeLog("rotate 180°");
+	//			robot.turnByDistance(180, 'r');
+				robot.writeLog("heading back to target point");
+				stopped = robot.moveToTargetWithoutAngle(targetX, targetY, 21, obstacleMatter);
+				
+				if (stopped) {
+					robot.writeLog("i move backwards because i detected an obstacle");
+					robot.robotSetLeds(0, 200);
+					robot.moveByVelocity(-20, false);
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+					}
+	
+					robot.writeLog("heading back to target point again");
+					stopped = robot.moveToTargetWithoutAngle(targetX, targetY, 21, obstacleMatter);
+					
+				}
+	
+				robot.riseBarUp();
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+				}
+				robot.moveByVelocity(-35, false);
+				robot.writeLog("delivered a ball and ready for the next one");
+				robot.robotSetLeds(0, 0);
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// do nothing
+				}
+				if (beaconMatter) {
+					robot.updateGlobalPosition(findTwoBeacons(false), homographyMatrix);
+				}
+			} else {
+				robot.writeLog("No Ball found, but i keep trying.");
+				robot.moveByVelocity(50, true);
 			}
 		}
-		robot.robotSetLeds(100, 100);
 	}
 
 	/**
 	 * updates global position using beacons every ~15
 	 */
-	public void UpdateselfLocalization() {
-		findTwoBeacons();
+	private void UpdateselfLocalization() {
+		findTwoBeacons(false);
 		robot.updateGlobalPosition(beaconList, homographyMatrix);
 	}
 
