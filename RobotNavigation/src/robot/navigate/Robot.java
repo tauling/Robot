@@ -696,7 +696,7 @@ public class Robot {
 	 *            ("l" = left; "r" = right)
 	 */
 	public void turnByDistance(int angle, char dir) {
-		int waitTimeFact = 25;
+		int waitTimeFact = 30;
 		angle = reduceAngle(angle);
 		updateRotation(angle, dir);
 		int degrees = angle;
@@ -1297,12 +1297,13 @@ public class Robot {
 			List<Scalar> myBeaconColors) {
 		try {
 			Point ballTarget = ball.getPosGroundPlane();
-			moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 35, true, false);
+			moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 35, true,
+					false);
 			ballTarget = findNearestBall(mRgbaWork, myColors, homographyMatrix,
 					myBeaconColors).getPosGroundPlane();
 			if (ballTarget != null) {
-				moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 3,
-						true, true);
+				moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 3, true,
+						true);
 			}
 		} catch (NullPointerException e) {
 			writeLog("cannot find Ball in driveToBallAndCage2"

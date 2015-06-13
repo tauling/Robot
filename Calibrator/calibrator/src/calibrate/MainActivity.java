@@ -1,4 +1,4 @@
-package robot;
+package calibrate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +21,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-import robot.generated.R;
+import calibrate.generated.R;
 import robot.navigate.Position;
 import robot.navigate.Robot;
 import robot.opencv.ImageProcessor;
@@ -85,6 +85,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 								// target
 	private EditText editText3; // Textfield on GUI for entering theta-alignment
 								// at target
+
+	private TextView textView4;
 
 	private SeekBar seekBar1;
 	private SeekBar seekBar2;
@@ -162,6 +164,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		seekBar1 = (SeekBar) findViewById(R.id.seekBar1);
 		seekBar2 = (SeekBar) findViewById(R.id.seekBar2);
 		seekBar3 = (SeekBar) findViewById(R.id.seekBar3);
+		textView4 = (TextView) findViewById(R.id.textView4);
 
 		seekBar1.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 
@@ -219,7 +222,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 			}
 		});
 
-		FTDriver com = new FTDriver((UsbManager) getSystemService(USB_SERVICE));
 
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
@@ -244,11 +246,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 		myColorNames.add("circle: red");
 		myColorNames.add("circle: blue");
 		myColorNames.add("circle: orange");
+		
 	}
 
 	public void sendColorRadius() {
 		imageProcessor.setColorRadius(globalHue, globalSaturation,
 				globalLightness);
+		textView4.setText("HSV: " + globalHue + " ; " + globalSaturation
+				+ " ; " + globalLightness);
 	}
 
 	public void buttonMoveToGoalN3_onClick(View v) {
@@ -446,18 +451,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 		t.start();
 	}
 
-	public void ButtonExamination3(View v) {
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				collectAllBalls();
-			};
-		};
-
-		t.start();
-	}
-
 	public void buttonTest_onClick(View v) {
 
 		Thread t = new Thread() {
@@ -610,39 +603,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	@SuppressLint("ClickableViewAccessibility")
 	public boolean onTouch(View v, MotionEvent event) {
-		int cols = mRgbaOutput.cols();
-		int rows = mRgbaOutput.rows();
-		int xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
-		int yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
-		int x = (int) event.getX() - xOffset;
-		int y = (int) event.getY() - yOffset;
-		Log.i(TAG, "Touch image coordinates: (" + x + ", " + y + ")");
-		if ((x < 0) || (y < 0) || (x > cols) || (y > rows))
-			return false;
-		Rect touchedRect = new Rect();
-		touchedRect.x = (x > 4) ? x - 4 : 0;
-		touchedRect.y = (y > 4) ? y - 4 : 0;
-		touchedRect.width = (x + 4 < cols) ? x + 4 - touchedRect.x : cols
-				- touchedRect.x;
-		touchedRect.height = (y + 4 < rows) ? y + 4 - touchedRect.y : rows
-				- touchedRect.y;
-		Mat touchedRegionRgba = mRgbaOutput.submat(touchedRect);
-		Mat touchedRegionHsv = new Mat();
-		Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv,
-				Imgproc.COLOR_RGB2HSV_FULL);
-		Scalar mBlobColorHsv = Core.sumElems(touchedRegionHsv);
-		int pointCount = touchedRect.width * touchedRect.height;
-		for (int i = 0; i < mBlobColorHsv.val.length; i++)
-			mBlobColorHsv.val[i] /= pointCount;
-		if (onTouchOption == 0) {
-			myCircleColors.add(mBlobColorHsv);
-		} else {
-			myBeaconColors.add(mBlobColorHsv);
-		}
-		Log.i(TAG, "saved colors: " + myCircleColors.size() + mBlobColorHsv);
-		robot.writeLog("saved colors: " + myCircleColors.size() + mBlobColorHsv);
-		touchedRegionRgba.release();
-		touchedRegionHsv.release();
 		return false;
 	}
 
@@ -664,12 +624,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 		// draw squares on CameraFrame
 
 		Mat grayImg = new Mat();
-		if (!myCircleColors.isEmpty()) {
-			for (Scalar s : myCircleColors)
-				grayImg = imageProcessor.filter(mRgbaWork, s);
+		if (!myColors.isEmpty()) {
+				grayImg = imageProcessor.filter(mRgbaWork, myColors.get(colorIndex));
 			mRgbaOutput = grayImg;
 		}
-
 		return mRgbaOutput;
 	}
 
@@ -719,57 +677,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 		return beacons;
 	}
 
-	/**
-	 * 1)findTwoBeacons 2)drive to goal and cage ball one the way 3)after goal
-	 * position reached -> search for one ball and bring it to the goal (repeat
-	 * this procedure until all balls are at the target)
-	 */
-	public void collectAllBalls() {
-
-		boolean obstacleMatter = false;
-		boolean beaconMatter = true;
-
-		boolean stopped = false;
-
-		if (beaconMatter) {
-			robot.writeLog("searching two beacons");
-			while (!robot.updateGlobalPosition(findTwoBeacons(),
-					homographyMatrix)) {
-				robot.writeLog("Trying to update Position");
-			}
-		}
-		robot.robotSetLeds(200, 200);
-		Ball nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
-				homographyMatrix, myBeaconColors);
-		robot.robotSetLeds(0, 0);
-		while (nearestBall != null) {
-			robot.robotSetLeds(200, 200);
-			robot.driveToBallAndCage2(nearestBall, mRgbaWork, myCircleColors,
-					homographyMatrix, myBeaconColors);
-			robot.writeLog("rotate 180°");
-			robot.turnByDistance(180, 'r');
-			robot.writeLog("heading back to target point");
-			stopped = robot.moveToTarget(new Position(targetX, targetX, 0),
-					obstacleMatter);
-			if (stopped && obstacleMatter)
-				robot.writeLog("i stopped because i detected an obstacle");
-			robot.riseBarUp();
-			robot.writeLog("delivered a ball and ready for the next one");
-			robot.robotSetLeds(0, 0);
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// do nothing
-			}
-			if (beaconMatter) {
-				robot.writeLog("searching two beacons");
-				robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
-				nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
-						homographyMatrix, myBeaconColors);
-			}
-		}
-		robot.robotSetLeds(100, 100);
-	}
 
 	/**
 	 * updates global position using beacons every ~15
