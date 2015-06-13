@@ -37,7 +37,7 @@
 
             <SeekBar
                 android:id="@+id/seekBar1"
-                android:layout_width="293dp"
+                android:layout_width="520dp"
                 android:layout_height="wrap_content"
                 android:max="30" />
 
@@ -56,7 +56,7 @@
 
             <SeekBar
                 android:id="@+id/seekBar2"
-                android:layout_width="295dp"
+                android:layout_width="520dp"
                 android:layout_height="wrap_content"
                 android:max="180" />
 
@@ -75,7 +75,7 @@
 
             <SeekBar
                 android:id="@+id/seekBar3"
-                android:layout_width="296dp"
+                android:layout_width="520dp"
                 android:layout_height="wrap_content"
                 android:max="255" />
 
@@ -89,7 +89,7 @@
 
         <LinearLayout
             android:id="@+id/slider4"
-            android:layout_width="296dp"
+            android:layout_width="540dp"
             android:layout_height="wrap_content" >
 
             <SeekBar
