@@ -48,7 +48,7 @@ public class ImageProcessor {
 																// beaconID-combo
 
 	public Scalar mmColorRadius = new Scalar(0, 0, 0, 0);
-	public int structuringElementSize = 0;
+	public int structuringElementSize = 1;
 	public Boolean useCircle = false;
 	
 
