@@ -395,7 +395,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 			@Override
 			public void run() {
 				// robot.riseBarUp();
-				robot.updateGlobalPosition(findTwoBeacons(true), homographyMatrix);
+				robot.updateGlobalPosition(findTwoBeacons(true),
+						homographyMatrix);
 				// robot.moveToTarget(100, 100, 0);
 			};
 		};
@@ -643,19 +644,20 @@ public class MainActivity extends Activity implements OnTouchListener,
 		mRgbaWork = inputFrame.rgba(); // TODO: does mRgbaWork refer to the same
 										// image as mRgbaOutput? In that case,
 										// either fix or remove this variable.
-		if (frameInterval >= executionInterval) {
-			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
-					myBeaconColors);
-			BeaconSquareHolder beaconsAndSquares = imageProcessor
-					.findBeacons(squareList);
-			beaconList = beaconsAndSquares.getBeaconList();
-			confirmedSquares = beaconsAndSquares.getSquareList();
-			circleList = imageProcessor.findCirclesOnCamera2(mRgbaWork,
-					myCircleColors, myBeaconColors);
-			frameInterval = 0;
-		}
-
-		frameInterval++;
+										// if (frameInterval >=
+										// executionInterval) {
+		// squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
+		// myBeaconColors);
+		// BeaconSquareHolder beaconsAndSquares = imageProcessor
+		// .findBeacons(squareList);
+		// beaconList = beaconsAndSquares.getBeaconList();
+		// confirmedSquares = beaconsAndSquares.getSquareList();
+		// circleList = imageProcessor.findCirclesOnCamera2(mRgbaWork,
+		// myCircleColors, myBeaconColors);
+		// frameInterval = 0;
+		// }
+		//
+		// frameInterval++;
 
 		// draw squares on CameraFrame
 
@@ -666,84 +668,84 @@ public class MainActivity extends Activity implements OnTouchListener,
 		// mRgbaOutput = grayImg;
 		// }
 
-		for (Square s : squareList) {
-
-			Point[] rect_points = new Point[4];
-			s.points(rect_points);
-			Core.circle(mRgbaOutput, s.getLowPt(), 10, new Scalar(255, 0, 0));
-			Core.circle(mRgbaOutput, s.getHighPt(), 10, new Scalar(0, 0, 255));
-
-			// Log.i(TAG, s.toString());
-			for (int j = 0; j < 4; j++)
-				Core.line(mRgbaOutput, rect_points[j],
-						rect_points[(j + 1) % 4], new Scalar(0, 0, 0), 5);
-			//
-			// Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-			// s.getUpperRightEdge(), new Scalar(20), -1);
-			Core.putText(mRgbaOutput, "center", s.center,
-					CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1, 8,
-					false);
-			// robot.writeLog(s.toString());
-		}
+		// for (Square s : squareList) {
 		//
-		// // draw confirmed squares
-		for (Square s : confirmedSquares) {
-
-			Point[] rect_points = new Point[4];
-			s.points(rect_points);
-			Core.circle(mRgbaOutput, s.getLowPt(), 10, new Scalar(255, 0, 0));
-			Core.circle(mRgbaOutput, s.getHighPt(), 10, new Scalar(0, 0, 255));
-
-			for (int j = 0; j < 4; j++)
-				Core.line(mRgbaOutput, rect_points[j],
-						rect_points[(j + 1) % 4], new Scalar(0, 0, 255), 5);
-			//
-
-			// Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
-			// s.getUpperRightEdge(), new Scalar(0, 0, 0), -1);
-			// robot.writeLog(s.toString());
-		}
-
-		// draw circles on camera frame
-		if (!circleList.isEmpty()) {
-			for (Circle c : circleList) {
-				Core.circle(mRgbaOutput, c.getCenter(), (int) c.getRadius(),
-						new Scalar(160, 245, 5));
-				Core.circle(mRgbaOutput, c.getLowPt(), (int) 10, new Scalar(0,
-						0, 255));
-			}
-		}
-
-		// draw Beacons
-		if (!beaconList.isEmpty()) {
-			for (Beacon b : beaconList) {
-				Point[] rect_points = new Point[4];
-				b.points(rect_points);
-
-				for (int j = 0; j < 4; j++)
-					Core.line(mRgbaOutput, rect_points[j],
-							rect_points[(j + 1) % 4], new Scalar(240, 126, 12),
-							5);
-				//
-				Core.putText(mRgbaOutput, "center", b.center,
-						CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
-						8, false);
-				Core.circle(mRgbaOutput, b.center, 10, new Scalar(0));
-				// Core.circle(mRgbaOutput, b.getLowerLeftEdge(), 10, new
-				// Scalar(
-				// 255, 0, 0));
-				// Core.circle(mRgbaOutput, b.getUpperRightEdge(), 10, new
-				// Scalar(
-				// 255, 0, 0));
-				Core.circle(mRgbaOutput, b.getLowPt(), 10,
-						new Scalar(255, 0, 0));
-				// Core.putText(mRgbaOutput, b.toString(), b.getLowerLeftEdge(),
-				// CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
-				// 8, false);
-			}
-		}
-
-		frameInterval++;
+		// Point[] rect_points = new Point[4];
+		// s.points(rect_points);
+		// Core.circle(mRgbaOutput, s.getLowPt(), 10, new Scalar(255, 0, 0));
+		// Core.circle(mRgbaOutput, s.getHighPt(), 10, new Scalar(0, 0, 255));
+		//
+		// // Log.i(TAG, s.toString());
+		// for (int j = 0; j < 4; j++)
+		// Core.line(mRgbaOutput, rect_points[j],
+		// rect_points[(j + 1) % 4], new Scalar(0, 0, 0), 5);
+		// //
+		// // Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+		// // s.getUpperRightEdge(), new Scalar(20), -1);
+		// Core.putText(mRgbaOutput, "center", s.center,
+		// CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1, 8,
+		// false);
+		// // robot.writeLog(s.toString());
+		// }
+		// //
+		// // // draw confirmed squares
+		// for (Square s : confirmedSquares) {
+		//
+		// Point[] rect_points = new Point[4];
+		// s.points(rect_points);
+		// Core.circle(mRgbaOutput, s.getLowPt(), 10, new Scalar(255, 0, 0));
+		// Core.circle(mRgbaOutput, s.getHighPt(), 10, new Scalar(0, 0, 255));
+		//
+		// for (int j = 0; j < 4; j++)
+		// Core.line(mRgbaOutput, rect_points[j],
+		// rect_points[(j + 1) % 4], new Scalar(0, 0, 255), 5);
+		// //
+		//
+		// // Core.rectangle(mRgbaOutput, s.getLowerLeftEdge(),
+		// // s.getUpperRightEdge(), new Scalar(0, 0, 0), -1);
+		// // robot.writeLog(s.toString());
+		// }
+		//
+		// // draw circles on camera frame
+		// if (!circleList.isEmpty()) {
+		// for (Circle c : circleList) {
+		// Core.circle(mRgbaOutput, c.getCenter(), (int) c.getRadius(),
+		// new Scalar(160, 245, 5));
+		// Core.circle(mRgbaOutput, c.getLowPt(), (int) 10, new Scalar(0,
+		// 0, 255));
+		// }
+		// }
+		//
+		// // draw Beacons
+		// if (!beaconList.isEmpty()) {
+		// for (Beacon b : beaconList) {
+		// Point[] rect_points = new Point[4];
+		// b.points(rect_points);
+		//
+		// for (int j = 0; j < 4; j++)
+		// Core.line(mRgbaOutput, rect_points[j],
+		// rect_points[(j + 1) % 4], new Scalar(240, 126, 12),
+		// 5);
+		// //
+		// Core.putText(mRgbaOutput, "center", b.center,
+		// CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
+		// 8, false);
+		// Core.circle(mRgbaOutput, b.center, 10, new Scalar(0));
+		// // Core.circle(mRgbaOutput, b.getLowerLeftEdge(), 10, new
+		// // Scalar(
+		// // 255, 0, 0));
+		// // Core.circle(mRgbaOutput, b.getUpperRightEdge(), 10, new
+		// // Scalar(
+		// // 255, 0, 0));
+		// Core.circle(mRgbaOutput, b.getLowPt(), 10,
+		// new Scalar(255, 0, 0));
+		// // Core.putText(mRgbaOutput, b.toString(), b.getLowerLeftEdge(),
+		// // CV_FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 0, 255), 1,
+		// // 8, false);
+		// }
+		// }
+		//
+		// frameInterval++;
 		return mRgbaOutput;
 	}
 
@@ -767,7 +769,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 				mLoaderCallback);
 	}
 
-	
 	// TODO update description
 	/**
 	 * Turns until two beacons are seen by the robot.
@@ -776,9 +777,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public List<Beacon> findTwoBeacons(Boolean activeSearch) {
 		ImageProcessor imgProc = new ImageProcessor(TAG);
-		List<Square> squares = imgProc.findSquaresOnCamera(mRgbaWork, myBeaconColors);
-		List<Beacon> beacons = imgProc.findBeacons(squares)
-				.getBeaconList();
+		List<Square> squares = imgProc.findSquaresOnCamera(mRgbaWork,
+				myBeaconColors);
+		List<Beacon> beacons = imgProc.findBeacons(squares).getBeaconList();
 		int angle = 0;
 		while (beacons.size() < 2 && angle < 360) {
 			angle += 15;
@@ -818,20 +819,21 @@ public class MainActivity extends Activity implements OnTouchListener,
 		robot.robotSetLeds(200, 200);
 		Ball nearestBall;
 		robot.robotSetLeds(0, 0);
-//		while (nearestBall != null) {
+		// while (nearestBall != null) {
 		while (true) {
 			nearestBall = robot.findNearestBall(mRgbaWork, myCircleColors,
 					homographyMatrix, myBeaconColors);
-			
+
 			if (nearestBall != null) {
 				robot.robotSetLeds(200, 200);
-				robot.driveToBallAndCage2(nearestBall, mRgbaWork, myCircleColors,
-						homographyMatrix, myBeaconColors);
-	//			robot.writeLog("rotate 180°");
-	//			robot.turnByDistance(180, 'r');
+				robot.driveToBallAndCage2(nearestBall, mRgbaWork,
+						myCircleColors, homographyMatrix, myBeaconColors);
+				// robot.writeLog("rotate 180°");
+				// robot.turnByDistance(180, 'r');
 				robot.writeLog("heading back to target point");
-				stopped = robot.moveToTargetWithoutAngle(targetX, targetY, 21, obstacleMatter, false);
-				
+				stopped = robot.moveToTargetWithoutAngle(targetX, targetY, 21,
+						obstacleMatter, false);
+
 				if (stopped && obstacleMatter) {
 					robot.writeLog("i move backwards because i detected an obstacle");
 					robot.robotSetLeds(0, 200);
@@ -840,11 +842,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 						Thread.sleep(2000);
 					} catch (InterruptedException e) {
 					}
-	
+
 					robot.writeLog("heading back to target point again");
-					stopped = robot.moveToTargetWithoutAngle(targetX, targetY, 21, obstacleMatter, false);
+					stopped = robot.moveToTargetWithoutAngle(targetX, targetY,
+							21, obstacleMatter, false);
 				}
-	
+
 				robot.riseBarUp();
 				try {
 					Thread.sleep(500);
@@ -859,7 +862,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 					// do nothing
 				}
 				if (beaconMatter) {
-					robot.updateGlobalPosition(findTwoBeacons(false), homographyMatrix);
+					robot.updateGlobalPosition(findTwoBeacons(false),
+							homographyMatrix);
 				}
 			} else {
 				robot.writeLog("No Ball found, but i keep trying.");

@@ -1,4 +1,4 @@
-package robot;
+package calibrate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +21,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-import robot.generated.R;
+import calibrate.generated.R;
 import robot.navigate.Position;
 import robot.navigate.Robot;
 import robot.opencv.ImageProcessor;
@@ -85,6 +85,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 								// target
 	private EditText editText3; // Textfield on GUI for entering theta-alignment
 								// at target
+
+	private TextView textView4;
 
 	private SeekBar seekBar1;
 	private SeekBar seekBar2;
@@ -165,6 +167,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		seekBar1 = (SeekBar) findViewById(R.id.seekBar1);
 		seekBar2 = (SeekBar) findViewById(R.id.seekBar2);
 		seekBar3 = (SeekBar) findViewById(R.id.seekBar3);
+		textView4 = (TextView) findViewById(R.id.textView4);
 
 		seekBar1.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 
@@ -228,21 +231,22 @@ public class MainActivity extends Activity implements OnTouchListener,
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-		// initialize myBeaconColors & myColors
-		myBeaconColors.add(new Scalar(147, 170, 100)); // blue
-		myBeaconColors.add(new Scalar(40, 190, 150)); // yellow
-		myBeaconColors.add(new Scalar(0, 190, 145)); // red
-		myBeaconColors.add(new Scalar(75, 160, 120)); // green
+		// myCircleColors.add(new Scalar(147, 190, 100)); // blue
+		// myCircleColors.add(new Scalar(40, 190, 150)); // yellow
+		// myCircleColors.add(new Scalar(252, 190, 145)); // red
+		// myCircleColors.add(new Scalar(95, 120, 170)); // green
 
-		myCircleColors.add(new Scalar(98, 160, 110)); // green
-		myCircleColors.add(new Scalar(250, 200, 165)); // red
-		myCircleColors.add(new Scalar(152, 200, 80)); // blue
-		myCircleColors.add(new Scalar(6, 190, 148)); // orange
+		// myCircleColors.add(new Scalar(103, 235, 130)); // green
+		// myCircleColors.add(new Scalar(252, 250, 180)); // red
+		// myCircleColors.add(new Scalar(152, 245, 140)); // blue
+		myCircleColors.add(new Scalar(10, 225, 205)); // orange
 	}
 
 	public void sendColorRadius() {
 		imageProcessor.setColorRadius(globalHue, globalSaturation,
 				globalLightness);
+		textView4.setText("HSV: " + globalHue + " ; " + globalSaturation
+				+ " ; " + globalLightness);
 	}
 
 	public void buttonMoveToGoalN3_onClick(View v) {
@@ -664,39 +668,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	@SuppressLint("ClickableViewAccessibility")
 	public boolean onTouch(View v, MotionEvent event) {
-		int cols = mRgbaOutput.cols();
-		int rows = mRgbaOutput.rows();
-		int xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
-		int yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
-		int x = (int) event.getX() - xOffset;
-		int y = (int) event.getY() - yOffset;
-		Log.i(TAG, "Touch image coordinates: (" + x + ", " + y + ")");
-		if ((x < 0) || (y < 0) || (x > cols) || (y > rows))
-			return false;
-		Rect touchedRect = new Rect();
-		touchedRect.x = (x > 4) ? x - 4 : 0;
-		touchedRect.y = (y > 4) ? y - 4 : 0;
-		touchedRect.width = (x + 4 < cols) ? x + 4 - touchedRect.x : cols
-				- touchedRect.x;
-		touchedRect.height = (y + 4 < rows) ? y + 4 - touchedRect.y : rows
-				- touchedRect.y;
-		Mat touchedRegionRgba = mRgbaOutput.submat(touchedRect);
-		Mat touchedRegionHsv = new Mat();
-		Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv,
-				Imgproc.COLOR_RGB2HSV_FULL);
-		Scalar mBlobColorHsv = Core.sumElems(touchedRegionHsv);
-		int pointCount = touchedRect.width * touchedRect.height;
-		for (int i = 0; i < mBlobColorHsv.val.length; i++)
-			mBlobColorHsv.val[i] /= pointCount;
-		if (onTouchOption == 0) {
-			myCircleColors.add(mBlobColorHsv);
-		} else {
-			myBeaconColors.add(mBlobColorHsv);
-		}
-		Log.i(TAG, "saved colors: " + myCircleColors.size() + mBlobColorHsv);
-		robot.writeLog("saved colors: " + myCircleColors.size() + mBlobColorHsv);
-		touchedRegionRgba.release();
-		touchedRegionHsv.release();
 		return false;
 	}
 
@@ -718,12 +689,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		// draw squares on CameraFrame
 
 		Mat grayImg = new Mat();
-		if (!myCircleColors.isEmpty()) {
-			for (Scalar s : myCircleColors)
-				grayImg = imageProcessor.filter(mRgbaWork, s, 'c');
-			mRgbaOutput = grayImg;
-		}
-
+		grayImg = imageProcessor.filter(mRgbaWork, myCircleColors.get(0), 'c');
+		mRgbaOutput = grayImg;
 		return mRgbaOutput;
 	}
 

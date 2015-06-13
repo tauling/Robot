@@ -248,7 +248,8 @@ public class ImageProcessor {
 
 		switch (mode) {
 		case 'b':
-			mmColorRadius = new Scalar(10, 100, 85, 0); // Color radius
+			// mmColorRadius = new Scalar(10, 100, 85, 0); // Color radius
+			mmColorRadius = new Scalar(15, 100, 85, 0); // Color radius
 			element.release();
 			element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
 					new Size(15, 15));
@@ -414,11 +415,9 @@ public class ImageProcessor {
 			List<Scalar> myColors, List<Scalar> myBeaconColors) {
 		List<Circle> circlesList = new ArrayList<Circle>();
 		double colorAmount = myColors.size();
-		List<Square> squareList = findSquaresOnCamera(
-				mRgbaWork, myBeaconColors);
+		List<Square> squareList = findSquaresOnCamera(mRgbaWork, myBeaconColors);
 		BeaconSquareHolder beaconsAndSquares = findBeacons(squareList);
-		List<Square> confirmedSquares = beaconsAndSquares
-				.getSquareList();
+		List<Square> confirmedSquares = beaconsAndSquares.getSquareList();
 		for (int i = 0; i < colorAmount; i++) {
 			Mat grayImg;
 			grayImg = filter(mRgbaWork, myColors.get(i), 'c');
@@ -448,8 +447,8 @@ public class ImageProcessor {
 						Circle foundCircle = new Circle(center,
 								(double) radius[0]);
 						if (checkCircleVsSquares(foundCircle, confirmedSquares)
-	//							&& foundCircle.getRadius() > 2
-								) {
+						// && foundCircle.getRadius() > 2
+						) {
 							circlesList.add(foundCircle);
 						}
 					}
