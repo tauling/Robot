@@ -267,23 +267,22 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	}
 
-
 	public void toggleStructuringElement(View v) {
 		imageProcessor.useCircle = !imageProcessor.useCircle;
 
-		Button p1_button = (Button)findViewById(R.id.button2);
+		Button p1_button = (Button) findViewById(R.id.button2);
 		if (imageProcessor.useCircle) {
 			p1_button.setText("Circle ON");
 		} else
-			p1_button.setText("Square ON");	
+			p1_button.setText("Square ON");
 	}
-
 
 	public void nextColor(View v) {
 		if (colorIndex + 1 < myColors.size()) {
 			colorIndex++;
 		} else
 			colorIndex = 0;
+		textView5.setText(myColorNames.get(colorIndex));
 	}
 
 	public void sendColorRadius() {
