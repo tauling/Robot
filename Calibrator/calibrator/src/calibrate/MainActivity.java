@@ -39,6 +39,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
+
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
@@ -263,6 +265,25 @@ public class MainActivity extends Activity implements OnTouchListener,
 		myColorNames.add("circle: blue");
 		myColorNames.add("circle: orange");
 
+	}
+
+
+	public void toggleStructuringElement(View v) {
+		imageProcessor.useCircle = !imageProcessor.useCircle;
+
+		Button p1_button = (Button)findViewById(R.id.button2);
+		if (imageProcessor.useCircle) {
+			p1_button.setText("Circle ON");
+		} else
+			p1_button.setText("Square ON");	
+	}
+
+
+	public void nextColor(View v) {
+		if (colorIndex + 1 < myColors.size()) {
+			colorIndex++;
+		} else
+			colorIndex = 0;
 	}
 
 	public void sendColorRadius() {
