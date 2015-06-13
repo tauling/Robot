@@ -1210,8 +1210,8 @@ public class Robot {
 			if (circles.size() > 0) {
 				Log.i(TAG, "found circle x:" + circles.get(0).getLowPt().x
 						+ " y:" + circles.get(0).getLowPt().y);
-				alignToPoint(circles.get(0).getLowPt(), mRgbaWork, myColors,
-						myBeaconColors);
+//				alignToPoint(circles.get(0).getLowPt(), mRgbaWork, myColors,
+//						myBeaconColors);
 				Log.i(TAG, "(turnAndFindABall) found a ball");
 				foundBall = true;
 				break;
@@ -1294,15 +1294,15 @@ public class Robot {
 	 */
 	public void driveToBallAndCage2(Ball ball, Mat mRgbaWork,
 			List<Scalar> myColors, Mat homographyMatrix,
-			List<Scalar> myBeaconColors) {
+			List<Scalar> myBeaconColors, boolean obstacleMatter) {
 		try {
 			Point ballTarget = ball.getPosGroundPlane();
-			moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 35, true,
+			moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 35, obstacleMatter,
 					false);
 			ballTarget = findNearestBall(mRgbaWork, myColors, homographyMatrix,
 					myBeaconColors).getPosGroundPlane();
 			if (ballTarget != null) {
-				moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 3, true,
+				moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 3, obstacleMatter,
 						true);
 			}
 		} catch (NullPointerException e) {
@@ -1906,14 +1906,14 @@ public class Robot {
 	 */
 	public void moveToTargetCollBalls(Position targetPoint, Mat mRgbaWork,
 			List<Scalar> myColors, Mat homographyMatrix,
-			List<Scalar> myBeaconColors) {
+			List<Scalar> myBeaconColors, boolean obstacleMatter) {
 		turnByDistance(getAngleToTarget(targetPoint.x, targetPoint.y), 'r');
 		if (findABall(mRgbaWork, myColors, myBeaconColors)) {
 			writeLog("i think there is a ball on the way to the target");
 			driveToBallAndCage2(
 					findNearestBall(mRgbaWork, myColors, homographyMatrix,
 							myBeaconColors), mRgbaWork, myColors,
-					homographyMatrix, myBeaconColors);
+					homographyMatrix, myBeaconColors, obstacleMatter);
 			moveToTarget(targetPoint, true);
 			robotSetBar(300);
 		} else {

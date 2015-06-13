@@ -439,7 +439,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			public void run() {
 				Position targetPos = new Position(targetX, targetY, targetTheta);
 				robot.moveToTargetCollBalls(targetPos, mRgbaWork,
-						myCircleColors, homographyMatrix, myBeaconColors);
+						myCircleColors, homographyMatrix, myBeaconColors, true);
 			};
 		};
 
@@ -827,7 +827,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 			if (nearestBall != null) {
 				robot.robotSetLeds(200, 200);
 				robot.driveToBallAndCage2(nearestBall, mRgbaWork,
-						myCircleColors, homographyMatrix, myBeaconColors);
+						myCircleColors, homographyMatrix, myBeaconColors, obstacleMatter);
 				// robot.writeLog("rotate 180°");
 				// robot.turnByDistance(180, 'r');
 				robot.writeLog("heading back to target point");
