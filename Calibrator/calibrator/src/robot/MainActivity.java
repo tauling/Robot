@@ -118,17 +118,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private Integer onTouchOption = 0; // 0 -> read CircleColors; 1 -> read
 										// BeaconColors
 
-	private List<Scalar> myCircleColors = new ArrayList<Scalar>(); // Stores all
+	private List<Scalar> myColors = new ArrayList<Scalar>(); // Stores all
 																	// currently
 																	// recognized
 																	// colors
 																	// for balls
-	private List<Scalar> myBeaconColors = new ArrayList<Scalar>(); // Stores all
-																	// currently
-																	// recognized
-																	// colors
-																	// for
-																	// beacons
+	private List<String> myColorNames = new ArrayList<String>();
+	
+	private Integer colorIndex = 0;
 
 	private CameraBridgeViewBase mOpenCvCameraView; // interaction between
 													// openCV and camera
@@ -229,15 +226,24 @@ public class MainActivity extends Activity implements OnTouchListener,
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// initialize myBeaconColors & myColors
-		myBeaconColors.add(new Scalar(147, 170, 100)); // blue
-		myBeaconColors.add(new Scalar(40, 190, 150)); // yellow
-		myBeaconColors.add(new Scalar(0, 190, 145)); // red
-		myBeaconColors.add(new Scalar(75, 160, 120)); // green
+		myColors.add(new Scalar(147, 170, 100)); // blue
+		myColors.add(new Scalar(40, 190, 150)); // yellow
+		myColors.add(new Scalar(0, 190, 145)); // red
+		myColors.add(new Scalar(75, 160, 120)); // green
 
-		myCircleColors.add(new Scalar(98, 160, 110)); // green
-		myCircleColors.add(new Scalar(250, 200, 165)); // red
-		myCircleColors.add(new Scalar(152, 200, 80)); // blue
-		myCircleColors.add(new Scalar(6, 190, 148)); // orange
+		myColors.add(new Scalar(98, 160, 110)); // green
+		myColors.add(new Scalar(250, 200, 165)); // red
+		myColors.add(new Scalar(152, 200, 80)); // blue
+		myColors.add(new Scalar(6, 190, 148)); // orange
+
+		myColorNames.add("beacon: blue");
+		myColorNames.add("beacon: yellow");
+		myColorNames.add("beacon: red");
+		myColorNames.add("beacon: green");
+		myColorNames.add("circle: green");
+		myColorNames.add("circle: red");
+		myColorNames.add("circle: blue");
+		myColorNames.add("circle: orange");
 	}
 
 	public void sendColorRadius() {
@@ -481,40 +487,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		t.start();
 	}
 
-	public void buttonTest3_onClick(View v) {
 
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-
-				robot.robotSetLeds(200, 200);
-				// robot.driveToTargetCollectAllBalls(targetPoint, mRgbaWork,
-				// myCircleColors, homographyMatrix, foundBalls);
-				Ball nearestBall = robot.findNearestBall(mRgbaWork,
-						myCircleColors, homographyMatrix, myBeaconColors);
-				robot.robotSetLeds(0, 0);
-				robot.writeLog(nearestBall.getPosGroundPlane().toString());
-			};
-		};
-
-		t.start();
-	}
-
-	public void buttonTest4_onClick(View v) {
-
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				Position targetPos = new Position(targetX, targetY, targetTheta);
-				robot.moveToTargetCollBalls(targetPos, mRgbaWork,
-						myCircleColors, homographyMatrix, myBeaconColors);
-			};
-		};
-
-		t.start();
-	}
 
 	public void button3_onClick(View v) {
 		Thread t = new Thread() {
@@ -539,20 +512,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 		};
 
 		t.start();
-	}
-
-	public void ButtonEmptyBrain(View v) {
-
-		circleList = new ArrayList<Circle>();
-		squareList = new ArrayList<Square>();
-		confirmedSquares = new ArrayList<Square>();
-		beaconList = new ArrayList<Beacon>();
-		myCircleColors = new ArrayList<Scalar>();
-		myBeaconColors = new ArrayList<Scalar>();
-		robot.resetPosition();
-		homographyMatrix = new Mat();
-		textLog.setText("");
-
 	}
 
 	/**
@@ -583,19 +542,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 		t.start();
 	}
 
-	public void ButtonFindAndDeliverBall(View v) {
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				robot.findAndDeliverBall(targetX, targetY, mRgbaWork,
-						myCircleColors, homographyMatrix, myBeaconColors);
-				robot.moveToTarget(0.0, 0.0, 0, false);
-			};
-		};
-
-		t.start();
-	}
 
 	/**
 	 * Enables access to the camera and on touch events on the according view.
@@ -720,7 +666,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		Mat grayImg = new Mat();
 		if (!myCircleColors.isEmpty()) {
 			for (Scalar s : myCircleColors)
-				grayImg = imageProcessor.filter(mRgbaWork, s, 'c');
+				grayImg = imageProcessor.filter(mRgbaWork, s);
 			mRgbaOutput = grayImg;
 		}
 

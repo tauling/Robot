@@ -47,7 +47,10 @@ public class ImageProcessor {
 	public static final Map<Integer, Integer> BeaconsAngleOffs; // maps
 																// beaconID-combo
 
-	Scalar mmColorRadius = new Scalar(0, 0, 0, 0);
+	public Scalar mmColorRadius = new Scalar(0, 0, 0, 0);
+	public int structuringElementSize = 0;
+	public Boolean useCircle = false;
+	
 
 	// to angles which
 	// have to be added
@@ -241,7 +244,7 @@ public class ImageProcessor {
 	 *            filtering circles
 	 * @return filtered image in grayscale
 	 */
-	public Mat filter(Mat rgbaImage, Scalar hsvColor, char mode) {
+	public Mat filter(Mat rgbaImage, Scalar hsvColor) {
 		Scalar mmLowerBound = new Scalar(0);
 		Scalar mmUpperBound = new Scalar(0);
 		Mat mmPyrDownMat = new Mat();
@@ -249,31 +252,14 @@ public class ImageProcessor {
 		Mat mmMask = new Mat();
 		Mat mmDilatedMask = new Mat();
 
-		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-				new Size(6, 6));
-
-		switch (mode) {
-		case 'b':
-			// mmColorRadius = new Scalar(10, 70, 150, 0); // Color radius
-			element.release();
-			element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-					new Size(15, 15));
-			// for range
-			// checking in
-			// HSV color
-			// space
-			break;
-		case 'c':
-			// mmColorRadius = new Scalar(10, 70, 110, 0); // Color radius
-			element.release();
+		Mat element ;
+		
+		if (useCircle)
 			element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
-					new Size(8, 8));
-			// for range
-			// checking in
-			// HSV color
-			// space
-			break;
-		}
+				new Size(structuringElementSize, structuringElementSize));
+		else
+			element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
+					new Size(structuringElementSize, structuringElementSize));
 
 		try {
 
@@ -422,7 +408,7 @@ public class ImageProcessor {
 		double colorAmount = myColors.size();
 		for (int i = 0; i < colorAmount; i++) {
 			Mat grayImg;
-			grayImg = filter(mRgbaWork, myColors.get(i), 'c');
+			grayImg = filter(mRgbaWork, myColors.get(i));
 			List<MatOfPoint> contours = findContours(grayImg);
 			grayImg.release();
 
@@ -523,7 +509,7 @@ public class ImageProcessor {
 		int colorAmount = myColors.size();
 		for (int i = 0; i < colorAmount; i++) {
 			Mat grayImg;
-			grayImg = filter(mRgbaWork, myColors.get(i), 'b');
+			grayImg = filter(mRgbaWork, myColors.get(i));
 
 			List<MatOfPoint> contours = findContours(grayImg);
 
