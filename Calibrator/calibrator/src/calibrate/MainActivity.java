@@ -86,6 +86,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 								// at target
 
 	private TextView textView4;
+	private TextView textView5;
 
 	private SeekBar seekBar1;
 	private SeekBar seekBar2;
@@ -164,6 +165,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		seekBar3 = (SeekBar) findViewById(R.id.seekBar3);
 		seekBar4 = (SeekBar) findViewById(R.id.seekBar4);
 		textView4 = (TextView) findViewById(R.id.textView4);
+		textView5 = (TextView) findViewById(R.id.textView4);
 
 		seekBar1.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 
