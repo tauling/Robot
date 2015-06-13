@@ -23,7 +23,6 @@ import org.opencv.imgproc.Imgproc;
 
 import calibrate.generated.R;
 import robot.navigate.Position;
-import robot.navigate.Robot;
 import robot.opencv.ImageProcessor;
 import robot.shapes.Ball;
 import robot.shapes.Beacon;
@@ -93,14 +92,13 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private SeekBar seekBar1;
 	private SeekBar seekBar2;
 	private SeekBar seekBar3;
-
+	private SeekBar seekBar4;
 	// General variables
 	private static final String TAG = "RobotLog"; // Tag for log-messages sent
 													// to logcat
 	private static final int CV_FONT_HERSHEY_COMPLEX = 0;
 
 	// Used Classes
-	private Robot robot; // Used to control the robot.
 	private ImageProcessor imageProcessor; // Used for image processing.
 
 	// Imageprocessing specific variables
@@ -123,12 +121,12 @@ public class MainActivity extends Activity implements OnTouchListener,
 										// BeaconColors
 
 	private List<Scalar> myColors = new ArrayList<Scalar>(); // Stores all
-																	// currently
-																	// recognized
-																	// colors
-																	// for balls
+																// currently
+																// recognized
+																// colors
+																// for balls
 	private List<String> myColorNames = new ArrayList<String>();
-	
+
 	private Integer colorIndex = 0;
 
 	private CameraBridgeViewBase mOpenCvCameraView; // interaction between
@@ -166,6 +164,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		seekBar1 = (SeekBar) findViewById(R.id.seekBar1);
 		seekBar2 = (SeekBar) findViewById(R.id.seekBar2);
 		seekBar3 = (SeekBar) findViewById(R.id.seekBar3);
+		seekBar4 = (SeekBar) findViewById(R.id.seekBar4);
 		textView4 = (TextView) findViewById(R.id.textView4);
 
 		seekBar1.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
@@ -224,6 +223,21 @@ public class MainActivity extends Activity implements OnTouchListener,
 			}
 		});
 
+		seekBar4.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				imageProcessor.structuringElementSize = progress;
+			}
+
+			public void onStartTrackingTouch(SeekBar seekBar) {
+
+			}
+
+			public void onStopTrackingTouch(SeekBar seekBar) {
+
+			}
+		});
 
 		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
@@ -248,7 +262,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		myColorNames.add("circle: red");
 		myColorNames.add("circle: blue");
 		myColorNames.add("circle: orange");
-		
+
 	}
 
 
@@ -277,257 +291,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 				+ " ; " + globalLightness);
 	}
 
-	public void buttonMoveToGoalN3_onClick(View v) {
-		robot.resetPosition();
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				robot.moveToGoalNaive3(150, 150, 45);
-			};
-		};
-
-		t.start();
-	}
-
-	public void buttonFindSensorIDs_onClick(View v) {
-		try {
-			robot.findSensorIDs();
-		} catch (Exception e) {
-		}
-	}
-
-	public void buttonOneMeter_onClick(View v) {
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				robot.moveByDistance(100);
-			};
-		};
-
-		t.start();
-	}
-
-	public void buttonOneMeterDriveByVel_onClick(View v) {
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				robot.moveByVelocity(100, false);
-			};
-		};
-
-		t.start();
-	}
-
-	public void buttonOneMeterDriveByVelSlow_onClick(View v) {
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				robot.moveByVelocitySlow(100, false);
-			};
-		};
-
-		t.start();
-	}
-
-	public void button360Deg_onClick(View v) {
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				for (int i = 0; i < 12; i++)
-					robot.turnByDistance(30, 'r');
-			};
-		};
-
-		t.start();
-	}
-
-	public void button360DegByVel_onClick(View v) {
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				robot.turnByVelocity(180, 'r');
-				robot.turnByVelocity(180, 'r');
-			};
-		};
-
-		t.start();
-	}
-
-	public void buttonMinus_onClick(View v) {
-		robot.moveBar('-');
-	}
-
-	public void buttonPlus_onClick(View v) {
-		robot.moveBar('+');
-	}
-
-	public void buttonSensor_onClick(View v) {
-		Map<String, Integer> measurement = new HashMap<String, Integer>();
-		measurement = robot.getDistance();
-		for (Map.Entry<String, Integer> entry : measurement.entrySet()) {
-			textLog.append((entry.getKey() + entry.getValue() + "\n"));
-		}
-	}
-
-	public void buttonEightZero_onClick(View v) {
-		robot.resetPosition();
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				robot.moveSquare(50, 'r', 0);
-				robot.moveSquare(50, 'l', 0);
-			};
-		};
-		t.start();
-	}
-
-	public void buttonEightOne_onClick(View v) {
-		robot.resetPosition();
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				if (robot.moveSquare(50, 'r', 1)) {
-					robot.moveSquare(50, 'l', 1);
-				}
-			};
-		};
-		t.start();
-	}
-
-	public void buttonEightTwo_onClick(View v) {
-		robot.resetPosition();
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				robot.moveSquare(50, 'r', 2);
-				robot.moveSquare(50, 'l', 2);
-			};
-		};
-		t.start();
-	}
-
-	public void buttonReadTargetPoint(View v) {
-		targetX = Integer.parseInt(editText1.getText().toString());
-		targetY = Integer.parseInt(editText2.getText().toString());
-		targetTheta = Integer.parseInt(editText3.getText().toString());
-		robot.writeLog("new target at x: " + targetX + " y: " + targetY
-				+ " theta: " + targetTheta);
-	}
-
-	public void buttonMLineDemo_onClick(View v) {
-		robot.resetPosition();
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				int x = 200;
-				int y = 200;
-				int theta = 45;
-				robot.turnByDistanceBalanced(90, 'r');
-				robot.moveByVelocity(100, true);
-				robot.turnByDistanceBalanced(135, 'l');
-				robot.driveToIntersectionMLine(150, x, y);
-				robot.robotSetLeds(0, 0);
-				robot.robotSetLeds(127, 127);
-				robot.robotSetLeds(0, 0);
-				robot.robotSetLeds(127, 127);
-				robot.robotSetLeds(0, 0);
-				robot.moveToGoalNaive2(x, y, theta);
-			};
-		};
-		t.start();
-	}
-
-	public void buttonmoveToGoalN2_onClick(View v) {
-		robot.resetPosition();
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				robot.moveToGoalNaive2(250, 130, 45);
-			};
-		};
-		t.start();
-	}
-
-	public void buttonDriveAndRead_onClick(View v) {
-		robot.resetPosition();
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				robot.driveAndRead();
-			};
-		};
-
-		t.start();
-	}
-
-	public void buttonTest_onClick(View v) {
-
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				// robot.riseBarUp();
-				robot.updateGlobalPosition(findTwoBeacons(), homographyMatrix);
-				// robot.moveToTarget(100, 100, 0);
-			};
-		};
-
-		t.start();
-	}
-
-	public void buttonTest2_onClick(View v) {
-
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				robot.robotSetBar(0);
-				// findTwoBeacons();
-			};
-		};
-
-		t.start();
-	}
-
-
-
-	public void button3_onClick(View v) {
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				homographyMatrix = new Mat();
-				int i = 0;
-				while (homographyMatrix.empty()) {
-					try {
-						robot.writeLog(i++
-								+ ". try: searching homography Matrix.");
-						homographyMatrix = imageProcessor
-								.getHomographyMatrix(mRgbaOutput);
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						// do nothing
-					}
-				}
-				robot.writeLog("Homography Matrix found.");
-			};
-		};
-
-		t.start();
-	}
-
 	/**
 	 * in the default case the OnTouch method adds a selected color to the
 	 * circle list
@@ -545,17 +308,14 @@ public class MainActivity extends Activity implements OnTouchListener,
 			public void run() {
 				if (onTouchOption == 0) {
 					onTouchOption = 1; // read Beacon Color
-					robot.writeLog("onTouch reads now beacon colors");
 				} else {
 					onTouchOption = 0; // read Circle Color
-					robot.writeLog("onTouch reads now circle colors");
 				}
 			};
 		};
 
 		t.start();
 	}
-
 
 	/**
 	 * Enables access to the camera and on touch events on the according view.
@@ -646,7 +406,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 		Mat grayImg = new Mat();
 		if (!myColors.isEmpty()) {
-				grayImg = imageProcessor.filter(mRgbaWork, myColors.get(colorIndex));
+			grayImg = imageProcessor
+					.filter(mRgbaWork, myColors.get(colorIndex));
 			mRgbaOutput = grayImg;
 		}
 		return mRgbaOutput;
@@ -670,41 +431,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 		super.onResume();
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
 				mLoaderCallback);
-	}
-
-	/**
-	 * Turns until two beacons are seen by the robot.
-	 * 
-	 * @return List of beacons.
-	 */
-	public List<Beacon> findTwoBeacons() {
-		ImageProcessor imgProc = new ImageProcessor(TAG);
-		List<Beacon> beacons = imgProc.findBeacons(confirmedSquares)
-				.getBeaconList();
-		int angle = 0;
-		while (beacons.size() < 2 && angle < 360) {
-			angle += 15;
-			robot.turnByDistance(15, 'r');
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				Log.e(TAG, e.getMessage());
-			}
-			beacons = imgProc.findBeacons(confirmedSquares).getBeaconList();
-		}
-		if (angle >= 360) {
-			robot.moveByVelocity(30.0, false);
-		}
-		return beacons;
-	}
-
-
-	/**
-	 * updates global position using beacons every ~15
-	 */
-	public void UpdateselfLocalization() {
-		findTwoBeacons();
-		robot.updateGlobalPosition(beaconList, homographyMatrix);
 	}
 
 }
