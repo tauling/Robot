@@ -88,6 +88,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 								// at target
 
 	private TextView textView4;
+	private TextView textView5;
 
 	private SeekBar seekBar1;
 	private SeekBar seekBar2;
@@ -166,6 +167,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		seekBar3 = (SeekBar) findViewById(R.id.seekBar3);
 		seekBar4 = (SeekBar) findViewById(R.id.seekBar4);
 		textView4 = (TextView) findViewById(R.id.textView4);
+		textView5 = (TextView) findViewById(R.id.textView4);
 
 		seekBar1.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 
@@ -265,23 +267,22 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 	}
 
-
 	public void toggleStructuringElement(View v) {
 		imageProcessor.useCircle = !imageProcessor.useCircle;
 
-		Button p1_button = (Button)findViewById(R.id.button2);
+		Button p1_button = (Button) findViewById(R.id.button2);
 		if (imageProcessor.useCircle) {
 			p1_button.setText("Circle ON");
 		} else
-			p1_button.setText("Square ON");	
+			p1_button.setText("Square ON");
 	}
-
 
 	public void nextColor(View v) {
 		if (colorIndex + 1 < myColors.size()) {
 			colorIndex++;
 		} else
 			colorIndex = 0;
+		textView5.setText(myColorNames.get(colorIndex));
 	}
 
 	public void sendColorRadius() {
