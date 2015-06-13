@@ -170,15 +170,16 @@ public class MainActivity extends Activity implements OnTouchListener,
 		robot.riseBarUp(); // lower the bar a bit
 
 		// initialize myBeaconColors & myColors
-		myBeaconColors.add(new Scalar(144, 220, 120)); // blue
-		myBeaconColors.add(new Scalar(40, 235, 200)); // yellow
-		myBeaconColors.add(new Scalar(251, 170, 180)); // red
-		myBeaconColors.add(new Scalar(95, 120, 170)); // green
+		myBeaconColors.add(new Scalar(145, 200, 160)); // blue
+		myBeaconColors.add(new Scalar(40, 170, 165)); // yellow
+		myBeaconColors.add(new Scalar(252, 195, 140)); // red
+		myBeaconColors.add(new Scalar(75, 130, 125)); // green
 
-		myCircleColors.add(new Scalar(103, 235, 130)); // green
-		myCircleColors.add(new Scalar(251, 170, 180)); // red
-		myCircleColors.add(new Scalar(148, 200, 140)); // blue
-		myCircleColors.add(new Scalar(9, 240, 160)); // orange
+		myCircleColors.add(new Scalar(105, 225, 125)); // green
+		myCircleColors.add(new Scalar(243, 190, 145)); // red
+		myCircleColors.add(new Scalar(146, 180, 105)); // blue
+		myCircleColors.add(new Scalar(250, 210, 125)); // orange1
+		myCircleColors.add(new Scalar(5, 210, 170)); // orange2
 	}
 
 	public void buttonMoveToGoalN3_onClick(View v) {
@@ -394,10 +395,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				// robot.riseBarUp();
-				robot.updateGlobalPosition(findTwoBeacons(true),
-						homographyMatrix);
-				// robot.moveToTarget(100, 100, 0);
+				Ball neasrstBall = robot.findNearestBall(mRgbaWork,
+						myCircleColors, homographyMatrix, myBeaconColors);
+				robot.driveToBallAndCage2(neasrstBall, mRgbaWork,
+						myCircleColors, homographyMatrix, myBeaconColors);
 			};
 		};
 

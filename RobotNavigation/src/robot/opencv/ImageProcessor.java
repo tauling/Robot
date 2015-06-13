@@ -244,25 +244,25 @@ public class ImageProcessor {
 
 		Scalar mmColorRadius = new Scalar(6, 40, 70, 0);
 		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-				new Size(6, 6));
+				new Size(5, 5));
 
 		switch (mode) {
 		case 'b':
 			// mmColorRadius = new Scalar(10, 100, 85, 0); // Color radius
-			mmColorRadius = new Scalar(15, 100, 85, 0); // Color radius
-			element.release();
-			element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-					new Size(15, 15));
+			mmColorRadius = new Scalar(8, 75, 100, 0); // Color radius
+			// element.release();
+			// element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
+			// new Size(15, 15));
 			// for range
 			// checking in
 			// HSV color
 			// space
 			break;
 		case 'c':
-			mmColorRadius = new Scalar(8, 95, 80, 0); // Color radius
-			element.release();
-			element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
-					new Size(8, 8));
+			mmColorRadius = new Scalar(10, 80, 100, 0); // Color radius
+			// element.release();
+			// element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
+			// new Size(8, 8));
 			// for range
 			// checking in
 			// HSV color
@@ -912,7 +912,7 @@ public class ImageProcessor {
 			if (Imgproc.isContourConvex(approx)) {
 				Log.i(TAG, "xxxShape is convex");
 
-				if (approx.total() > 4) {
+				if (approx.total() >= 4) {
 					// Detect and label circles
 					double area = Imgproc.contourArea(contour);
 					Rect rrect = Imgproc.boundingRect(contour);
@@ -921,9 +921,9 @@ public class ImageProcessor {
 							+ radius + "; area = " + area + "; half height = "
 							+ rrect.height);
 
-					if (Math.abs(1 - ((double) rrect.width / rrect.height)) <= 0.2
+					if (Math.abs(1 - ((double) rrect.width / rrect.height)) <= 0.25
 							&& Math.abs(1 - (area / (Math.PI * Math.pow(radius,
-									2)))) <= 0.25) {
+									2)))) <= 0.3) {
 						ret = true;
 					}
 				}

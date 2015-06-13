@@ -1515,9 +1515,11 @@ public class Robot {
 			} catch (ArrayIndexOutOfBoundsException e) {
 				writeLog("ball is not on the camera frame anymore"
 						+ e.getMessage());
+				turnByDistance(30, 'l');
 			} catch (IndexOutOfBoundsException e) {
 				writeLog("ball is not on the camera frame anymore"
 						+ e.getMessage());
+				turnByDistance(30, 'l');
 			}
 		}
 		writeLog("(alignToPoint) aligned");
