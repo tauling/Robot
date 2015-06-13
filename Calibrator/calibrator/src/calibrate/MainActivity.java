@@ -167,7 +167,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 		seekBar3 = (SeekBar) findViewById(R.id.seekBar3);
 		seekBar4 = (SeekBar) findViewById(R.id.seekBar4);
 		textView4 = (TextView) findViewById(R.id.textView4);
-		textView5 = (TextView) findViewById(R.id.textView4);
+		textView5 = (TextView) findViewById(R.id.textView5);
 
 		seekBar1.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 
@@ -229,7 +229,10 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
+				if (progress < 1)
+					progress = 1;
 				imageProcessor.structuringElementSize = progress;
+				sendColorRadius();
 			}
 
 			public void onStartTrackingTouch(SeekBar seekBar) {
@@ -246,15 +249,16 @@ public class MainActivity extends Activity implements OnTouchListener,
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// initialize myBeaconColors & myColors
-		myColors.add(new Scalar(147, 170, 100)); // blue
-		myColors.add(new Scalar(40, 190, 150)); // yellow
-		myColors.add(new Scalar(0, 190, 145)); // red
-		myColors.add(new Scalar(75, 160, 120)); // green
+		myColors.add(new Scalar(145, 200, 160)); // blue
+		myColors.add(new Scalar(40, 170, 165)); // yellow
+		myColors.add(new Scalar(252, 195, 140)); // red
+		myColors.add(new Scalar(75, 130, 125)); // green
 
-		myColors.add(new Scalar(98, 160, 110)); // green
-		myColors.add(new Scalar(250, 200, 165)); // red
-		myColors.add(new Scalar(152, 200, 80)); // blue
-		myColors.add(new Scalar(6, 190, 148)); // orange
+		myColors.add(new Scalar(105, 225, 125)); // green
+		myColors.add(new Scalar(243, 190, 145)); // red
+		myColors.add(new Scalar(146, 180, 105)); // blue
+		myColors.add(new Scalar(250, 210, 125)); // orange1
+		myColors.add(new Scalar(5, 210, 170)); // orange2
 
 		myColorNames.add("beacon: blue");
 		myColorNames.add("beacon: yellow");
@@ -263,7 +267,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		myColorNames.add("circle: green");
 		myColorNames.add("circle: red");
 		myColorNames.add("circle: blue");
-		myColorNames.add("circle: orange");
+		myColorNames.add("circle: orange1");
+		myColorNames.add("circle: orange2");
 
 	}
 
@@ -289,7 +294,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 		imageProcessor.setColorRadius(globalHue, globalSaturation,
 				globalLightness);
 		textView4.setText("HSV: " + globalHue + " ; " + globalSaturation
-				+ " ; " + globalLightness);
+				+ " ; " + globalLightness + "|"
+				+ imageProcessor.structuringElementSize);
 	}
 
 	/**
