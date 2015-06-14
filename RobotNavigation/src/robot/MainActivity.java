@@ -398,7 +398,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 				Ball neasrstBall = robot.findNearestBall(mRgbaWork,
 						myCircleColors, homographyMatrix, myBeaconColors);
 				robot.driveToBallAndCage2(neasrstBall, mRgbaWork,
-						myCircleColors, homographyMatrix, myBeaconColors);
+						myCircleColors, homographyMatrix, myBeaconColors, false);
 			};
 		};
 
@@ -438,9 +438,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				Position targetPos = new Position(targetX, targetY, targetTheta);
-				robot.moveToTargetCollBalls(targetPos, mRgbaWork,
-						myCircleColors, homographyMatrix, myBeaconColors, true);
+				robot.turnAndFindABall(mRgbaWork, myCircleColors, homographyMatrix, myBeaconColors);
 			};
 		};
 

@@ -441,8 +441,7 @@ public class ImageProcessor {
 
 				if (radius[0] > 0) {
 					// RotatedRect rect = Imgproc.minAreaRect(circl2f);
-					if (getShape(contours.get(j), 'c')
-							&& isContourConvex(contours.get(j))) {
+					if (getShape(contours.get(j), 'c')) {
 						Log.i(TAG, "Radius of found circle: " + radius);
 						Circle foundCircle = new Circle(center,
 								(double) radius[0]);
