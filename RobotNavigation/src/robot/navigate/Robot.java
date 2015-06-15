@@ -1071,18 +1071,17 @@ public class Robot {
 					+ "cm distance" + " offset of " + offset);
 			dist = (int) (dist - offset);
 
-			turnByDistance(angle, 'r');
+			turnByDistanceBalanced(angle, 'r');
 			robotSetLeds(127, 0);
-			if (slow) {
-				stopped = moveByVelocitySlow(dist, true);
-			} else {
-				stopped = moveByVelocity(dist, true);
+			stopped = moveByVelocity(dist, true);
+			if (stopped && checkForObstacles) {
+				writeLog("i will sleep now for 1s and hope the ostacle moved away");
 			}
 			if (Math.abs((getDistanceToTarget(x, y) - offset)) < TOL) {
 				goalReached = true;
 			}
-		} while (!goalReached && checkTol);
-		turnByDistance(reduceAngle((int) (theta - myPos.theta)), 'r');
+		} while (!goalReached && checkTol && !stopped);
+		turnByDistanceBalanced(reduceAngle((int) (theta - myPos.theta)), 'r');
 		robotSetLeds(127, 127);
 		return stopped;
 	}
@@ -1203,6 +1202,11 @@ public class Robot {
 		int turnedAngle = 0;
 		while (turnedAngle < 360) {
 			ImageProcessor imgProc = new ImageProcessor(TAG);
+			List<Square> squareList = imgProc.findSquaresOnCamera(mRgbaWork,
+					myBeaconColors);
+			BeaconSquareHolder beaconsAndSquares = imgProc
+					.findBeacons(squareList);
+			List<Square> confirmedSquares = beaconsAndSquares.getSquareList();
 			List<Circle> circles = imgProc.findCirclesOnCamera2(mRgbaWork,
 					myColors, myBeaconColors);
 			Log.i(TAG, "found circles:" + circles.size());
@@ -1210,17 +1214,17 @@ public class Robot {
 			if (circles.size() > 0) {
 				Log.i(TAG, "found circle x:" + circles.get(0).getLowPt().x
 						+ " y:" + circles.get(0).getLowPt().y);
-//				alignToPoint(circles.get(0).getLowPt(), mRgbaWork, myColors,
-//						myBeaconColors);
+				alignToPoint(circles.get(0).getLowPt(), mRgbaWork, myColors,
+						myBeaconColors);
 				Log.i(TAG, "(turnAndFindABall) found a ball");
 				foundBall = true;
 				break;
 			} else {
-				turnByDistance(30, 'r');
+				turnByDistanceBalanced(30, 'r');
 				turnedAngle += 30;
 			}
 		}
-		Log.i(TAG, "(turnAndFindABall) Finished");
+		writeLog("(turnAndFindABall) Finished");
 		return foundBall;
 
 	}
@@ -1280,6 +1284,7 @@ public class Robot {
 		}
 	}
 
+	// TODO: update descr.
 	/**
 	 * Drives to the ball and cages it. BUT does not update targetball
 	 * 
@@ -1297,13 +1302,13 @@ public class Robot {
 			List<Scalar> myBeaconColors, boolean obstacleMatter) {
 		try {
 			Point ballTarget = ball.getPosGroundPlane();
-			moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 35, obstacleMatter,
-					false);
+			moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 35,
+					obstacleMatter, false);
 			ballTarget = findNearestBall(mRgbaWork, myColors, homographyMatrix,
 					myBeaconColors).getPosGroundPlane();
 			if (ballTarget != null) {
-				moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 3, obstacleMatter,
-						true);
+				moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 3,
+						obstacleMatter, true);
 			}
 		} catch (NullPointerException e) {
 			writeLog("cannot find Ball in driveToBallAndCage2"
@@ -1934,7 +1939,7 @@ public class Robot {
 	public Ball findNearestBall(Mat mRgbaWork, List<Scalar> myColors,
 			Mat homographyMatrix, List<Scalar> myBeaconColors) {
 		Ball detectedBall = null;
-		Log.e(TAG, "find nearest Ball");
+		writeLog("searching for nearest ball");
 		if (turnAndFindABall(mRgbaWork, myColors, homographyMatrix,
 				myBeaconColors)) {
 			ImageProcessor imgProc = new ImageProcessor(TAG);
@@ -1949,8 +1954,8 @@ public class Robot {
 				// homographyMatrix);
 				// double distToNewBall = imgProc.distPointToPoint(posNewBall,
 				// new Point(getMyPosition().x, getMyPosition().y));
-				// if (detectedBall == null || distToNewBall <
-				// imgProc.distPointToPoint(
+				// if (detectedBall == null
+				// || distToNewBall < imgProc.distPointToPoint(
 				// detectedBall.getPosGroundPlane(), new Point(
 				// getMyPosition().x, getMyPosition().y))) {
 				// detectedBall = new Ball(circle.getCenter(), posNewBall,
@@ -1971,7 +1976,7 @@ public class Robot {
 					}
 				}
 			}
-			writeLog("found a ball");
+			writeLog("(findNearestBall) found a ball");
 		}
 
 		Log.e(TAG, "nearest Ball:" + detectedBall);

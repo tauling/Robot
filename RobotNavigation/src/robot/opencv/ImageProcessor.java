@@ -250,9 +250,9 @@ public class ImageProcessor {
 		case 'b':
 			// mmColorRadius = new Scalar(10, 100, 85, 0); // Color radius
 			mmColorRadius = new Scalar(8, 75, 100, 0); // Color radius
-			// element.release();
-			// element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-			// new Size(15, 15));
+			element.release();
+			element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
+					new Size(5, 5));
 			// for range
 			// checking in
 			// HSV color
@@ -260,9 +260,9 @@ public class ImageProcessor {
 			break;
 		case 'c':
 			mmColorRadius = new Scalar(10, 80, 100, 0); // Color radius
-			// element.release();
-			// element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
-			// new Size(8, 8));
+			element.release();
+			element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
+					new Size(8, 8));
 			// for range
 			// checking in
 			// HSV color
@@ -441,14 +441,12 @@ public class ImageProcessor {
 
 				if (radius[0] > 0) {
 					// RotatedRect rect = Imgproc.minAreaRect(circl2f);
-					if (getShape(contours.get(j), 'c')
-							&& isContourConvex(contours.get(j))) {
+					if (getShape(contours.get(j), 'c')) {
 						Log.i(TAG, "Radius of found circle: " + radius);
 						Circle foundCircle = new Circle(center,
 								(double) radius[0]);
 						if (checkCircleVsSquares(foundCircle, confirmedSquares)
-						// && foundCircle.getRadius() > 2
-						) {
+								&& foundCircle.getRadius() > 5) {
 							circlesList.add(foundCircle);
 						}
 					}

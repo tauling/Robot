@@ -397,8 +397,9 @@ public class MainActivity extends Activity implements OnTouchListener,
 			public void run() {
 				Ball neasrstBall = robot.findNearestBall(mRgbaWork,
 						myCircleColors, homographyMatrix, myBeaconColors);
+				robot.writeLog("driveToBallAndCage2 starting");
 				robot.driveToBallAndCage2(neasrstBall, mRgbaWork,
-						myCircleColors, homographyMatrix, myBeaconColors);
+						myCircleColors, homographyMatrix, myBeaconColors, false);
 			};
 		};
 
@@ -438,9 +439,32 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				Position targetPos = new Position(targetX, targetY, targetTheta);
-				robot.moveToTargetCollBalls(targetPos, mRgbaWork,
-						myCircleColors, homographyMatrix, myBeaconColors, true);
+				Point p0 = new Point(0, 0);
+				Circle c0 = new Circle(p0, 5.0);
+
+				Point p1 = new Point(-700, -700);
+				Circle c1 = new Circle(p1, 5.0);
+
+				Point p2 = new Point(120, 120);
+				Circle c2 = new Circle(p2, 5.0);
+
+				Point p3 = new Point(120, 150);
+				Circle c3 = new Circle(p3, 5.0);
+
+				Point p4 = new Point(850, 650);
+				Circle c4 = new Circle(p4, 5.0);
+				List<Circle> circles = new ArrayList<Circle>();
+				circles.add(c1);
+				circles.add(c2);
+				circles.add(c3);
+				circles.add(c4);
+
+				robot.writeLog("circles:" + circles.size());
+
+				circles = robot.deleteBallsOutsideRange(circles,
+						homographyMatrix);
+
+				robot.writeLog("circles:" + circles.size());
 			};
 		};
 
@@ -645,20 +669,19 @@ public class MainActivity extends Activity implements OnTouchListener,
 		mRgbaWork = inputFrame.rgba(); // TODO: does mRgbaWork refer to the same
 										// image as mRgbaOutput? In that case,
 										// either fix or remove this variable.
-										// if (frameInterval >=
-										// executionInterval) {
-		// squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
-		// myBeaconColors);
-		// BeaconSquareHolder beaconsAndSquares = imageProcessor
-		// .findBeacons(squareList);
-		// beaconList = beaconsAndSquares.getBeaconList();
-		// confirmedSquares = beaconsAndSquares.getSquareList();
-		// circleList = imageProcessor.findCirclesOnCamera2(mRgbaWork,
-		// myCircleColors, myBeaconColors);
-		// frameInterval = 0;
-		// }
-		//
-		// frameInterval++;
+		if (frameInterval >= executionInterval) {
+			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
+					myBeaconColors);
+			BeaconSquareHolder beaconsAndSquares = imageProcessor
+					.findBeacons(squareList);
+			beaconList = beaconsAndSquares.getBeaconList();
+			confirmedSquares = beaconsAndSquares.getSquareList();
+			circleList = imageProcessor.findCirclesOnCamera2(mRgbaWork,
+					myCircleColors, myBeaconColors);
+			frameInterval = 0;
+		}
+
+		frameInterval++;
 
 		// draw squares on CameraFrame
 
@@ -707,15 +730,15 @@ public class MainActivity extends Activity implements OnTouchListener,
 		// // robot.writeLog(s.toString());
 		// }
 		//
-		// // draw circles on camera frame
-		// if (!circleList.isEmpty()) {
-		// for (Circle c : circleList) {
-		// Core.circle(mRgbaOutput, c.getCenter(), (int) c.getRadius(),
-		// new Scalar(160, 245, 5));
-		// Core.circle(mRgbaOutput, c.getLowPt(), (int) 10, new Scalar(0,
-		// 0, 255));
-		// }
-		// }
+		// draw circles on camera frame
+		if (!circleList.isEmpty()) {
+			for (Circle c : circleList) {
+				Core.circle(mRgbaOutput, c.getCenter(), (int) c.getRadius(),
+						new Scalar(160, 245, 5));
+				Core.circle(mRgbaOutput, c.getLowPt(), (int) 10, new Scalar(0,
+						0, 255));
+			}
+		}
 		//
 		// // draw Beacons
 		// if (!beaconList.isEmpty()) {
@@ -828,7 +851,8 @@ public class MainActivity extends Activity implements OnTouchListener,
 			if (nearestBall != null) {
 				robot.robotSetLeds(200, 200);
 				robot.driveToBallAndCage2(nearestBall, mRgbaWork,
-						myCircleColors, homographyMatrix, myBeaconColors, obstacleMatter);
+						myCircleColors, homographyMatrix, myBeaconColors,
+						obstacleMatter);
 				// robot.writeLog("rotate 180°");
 				// robot.turnByDistance(180, 'r');
 				robot.writeLog("heading back to target point");
