@@ -439,32 +439,35 @@ public class MainActivity extends Activity implements OnTouchListener,
 
 			@Override
 			public void run() {
-				Point p0 = new Point(0, 0);
-				Circle c0 = new Circle(p0, 5.0);
 
-				Point p1 = new Point(-700, -700);
-				Circle c1 = new Circle(p1, 5.0);
-
-				Point p2 = new Point(120, 120);
-				Circle c2 = new Circle(p2, 5.0);
-
-				Point p3 = new Point(120, 150);
-				Circle c3 = new Circle(p3, 5.0);
-
-				Point p4 = new Point(850, 650);
-				Circle c4 = new Circle(p4, 5.0);
-				List<Circle> circles = new ArrayList<Circle>();
-				circles.add(c1);
-				circles.add(c2);
-				circles.add(c3);
-				circles.add(c4);
-
-				robot.writeLog("circles:" + circles.size());
-
-				circles = robot.deleteBallsOutsideRange(circles,
-						homographyMatrix);
-
-				robot.writeLog("circles:" + circles.size());
+				// Point p0 = new Point(0, 0);
+				// Circle c0 = new Circle(p0, 5.0);
+				//
+				// Point p1 = new Point(-700, -700);
+				// Circle c1 = new Circle(p1, 5.0);
+				//
+				// Point p2 = new Point(120, 120);
+				// Circle c2 = new Circle(p2, 5.0);
+				//
+				// Point p3 = new Point(120, 150);
+				// Circle c3 = new Circle(p3, 5.0);
+				//
+				// Point p4 = new Point(850, 650);
+				// Circle c4 = new Circle(p4, 5.0);
+				// List<Circle> circles = new ArrayList<Circle>();
+				// circles.add(c1);
+				// circles.add(c2);
+				// circles.add(c3);
+				// circles.add(c4);
+				//
+				// robot.writeLog("circles:" + circles.size());
+				//
+				// circles = robot.deleteBallsOutsideRange(circles,
+				// homographyMatrix);
+				//
+				// robot.writeLog("circles:" + circles.size());
+				robot.turnAndFindABall(mRgbaWork, myCircleColors,
+						homographyMatrix, myBeaconColors);
 			};
 		};
 

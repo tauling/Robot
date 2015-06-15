@@ -3,6 +3,7 @@ package robot.navigate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -1073,9 +1074,11 @@ public class Robot {
 
 			turnByDistanceBalanced(angle, 'r');
 			robotSetLeds(127, 0);
-			stopped = moveByVelocity(dist, true);
-			if (stopped && checkForObstacles) {
-				writeLog("i will sleep now for 1s and hope the ostacle moved away");
+
+			if (slow) {
+				stopped = moveByVelocitySlow(dist, checkForObstacles);
+			} else {
+				stopped = moveByVelocity(dist, checkForObstacles);
 			}
 			if (Math.abs((getDistanceToTarget(x, y) - offset)) < TOL) {
 				goalReached = true;
@@ -1170,16 +1173,14 @@ public class Robot {
 	// TODO: test delete functionality
 	public List<Circle> deleteBallsOutsideRange(List<Circle> circles,
 			Mat homographyMatrix) {
-		List<Circle> wrongCircles = new ArrayList<Circle>();
-		for (int i = 0; i < circles.size(); i++) {
-			Point posNewBall = getGroundPlaneCoordinates(circles.get(i)
-					.getLowPt(), homographyMatrix);
-			if (Math.abs(posNewBall.x) > 125 || Math.abs(posNewBall.y) > 125) {
-				wrongCircles.add(circles.get(i));
+		for (Iterator<Circle> nameIter = circles.iterator(); nameIter.hasNext();) {
+			Circle circle = nameIter.next();
+			Point posNewBall = getGroundPlaneCoordinates(circle.getLowPt(),
+					homographyMatrix);
+			if (Math.abs(posNewBall.x) > 135 || Math.abs(posNewBall.y) > 135) {
+				nameIter.remove();
+				writeLog("Detected and deleted Ball outside workspace.");
 			}
-		}
-		for (Circle wrongCircle : wrongCircles) {
-			circles.remove(wrongCircle);
 		}
 		return circles;
 	}
@@ -1197,30 +1198,26 @@ public class Robot {
 	 */
 	public boolean turnAndFindABall(Mat mRgbaWork, List<Scalar> myColors,
 			Mat homographyMatrix, List<Scalar> myBeaconColors) {
-		Log.i(TAG, "turnAndFindABall start");
+		ImageProcessor imgProc = new ImageProcessor(TAG);
+		writeLog("turnAndFindABall start");
 		Boolean foundBall = false;
 		int turnedAngle = 0;
-		while (turnedAngle < 360) {
-			ImageProcessor imgProc = new ImageProcessor(TAG);
-			List<Square> squareList = imgProc.findSquaresOnCamera(mRgbaWork,
-					myBeaconColors);
-			BeaconSquareHolder beaconsAndSquares = imgProc
-					.findBeacons(squareList);
-			List<Square> confirmedSquares = beaconsAndSquares.getSquareList();
+		while (turnedAngle < 360 && !foundBall) {
 			List<Circle> circles = imgProc.findCirclesOnCamera2(mRgbaWork,
 					myColors, myBeaconColors);
-			Log.i(TAG, "found circles:" + circles.size());
+			writeLog("(turnAndFindABall) found circles:" + circles.size());
 			circles = deleteBallsOutsideRange(circles, homographyMatrix);
 			if (circles.size() > 0) {
-				Log.i(TAG, "found circle x:" + circles.get(0).getLowPt().x
-						+ " y:" + circles.get(0).getLowPt().y);
-				alignToPoint(circles.get(0).getLowPt(), mRgbaWork, myColors,
-						myBeaconColors);
-				Log.i(TAG, "(turnAndFindABall) found a ball");
+				writeLog("(turnAndFindABall) found circle x:"
+						+ circles.get(0).getLowPt().x + " y:"
+						+ circles.get(0).getLowPt().y);
+				// alignToPoint(circles.get(0).getLowPt(), mRgbaWork, myColors,
+				// myBeaconColors);
+				writeLog("(turnAndFindABall) found a ball");
 				foundBall = true;
-				break;
 			} else {
-				turnByDistanceBalanced(30, 'r');
+				writeLog("(turnAndFindABall) didn't find circle; turning");
+				turnByDistance(30, 'r');
 				turnedAngle += 30;
 			}
 		}
@@ -1304,6 +1301,7 @@ public class Robot {
 			Point ballTarget = ball.getPosGroundPlane();
 			moveToTargetWithoutAngle(ballTarget.x, ballTarget.y, 35,
 					obstacleMatter, false);
+			turnByDistance(15, 'l');
 			ballTarget = findNearestBall(mRgbaWork, myColors, homographyMatrix,
 					myBeaconColors).getPosGroundPlane();
 			if (ballTarget != null) {
