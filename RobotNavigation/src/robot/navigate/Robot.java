@@ -107,9 +107,6 @@ public class Robot {
 
 	// <- Robot Calibration
 
-	// TODO Check the use of WriteLog; too many comments in textLog while
-	// playing with the robot.
-
 	private Position myPos = new Position(0, 0, 0); // Current position of the
 													// robot.
 
@@ -145,11 +142,8 @@ public class Robot {
 	}
 
 	/**
-	 * 
-	 * @author Gregor
-	 * 
-	 *         Helper class which allows asynchronous access to the textview for
-	 *         logging purposes.
+	 * Helper class which allows asynchronous access to the textview for logging
+	 * purposes.
 	 */
 	private class WriteLogRunnable implements Runnable {
 
@@ -702,7 +696,7 @@ public class Robot {
 		updateRotation(angle, dir);
 		int degrees = angle;
 		degrees = (int) (CorrFactAngleByDist * degrees);
-		// int targetedAngleByOnce = 30; // TODO: Make global? Check if needed;
+		// int targetedAngleByOnce = 30;
 		// could improve accuracy
 		int maxDegreesByOnce = 40;
 		// if (angle > targetedAngleByOnce) {
@@ -1170,7 +1164,6 @@ public class Robot {
 		}
 	}
 
-	// TODO: test delete functionality
 	public List<Circle> deleteBallsOutsideRange(List<Circle> circles,
 			Mat homographyMatrix) {
 		for (Iterator<Circle> nameIter = circles.iterator(); nameIter.hasNext();) {
@@ -1318,48 +1311,6 @@ public class Robot {
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
-		}
-	}
-
-	// TODO: needed?
-	// TODO add comment
-	// TODO fix: this method is used to detect various balls; currently not
-	// working
-	// TODO: Should probably be split up between imageProcessor and Robot class
-	// TODO: Afterwards update visibility of methods in imageProcessor again
-	public void detectBalls(Mat img, List<Ball> foundBalls, Mat mRgbaOutput) {
-		List<MatOfPoint> contours = imageProcessor.findContours(img);
-		for (MatOfPoint area : contours) {
-
-			Point center = imageProcessor.computeCenterPt(area);
-			// Point pointGroundPlane = computePointGroundPlane();
-			Point pointGroundPlane = null; // TODO implement (don't forget to
-											// add the robot's pos coordinates)
-			double rad = imageProcessor.computeRadius(area, center);
-
-			Ball detectedBall = new Ball(center, pointGroundPlane, rad);
-
-			alignToBall(detectedBall, mRgbaOutput.width());
-
-			Core.circle(mRgbaOutput, center, 10, new Scalar(20), -1);
-			Core.circle(mRgbaOutput, center, (int) rad, new Scalar(50), 5);
-			Point lowestPoint = new Point(center.x, center.y + rad);
-			Core.circle(mRgbaOutput, lowestPoint, 10, new Scalar(50), 5);
-
-			// add only new balls to myBalls-list
-			double TOL = 30;
-			Point detectedBallPos = detectedBall.getPosGroundPlane(); // refactor
-																		// variable
-																		// name
-			for (Ball b : foundBalls) {
-				Point bPos = b.getPosGroundPlane();
-				if (Math.abs(bPos.x - detectedBallPos.x) > TOL
-						|| Math.abs(bPos.y - detectedBallPos.y) > TOL) {
-					foundBalls.add(detectedBall);
-				} else {
-					// TODO update radius etc.
-				}
-			}
 		}
 	}
 
@@ -1633,7 +1584,6 @@ public class Robot {
 	//
 	// }
 
-	// TODO: test
 	/**
 	 * Takes two visible beacons as input, calculates the global position using
 	 * these two beacons. Method taken from "Landmark Based Global

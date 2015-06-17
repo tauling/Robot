@@ -32,42 +32,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
-            <Button
-                android:id="@+id/Button04"
-                style="?android:attr/buttonStyleSmall"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.05"
-                android:onClick="buttonTest_onClick"
-                android:text="@string/test1" />
-
-            <Button
-                android:id="@+id/Button03"
-                style="?android:attr/buttonStyleSmall"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.05"
-                android:onClick="buttonTest2_onClick"
-                android:text="@string/test2" />
-
-            <Button
-                android:id="@+id/TestButton"
-                style="?android:attr/buttonStyleSmall"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.05"
-                android:onClick="buttonTest3_onClick"
-                android:text="@string/test3" />
-
-            <Button
-                android:id="@+id/button7"
-                style="?android:attr/buttonStyleSmall"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.05"
-                android:onClick="buttonTest4_onClick"
-                android:text="@string/test4" />
-
             <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="73dp"
@@ -107,7 +71,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.38"
-                android:columnCount="4" >
+                android:columnCount="5" >
 
                 <TextView
                     android:id="@+id/textView3"
@@ -118,73 +82,17 @@
                     android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 <Button
-                    android:id="@+id/button1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_column="0"
-                    android:layout_gravity="start|top"
-                    android:layout_row="2"
-                    android:onClick="buttonDriveAndRead_onClick"
-                    android:text="@string/dAR" />
-
-                <Button
-                    android:id="@+id/button9"
-                    android:layout_column="0"
-                    android:layout_gravity="start|top"
-                    android:layout_row="1"
-                    android:onClick="buttonMoveToGoalN3_onClick"
-                    android:text="@string/mTGN" />
-
-                <Button
-                    android:id="@+id/button10"
-                    android:layout_column="1"
-                    android:layout_gravity="center"
-                    android:layout_row="1"
-                    android:onClick="buttonEightZero_onClick"
-                    android:text="8_0" />
-
-                <Button
-                    android:id="@+id/button11"
-                    android:layout_column="2"
-                    android:layout_gravity="center"
-                    android:layout_row="1"
-                    android:onClick="buttonEightOne_onClick"
-                    android:text="8_1" />
-
-                <Button
-                    android:id="@+id/button12"
+                    android:id="@+id/button20"
                     android:layout_column="3"
-                    android:layout_gravity="end|center_vertical"
-                    android:layout_row="1"
-                    android:onClick="buttonEightTwo_onClick"
-                    android:text="8_2" />
-
-                <Button
-                    android:id="@+id/button13"
-                    android:layout_column="1"
-                    android:layout_gravity="start|center_vertical"
+                    android:layout_gravity="left|top"
+                    android:onClick="ButtonExamination4"
                     android:layout_row="2"
-                    android:onClick="buttonMLineDemo_onClick"
-                    android:text="m-line Demo" />
+                    android:text="@string/exam4" />
 
-                <Button
-                    android:id="@+id/button17"
-                    android:layout_column="2"
-                    android:layout_gravity="start"
-                    android:layout_row="2"
-                    android:onClick="ButtonFindAndDeliverBall"
-                    android:text="FindADeliverBall" />
-                
-                <Button
-                    android:id="@+id/button14"
-                    android:layout_column="1"
-                    android:layout_gravity="start|center_vertical"
-                    android:layout_row="3"
-                    android:onClick="buttonmoveToGoalN2_onClick"
-                    android:text="moveToGoalN2" />
                 <Button
                     android:id="@+id/button19"
-                    android:layout_gravity="start"
+                    android:layout_column="0"
+                    android:layout_gravity="left|top"
                     android:layout_row="2"
                     android:onClick="ButtonExamination3"
                     android:text="@string/exam3" />

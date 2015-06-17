@@ -368,37 +368,6 @@ public class ImageProcessor {
 		return distToCenter;
 	}
 
-	// TODO Needed?
-	// TODO If so, comment
-	private Mat drawBalls(Mat mRgbaWithBalls, List<Ball> foundBalls) {
-
-		int counter = 0;
-		for (Ball ball : foundBalls) {
-
-			// Just for highlighting
-			Scalar color = null;
-			Scalar red = new Scalar(20);
-			Scalar black = new Scalar(128);
-			if (counter % 2 == 0) {
-				color = red;
-			} else {
-				color = black;
-			}
-
-			Point center = ball.getBallCenterCameraFrame();
-			int rad = (int) ball.getRadius();
-			Core.circle(mRgbaWithBalls, center, 10, new Scalar(20), -1);
-			Core.circle(mRgbaWithBalls, center, (int) rad, color, 5);
-			Point lowestPoint = new Point(center.x, center.y + rad);
-			Core.circle(mRgbaWithBalls, lowestPoint, 10, color, 5);
-			// Imgproc.drawContours(img, ballArea, -1, color, -1);
-
-			counter++;
-		}
-
-		return mRgbaWithBalls;
-	}
-
 	// TODO update description
 	/**
 	 * Finds the centers of all circles on a given image matrix..
@@ -570,13 +539,6 @@ public class ImageProcessor {
 		return lowestEdgeLeft;
 	}
 
-	// TODO needed?
-	// if so, add description
-	public Scalar getColorSalar(Mat mRgbaWork, Point pt) {
-		double[] color = mRgbaWork.get((int) pt.x, (int) pt.y);
-		return new Scalar(color);
-	}
-
 	// TODO update Description
 	/**
 	 * compares alignment of all squares in global squareCenter-list and tries
@@ -679,28 +641,6 @@ public class ImageProcessor {
 		return new BeaconSquareHolder(beaconList, confSquares);
 	}
 
-	// TODO: needed?
-	/**
-	 * checks if the detected beacon color id combination is correct
-	 * 
-	 * correct means the combination matches with one of the beacon color
-	 * combinations we created
-	 * 
-	 * @param newBeacon
-	 * @return true (newBeacon is a proper one) false otherwise
-	 */
-	private boolean checkBeaconColorComb(Beacon newBeacon) {
-		int[] colorCombs = { 12, 21, 13, 42, 24, 41, 14, 31 };
-		boolean correctId = false;
-		int colorCombsSize = colorCombs.length;
-		int refColor = newBeacon.getColorComb();
-		for (int i = 0; i < colorCombsSize; i++) {
-			if (colorCombs[i] == refColor)
-				correctId = true;
-		}
-		return correctId;
-	}
-
 	private boolean twoSquaresMakeBeacon(Square squareA, Square squareB) {
 
 		int TOL = 25;
@@ -713,7 +653,6 @@ public class ImageProcessor {
 		return false;
 	}
 
-	// TODO Needed
 	private boolean checkIfNew(List<Beacon> beaconList, Beacon newBeacon) {
 		boolean unique = true;
 		double TOL = 300;

@@ -47,32 +47,7 @@ import android.widget.TextView;
 public class MainActivity extends Activity implements OnTouchListener,
 		CvCameraViewListener2 {
 
-	// TODO: Use LEDs to display connection to the robot.
-
-	// TODO: Probably add a function that allows to turn robot by velocity (and
-	// since depending on the angle different correctorfactors are needed, we
-	// need to do this via a switch case)
-
-	// TODO: Add comments for variables.
-
-	// TODO: Resolve warnings in all xml-files.
-
 	// TODO: target Position does not allow negative inputs in GUI
-
-	// TODO: Ex3: beacons: Detection of multiple, multi-colored objects, finding
-	// their bottom points, calculating and displaying their locations in the
-	// robot's egocentric ground-plane coordinates, as well as their distances
-	// to the robot, using a pre-calibrated homography matrix
-
-	// TODO: Ex3: The robot is placed at an arbitrary location within a
-	// rectangular workspace of roughly 2.5m by 2.5m in size, surrounded by 8
-	// beacons spaced 125cm apart and placed around the setup. Update the robot
-	// odometry based on these values.
-
-	// TODO: Ex3: About 10 balls of known colors are placed at arbitrary
-	// locations within the workspace. Find them and bring to target position.
-
-	// TODO: don't use squareTest for Beacons (use it for balls)
 
 	// GUI Elements
 	private TextView textLog; // Textview on GUI which contains the robot's log
@@ -126,7 +101,6 @@ public class MainActivity extends Activity implements OnTouchListener,
 	private CameraBridgeViewBase mOpenCvCameraView; // interaction between
 													// openCV and camera
 
-	// TODO: write own method to update these lists
 	List<Circle> circleList = new ArrayList<Circle>();
 
 	List<Square> squareList = new ArrayList<Square>();
@@ -378,6 +352,18 @@ public class MainActivity extends Activity implements OnTouchListener,
 	}
 
 	public void ButtonExamination3(View v) {
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				collectAllBalls(false, true);
+			};
+		};
+
+		t.start();
+	}
+
+	public void ButtonExamination4(View v) {
 		Thread t = new Thread() {
 
 			@Override
@@ -669,9 +655,7 @@ public class MainActivity extends Activity implements OnTouchListener,
 	 */
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		mRgbaOutput = inputFrame.rgba();
-		mRgbaWork = inputFrame.rgba(); // TODO: does mRgbaWork refer to the same
-										// image as mRgbaOutput? In that case,
-										// either fix or remove this variable.
+		mRgbaWork = inputFrame.rgba();
 		if (frameInterval >= executionInterval) {
 			squareList = imageProcessor.findSquaresOnCamera(mRgbaWork,
 					myBeaconColors);
