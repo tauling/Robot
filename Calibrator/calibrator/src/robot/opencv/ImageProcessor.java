@@ -46,6 +46,12 @@ public class ImageProcessor {
 	// lowerColorID) to the ID
 	public static final Map<Integer, Integer> BeaconsAngleOffs; // maps
 																// beaconID-combo
+
+	public Scalar mmColorRadius = new Scalar(0, 0, 0, 0);
+	public int structuringElementSize = 1;
+	public Boolean useCircle = false;
+	
+
 	// to angles which
 	// have to be added
 	// to the
@@ -95,6 +101,10 @@ public class ImageProcessor {
 		tmpAngles.put(57, 225);
 		tmpAngles.put(47, 315);
 		BeaconsAngleOffs = Collections.unmodifiableMap(tmpAngles);
+	}
+
+	public void setColorRadius(int Hue, int Saturation, int Lightness) {
+		mmColorRadius = new Scalar(Hue, Saturation, Lightness);
 	}
 
 	// <- Beacon Calibration
@@ -234,7 +244,7 @@ public class ImageProcessor {
 	 *            filtering circles
 	 * @return filtered image in grayscale
 	 */
-	public Mat filter(Mat rgbaImage, Scalar hsvColor, char mode) {
+	public Mat filter(Mat rgbaImage, Scalar hsvColor) {
 		Scalar mmLowerBound = new Scalar(0);
 		Scalar mmUpperBound = new Scalar(0);
 		Mat mmPyrDownMat = new Mat();
@@ -242,33 +252,14 @@ public class ImageProcessor {
 		Mat mmMask = new Mat();
 		Mat mmDilatedMask = new Mat();
 
-		Scalar mmColorRadius = new Scalar(6, 40, 70, 0);
-		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-				new Size(5, 5));
-
-		switch (mode) {
-		case 'b':
-			// mmColorRadius = new Scalar(10, 100, 85, 0); // Color radius
-			mmColorRadius = new Scalar(8, 75, 100, 0); // Color radius
-			element.release();
-			element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-					new Size(5, 5));
-			// for range
-			// checking in
-			// HSV color
-			// space
-			break;
-		case 'c':
-			mmColorRadius = new Scalar(10, 80, 100, 0); // Color radius
-			element.release();
+		Mat element ;
+		
+		if (useCircle)
 			element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE,
-					new Size(8, 8));
-			// for range
-			// checking in
-			// HSV color
-			// space
-			break;
-		}
+				new Size(structuringElementSize, structuringElementSize));
+		else
+			element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
+					new Size(structuringElementSize, structuringElementSize));
 
 		try {
 
@@ -368,6 +359,37 @@ public class ImageProcessor {
 		return distToCenter;
 	}
 
+	// TODO Needed?
+	// TODO If so, comment
+	private Mat drawBalls(Mat mRgbaWithBalls, List<Ball> foundBalls) {
+
+		int counter = 0;
+		for (Ball ball : foundBalls) {
+
+			// Just for highlighting
+			Scalar color = null;
+			Scalar red = new Scalar(20);
+			Scalar black = new Scalar(128);
+			if (counter % 2 == 0) {
+				color = red;
+			} else {
+				color = black;
+			}
+
+			Point center = ball.getBallCenterCameraFrame();
+			int rad = (int) ball.getRadius();
+			Core.circle(mRgbaWithBalls, center, 10, new Scalar(20), -1);
+			Core.circle(mRgbaWithBalls, center, (int) rad, color, 5);
+			Point lowestPoint = new Point(center.x, center.y + rad);
+			Core.circle(mRgbaWithBalls, lowestPoint, 10, color, 5);
+			// Imgproc.drawContours(img, ballArea, -1, color, -1);
+
+			counter++;
+		}
+
+		return mRgbaWithBalls;
+	}
+
 	// TODO update description
 	/**
 	 * Finds the centers of all circles on a given image matrix..
@@ -384,12 +406,9 @@ public class ImageProcessor {
 			List<Scalar> myColors, List<Scalar> myBeaconColors) {
 		List<Circle> circlesList = new ArrayList<Circle>();
 		double colorAmount = myColors.size();
-		List<Square> squareList = findSquaresOnCamera(mRgbaWork, myBeaconColors);
-		BeaconSquareHolder beaconsAndSquares = findBeacons(squareList);
-		List<Square> confirmedSquares = beaconsAndSquares.getSquareList();
 		for (int i = 0; i < colorAmount; i++) {
 			Mat grayImg;
-			grayImg = filter(mRgbaWork, myColors.get(i), 'c');
+			grayImg = filter(mRgbaWork, myColors.get(i));
 			List<MatOfPoint> contours = findContours(grayImg);
 			grayImg.release();
 
@@ -410,12 +429,18 @@ public class ImageProcessor {
 
 				if (radius[0] > 0) {
 					// RotatedRect rect = Imgproc.minAreaRect(circl2f);
-					if (getShape(contours.get(j), 'c')) {
+					if (getShape(contours.get(j), 'c')
+							&& isContourConvex(contours.get(j))) {
 						Log.i(TAG, "Radius of found circle: " + radius);
 						Circle foundCircle = new Circle(center,
 								(double) radius[0]);
+						List<Square> squareList = findSquaresOnCamera(
+								mRgbaWork, myBeaconColors);
+						BeaconSquareHolder beaconsAndSquares = findBeacons(squareList);
+						List<Square> confirmedSquares = beaconsAndSquares
+								.getSquareList();
 						if (checkCircleVsSquares(foundCircle, confirmedSquares)
-								&& foundCircle.getRadius() > 5) {
+								&& foundCircle.getRadius() > 8) {
 							circlesList.add(foundCircle);
 						}
 					}
@@ -484,7 +509,7 @@ public class ImageProcessor {
 		int colorAmount = myColors.size();
 		for (int i = 0; i < colorAmount; i++) {
 			Mat grayImg;
-			grayImg = filter(mRgbaWork, myColors.get(i), 'b');
+			grayImg = filter(mRgbaWork, myColors.get(i));
 
 			List<MatOfPoint> contours = findContours(grayImg);
 
@@ -537,6 +562,13 @@ public class ImageProcessor {
 				+ halfHeight);
 
 		return lowestEdgeLeft;
+	}
+
+	// TODO needed?
+	// if so, add description
+	public Scalar getColorSalar(Mat mRgbaWork, Point pt) {
+		double[] color = mRgbaWork.get((int) pt.x, (int) pt.y);
+		return new Scalar(color);
 	}
 
 	// TODO update Description
@@ -641,6 +673,28 @@ public class ImageProcessor {
 		return new BeaconSquareHolder(beaconList, confSquares);
 	}
 
+	// TODO: needed?
+	/**
+	 * checks if the detected beacon color id combination is correct
+	 * 
+	 * correct means the combination matches with one of the beacon color
+	 * combinations we created
+	 * 
+	 * @param newBeacon
+	 * @return true (newBeacon is a proper one) false otherwise
+	 */
+	private boolean checkBeaconColorComb(Beacon newBeacon) {
+		int[] colorCombs = { 12, 21, 13, 42, 24, 41, 14, 31 };
+		boolean correctId = false;
+		int colorCombsSize = colorCombs.length;
+		int refColor = newBeacon.getColorComb();
+		for (int i = 0; i < colorCombsSize; i++) {
+			if (colorCombs[i] == refColor)
+				correctId = true;
+		}
+		return correctId;
+	}
+
 	private boolean twoSquaresMakeBeacon(Square squareA, Square squareB) {
 
 		int TOL = 25;
@@ -653,6 +707,7 @@ public class ImageProcessor {
 		return false;
 	}
 
+	// TODO Needed
 	private boolean checkIfNew(List<Beacon> beaconList, Beacon newBeacon) {
 		boolean unique = true;
 		double TOL = 300;
@@ -849,7 +904,7 @@ public class ImageProcessor {
 			if (Imgproc.isContourConvex(approx)) {
 				Log.i(TAG, "xxxShape is convex");
 
-				if (approx.total() >= 4) {
+				if (approx.total() > 4) {
 					// Detect and label circles
 					double area = Imgproc.contourArea(contour);
 					Rect rrect = Imgproc.boundingRect(contour);
@@ -858,9 +913,9 @@ public class ImageProcessor {
 							+ radius + "; area = " + area + "; half height = "
 							+ rrect.height);
 
-					if (Math.abs(1 - ((double) rrect.width / rrect.height)) <= 0.25
+					if (Math.abs(1 - ((double) rrect.width / rrect.height)) <= 0.2
 							&& Math.abs(1 - (area / (Math.PI * Math.pow(radius,
-									2)))) <= 0.3) {
+									2)))) <= 0.25) {
 						ret = true;
 					}
 				}

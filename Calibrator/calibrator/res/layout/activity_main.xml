@@ -1,0 +1,136 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scrollMe"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:id="@+id/LinearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".MainActivity" >
+
+        <ScrollView
+            android:id="@+id/myScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="fill_horizontal" >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+
+                <org.opencv.android.JavaCameraView
+                    android:id="@+id/color_blob_detection_activity_surface_view"
+                    android:layout_width="300dp"
+                    android:layout_height="176dp"
+                    android:layout_gravity="center|top" />
+            </LinearLayout>
+        </ScrollView>
+
+        <LinearLayout
+            android:id="@+id/slider1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <SeekBar
+                android:id="@+id/seekBar1"
+                android:layout_width="520dp"
+                android:layout_height="wrap_content"
+                android:max="30" />
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="H"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/slider2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <SeekBar
+                android:id="@+id/seekBar2"
+                android:layout_width="520dp"
+                android:layout_height="wrap_content"
+                android:max="180" />
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="S"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/slider3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <SeekBar
+                android:id="@+id/seekBar3"
+                android:layout_width="520dp"
+                android:layout_height="wrap_content"
+                android:max="255" />
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="V"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/slider4"
+            android:layout_width="540dp"
+            android:layout_height="wrap_content" >
+
+            <SeekBar
+                android:id="@+id/seekBar4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="40" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TextView" />
+
+        <LinearLayout
+            android:id="@+id/buttons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/button1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="toggleStructuringElement"
+                android:text="Circle ON" />
+
+            <Button
+                android:id="@+id/button2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="nextColor"
+                android:text="next color" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textView5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Large Text"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+    </LinearLayout>
+
+</ScrollView>
